@@ -1,0 +1,117 @@
+/*
+ * ===== Designové tokeny Better Windows =====
+ * JEDINÉ místo, kde se definují barvy, průhlednost, rozmazání, zaoblení, stíny a písmo.
+ * Komponenty používají jen tyto proměnné, nikdy pevné hodnoty.
+ *
+ * Světlý/tmavý motiv:
+ *  - Barvy jsou zapsané přes light-dark(světlá, tmavá). Prohlížeč vybere podle color-scheme.
+ *  - Výchozí: podle Windows (C# nastavuje WebView2 PreferredColorScheme podle systému).
+ *  - Ruční přepnutí: <html data-theme="light"> nebo "dark" (viz lib/theme.ts).
+ *  - Motivy (pozdější fáze) budou přepisovat tyto proměnné.
+ */
+@import '@fontsource-variable/inter';
+
+:root {
+  color-scheme: light dark;
+
+  /* --- Písmo --- */
+  --bw-font: 'Inter Variable', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --bw-font-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
+  --bw-text-xs: 11px;
+  --bw-text-sm: 12px;
+  --bw-text-md: 13px;
+  --bw-text-lg: 15px;
+  --bw-text-xl: 20px;
+  --bw-text-2xl: 28px;
+  --bw-weight-normal: 450;
+  --bw-weight-medium: 550;
+  --bw-weight-bold: 650;
+
+  /* --- Zaoblení --- */
+  --bw-radius-card: 22px;   /* widgety, karty, velké panely */
+  --bw-radius-dock: 18px;
+  --bw-radius-lg: 14px;
+  --bw-radius-md: 10px;
+  --bw-radius-sm: 6px;
+  --bw-radius-pill: 999px;
+
+  /* --- Mezery --- */
+  --bw-space-1: 4px;
+  --bw-space-2: 8px;
+  --bw-space-3: 12px;
+  --bw-space-4: 16px;
+  --bw-space-5: 20px;
+  --bw-space-6: 24px;
+
+  /* --- Text --- */
+  --bw-fg: light-dark(#141418, #f5f5f7);
+  --bw-fg-muted: light-dark(rgb(20 20 24 / 0.6), rgb(245 245 247 / 0.6));
+  --bw-fg-subtle: light-dark(rgb(20 20 24 / 0.38), rgb(245 245 247 / 0.38));
+
+  /* --- Akcenty a stavy --- */
+  --bw-accent: light-dark(#3a6df0, #7c9cff);
+  --bw-hover: light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.1));
+  --bw-pressed: light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0.16));
+  --bw-focus-ring: 0 0 0 2px var(--bw-accent);
+  --bw-privacy-mic: #f59e0b;  /* oranžová tečka: mikrofon */
+  --bw-privacy-cam: #22c55e;  /* zelená tečka: kamera */
+
+  /* --- Horní lišta a dock (nad aplikacemi) ---
+     Rozmazání dělá systém (DWM). CSS jen přidává tón navíc, takže lištu umí ztmavit/zesvětlit,
+     ale ne zprůhlednit víc, než dovolí systémové rozmazání. */
+  --bw-bar-tint: light-dark(rgb(255 255 255 / 0.12), rgb(0 0 0 / 0.12));
+  --bw-bar-fg: var(--bw-fg);
+  --bw-dock-tint: light-dark(rgb(255 255 255 / 0.12), rgb(0 0 0 / 0.16));
+  --bw-dock-border: light-dark(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.12));
+
+  /* --- Sklo (widgety na ploše) ---
+     Rozmazání dělá CSS backdrop-filter nad tapetou, ve stejné stránce (DesktopLayer). */
+  --bw-glass-bg: light-dark(rgb(255 255 255 / 0.32), rgb(18 18 22 / 0.38));
+  --bw-glass-border: light-dark(rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.12));
+  --bw-glass-highlight: light-dark(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.08));
+  --bw-glass-blur: 28px;
+  --bw-glass-saturate: 1.5;
+
+  /* --- Dynamic Island --- */
+  --bw-island-bg: #000;
+  --bw-island-fg: #f5f5f7;
+  --bw-island-width: 260px; /* místo, které horní lišta nechává volné uprostřed */
+
+  /* --- Neprůhledné plochy (okno nastavení apod.) --- */
+  --bw-page: light-dark(#f3f3f6, #141418);
+  --bw-surface: light-dark(#ffffff, #1f1f24);
+  --bw-border: light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.1));
+
+  /* --- Stíny --- */
+  --bw-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.12);
+  --bw-shadow-md: 0 4px 16px rgb(0 0 0 / 0.18);
+  --bw-shadow-card: 0 10px 40px rgb(0 0 0 / 0.22);
+
+  /* --- Pohyb --- */
+  --bw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --bw-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --bw-duration-fast: 120ms;
+  --bw-duration: 200ms;
+  --bw-duration-slow: 320ms;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Přání systému omezit animace / budoucí úsporný režim */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --bw-duration-fast: 0ms;
+    --bw-duration: 0ms;
+    --bw-duration-slow: 0ms;
+  }
+}
+:root[data-motion='reduced'] {
+  --bw-duration-fast: 0ms;
+  --bw-duration: 0ms;
+  --bw-duration-slow: 0ms;
+}

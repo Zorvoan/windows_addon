@@ -1,4 +1,30 @@
 // Seznam Win32 funkcí/konstant, pro které CsWin32 vygeneruje C# deklarace (třída Windows.Win32.PInvoke).
 // Stačí sem dopsat jméno a znovu sestavit.
+
+// Jedna instance
 AllowSetForegroundWindow
 ASFW_ANY
+
+// Okna
+GetWindowLong
+SetWindowLong
+SetWindowPos
+HWND_TOPMOST
+WINDOW_EX_STYLE
+WM_MOUSEACTIVATE
+MA_NOACTIVATE
+
+// DWM (rozmazání, zaoblení rohů, tmavý režim)
+DwmExtendFrameIntoClientArea
+DwmSetWindowAttribute
+DWMWINDOWATTRIBUTE
+DWM_SYSTEMBACKDROP_TYPE
+DWM_WINDOW_CORNER_PREFERENCE
+DWMWA_COLOR_NONE
+
+// Monitory a DPI
+EnumDisplayMonitors
+GetMonitorInfo
+MONITORINFOEXW
+GetDpiForMonitor
+MONITORINFOF_PRIMARY

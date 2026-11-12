@@ -1,0 +1,38 @@
+/* Základní styly společné pro všechny stránky. */
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--bw-font);
+  font-size: var(--bw-text-md);
+  font-weight: var(--bw-weight-normal);
+  font-feature-settings: 'cv11'; /* Inter: jednopatrové "a" */
+  color: var(--bw-fg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Okna shellu (lišta, dock, plocha) mají průhledné pozadí – tón dodávají komponenty. */
+body.shell {
+  background: transparent;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--bw-focus-ring);
+}

@@ -8,7 +8,7 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 // Každá část shellu (horní lišta, dock, nastavení, později Start, widgety...)
 // je samostatná HTML stránka načtená do vlastního WebView2 okna.
 // Novou část přidáš tak, že sem dopíšeš jméno a vytvoříš <jméno>.html.
-const pages = ['settings'];
+const pages = ['settings', 'topbar'];
 
 export default defineConfig({
   plugins: [svelte()],

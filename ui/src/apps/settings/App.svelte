@@ -5,7 +5,7 @@
 
 <main>
   <h1>Better Windows</h1>
-  <Surface>
+  <Surface variant="solid">
     <Section
       title="Nastavení"
       description="Zatím jen kostra. Skutečná nastavení (město pro počasí, připnuté aplikace, hlavní panel) přibudou v kroku 10."
@@ -20,7 +20,7 @@
     background: var(--bw-page);
   }
   main {
-    max-width: 640px;
+    max-width: 640px; font-family: var(--bw-font);
     margin: 0 auto;
     padding: var(--bw-space-6);
     display: grid;

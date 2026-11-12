@@ -1,13 +1,13 @@
 <!--
-  Obecný "panel": zaoblený podklad s okrajem. Použije se v nastavení,
-  widgetech, nabídce Start i vyskakovacích nabídkách.
+  Obecný panel. Použije se v nastavení, widgetech, nabídce Start i vyskakovacích nabídkách.
+   - "solid": neprůhledný (okno nastavení)
+   - "glass": sklo s rozmazáním toho, co je ZA ním ve stejné stránce (widgety nad tapetou)
 -->
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
   interface Props {
-    /** "translucent" = poloprůhledný (nad rozmazaným pozadím okna), "solid" = neprůhledný */
-    variant?: 'translucent' | 'solid';
+    variant?: 'solid' | 'glass';
     padding?: 'none' | 'sm' | 'md' | 'lg';
     children: Snippet;
   }
@@ -21,14 +21,19 @@
 
 <style>
   .surface {
-    border: 1px solid var(--bw-border);
-    border-radius: var(--bw-radius-md);
+    border-radius: var(--bw-radius-card);
   }
   .solid {
-    background: var(--bw-surface-strong);
-  }
-  .translucent {
     background: var(--bw-surface);
+    border: 1px solid var(--bw-border);
+  }
+  .glass {
+    background: var(--bw-glass-bg);
+    border: 1px solid var(--bw-glass-border);
+    box-shadow:
+      inset 0 1px 0 var(--bw-glass-highlight),
+      var(--bw-shadow-card);
+    backdrop-filter: blur(var(--bw-glass-blur)) saturate(var(--bw-glass-saturate));
   }
   .pad-none { padding: 0; }
   .pad-sm { padding: var(--bw-space-2); }

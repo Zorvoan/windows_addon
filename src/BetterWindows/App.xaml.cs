@@ -1,8 +1,12 @@
 using System.Reflection;
 using System.Windows;
 using BetterWindows.Core;
-using BetterWindows.Tray;
+using BetterWindows.Monitors;
+using BetterWindows.Native;
+using BetterWindows.Services;
 using BetterWindows.ShellWindows;
+using BetterWindows.Tray;
+using BetterWindows.Web;
 
 namespace BetterWindows;
 
@@ -14,6 +18,9 @@ public partial class App : Application
     private SingleInstance? _singleInstance;
     private TrayIcon? _tray;
     private SettingsWindow? _settingsWindow;
+    private MonitorService? _monitors;
+    private ThemeService? _theme;
+    private TopBarWindow? _topBar;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -34,11 +41,34 @@ public partial class App : Application
         // Událost přichází z jiného vlákna -> přesun do UI vlákna přes Dispatcher.
         _singleInstance.SecondInstanceStarted += () => Dispatcher.InvokeAsync(ShowSettings);
 
+        // --- Služby ---
+        _monitors = new MonitorService(Dispatcher);
+        _theme = new ThemeService(Dispatcher);
+        WebViewHost.SetColorScheme(_theme.IsDark);
+
+        // --- Okna shellu (zatím jen hlavní monitor) ---
+        _topBar = new TopBarWindow(_monitors, _monitors.GetPrimary(), _theme.IsDark);
+        _topBar.Show();
+
+        _theme.Changed += dark =>
+        {
+            WebViewHost.SetColorScheme(dark);
+            _topBar.SetDarkMode(dark);
+        };
+        _monitors.Changed += () => _topBar.RefreshMonitor();
+
+        // --- Ikona v oznamovací oblasti ---
         _tray = new TrayIcon();
         _tray.SettingsRequested += ShowSettings;
         _tray.ExitRequested += () => Shutdown(0);
+        _tray.ShowBackdrop(BackdropKind.SystemAcrylic);
 #if DEBUG
         _tray.CrashTestRequested += () => throw new InvalidOperationException("Testovací pád vyvolaný z nabídky.");
+        _tray.BackdropRequested += kind =>
+        {
+            _topBar.SetBackdrop(kind);
+            _tray.ShowBackdrop(kind);
+        };
 #endif
     }
 
@@ -60,7 +90,10 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _settingsWindow?.Close();
+        _topBar?.Close();
         _tray?.Dispose();
+        _theme?.Dispose();
+        _monitors?.Dispose();
         _singleInstance?.Dispose();
         Log.Info($"Konec (kód {e.ApplicationExitCode}).");
         base.OnExit(e);

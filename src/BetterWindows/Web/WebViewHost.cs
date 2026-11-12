@@ -18,6 +18,28 @@ public static class WebViewHost
     private static readonly string Origin = $"https://{HostName}/";
 
     private static Task<CoreWebView2Environment>? _environment;
+    private static readonly List<CoreWebView2> Cores = [];
+    private static bool _dark;
+
+    /// <summary>
+    /// Světlý/tmavý režim pro CSS (prefers-color-scheme) ve všech oknech.
+    /// Nastavujeme ho explicitně z ThemeService, aby CSS a systémové rozmazání vždy souhlasily.
+    /// </summary>
+    public static void SetColorScheme(bool dark)
+    {
+        _dark = dark;
+        foreach (var core in Cores.ToArray())
+        {
+            try
+            {
+                core.Profile.PreferredColorScheme = dark ? CoreWebView2PreferredColorScheme.Dark : CoreWebView2PreferredColorScheme.Light;
+            }
+            catch (Exception)
+            {
+                Cores.Remove(core); // okno už je zavřené
+            }
+        }
+    }
 
     /// <summary>
     /// Jedno sdílené prostředí = jeden prohlížečový proces pro všechna okna (šetří paměť).
@@ -40,6 +62,8 @@ public static class WebViewHost
         await view.EnsureCoreWebView2Async(environment);
         var core = view.CoreWebView2;
 
+        Cores.Add(core);
+        core.Profile.PreferredColorScheme = _dark ? CoreWebView2PreferredColorScheme.Dark : CoreWebView2PreferredColorScheme.Light;
         core.SetVirtualHostNameToFolderMapping(HostName, AppInfo.UiDir, CoreWebView2HostResourceAccessKind.Deny);
 
         var settings = core.Settings;
