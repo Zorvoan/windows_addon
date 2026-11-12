@@ -25,6 +25,11 @@ internal static class SystemGuard
     private static readonly SystemStateFile File = new(Path.Combine(AppInfo.DataDir, "system-state.json"));
     private static readonly object Gate = new();
     private static SystemStateData _state = new();
+    /// <summary>
+    /// Zapsal tento proces něco do pojistky? Jen takový proces ji smí při ukončení mazat –
+    /// jinak by druhé spuštění aplikace nebo watchdog smazaly pojistku běžící instance.
+    /// </summary>
+    private static bool _owner;
 
     public static SystemStateData Current
     {
@@ -38,6 +43,7 @@ internal static class SystemGuard
         {
             change(_state);
             _state.OwnerPid = Environment.ProcessId;
+            _owner = true;
             File.Save(_state);
         }
     }
@@ -47,7 +53,11 @@ internal static class SystemGuard
     {
         SystemStateData snapshot;
         lock (Gate)
+        {
+            if (!_owner)
+                return; // tento proces nic neměnil (druhé spuštění, watchdog)
             snapshot = _state;
+        }
         Execute(RestorePlanner.Plan(snapshot, corrupt: false), reason);
         lock (Gate)
         {

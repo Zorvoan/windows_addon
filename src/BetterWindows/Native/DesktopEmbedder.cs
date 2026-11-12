@@ -94,12 +94,18 @@ internal static class DesktopEmbedder
                     return snap;
             }
         }
-        Log.Warn($"Plocha: rozdělení se nepovedlo ({snap})");
+        Log.Warn(snap.Layout == DesktopLayout.Raised
+            ? $"Plocha: WorkerW se neobjevil, použije se záloha pod SHELLDLL_DefView ({snap})"
+            : $"Plocha: rozdělení se nepovedlo ({snap})");
         return snap;
     }
 
+    /// <summary>
+    /// Připraveno = existuje WorkerW pro tapetu. (Na 24H2+ existuje SHELLDLL_DefView vždy, proto ho
+    /// nestačí; když se WorkerW ani po 0x052C neobjeví, Embed použije zálohu pod SHELLDLL_DefView.)
+    /// </summary>
     private static bool IsReady(DesktopSnapshot s) =>
-        s.Layout == DesktopLayout.Classic || (s.Layout == DesktopLayout.Raised && (!s.WorkerW.IsNull || !s.DefView.IsNull));
+        s.Layout == DesktopLayout.Classic || (s.Layout == DesktopLayout.Raised && !s.WorkerW.IsNull);
 
     private static unsafe void SendSpawn(HWND progman, nuint wParam, nint lParam)
     {

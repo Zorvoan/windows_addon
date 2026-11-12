@@ -134,6 +134,16 @@ internal sealed class WindowTracker : IDisposable
                 entry = (++_sequence, identity);
                 _known[key] = entry;
             }
+            else if (entry.Identity.AppId.EndsWith("applicationframehost.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                // UWP okno zachycené dřív, než se aplikace v rámečku "usadila" -> zkusit znovu.
+                var again = Safe.Run("Identita okna (znovu)", () => _identity.Resolve(hwnd));
+                if (again is not null && again.AppId != entry.Identity.AppId)
+                {
+                    entry = (entry.FirstSeen, again);
+                    _known[key] = entry;
+                }
+            }
             list.Add(new AppWindowInfo((long)key, entry.Identity.AppId, entry.Identity.Name,
                 WindowInfo.GetTitle(hwnd), PInvoke.IsIconic(hwnd), z, entry.FirstSeen));
         }

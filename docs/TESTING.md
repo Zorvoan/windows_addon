@@ -76,7 +76,7 @@ Testy jsou seřazené tak, aby každý stavěl na předchozích. Když selže 2.
 | 5.2 | Ikony | Skutečné ikony aplikací (i u Kalkulačky/Nastavení – aplikace z Microsoft Store) | řádky `Ikona` |
 | 5.3 | Najeď myší nad dock | Ikony se plynule zvětší, nad ikonou popisek | – |
 | 5.4 | Klikni vedle docku (nad ním, vedle něj) | Klik projde do okna/plochy pod ním (dock nepřekáží) | – |
-| 5.5 | Pod docken je rozmazání sedící přesně na pásu | Ano, se zaoblenými rohy | – |
+| 5.5 | Pod dockem je rozmazání sedící přesně na pásu | Ano, se zaoblenými rohy. Když místo toho uvidíš čtverec jinde nebo nic: Nastavení › Vzhled › Rozmazání docku › **Žádné** | řádky `DockBackdropWindow` |
 | 5.6 | Klik na neběžící připnutou aplikaci | Spustí se (ikona poskakuje, pak tečka) | řádky `Dock:` / `Spouštím` |
 | 5.7 | Klik na běžící aplikaci v pozadí | Přepne se na ni (i když byla minimalizovaná) | řádky `SetForegroundWindow` |
 | 5.8 | Klik na aplikaci, která je v popředí | Minimalizuje se | – |
@@ -141,3 +141,7 @@ Skryj ikony plochy (výchozí) a pro test i hlavní panel (7.1). Pak:
   v logu bude `SetForegroundWindow … odmítl`.
 - **Aplikace spuštěné jako správce**: dock je neumí zavřít ani vždy přepnout (ochrana Windows – UIPI).
 - **Klávesnice ve widgetech** funguje jen ve vloženém režimu a jen když jsou skryté ikony plochy.
+- **Skrytí ikon plochy skryje celou vrstvu ikon Windows** – zmizí tím i nabídka po pravém kliknutí na plochu
+  (Zobrazit, Seřadit, Nový…). Vrátí se vypnutím „Skrýt ikony plochy“ nebo ukončením aplikace.
+- **Rozmazání pod dockem** dělá samostatné okno, které WPF „nezobrazuje“ běžnou cestou (aby po startu neproblikl čtverec).
+  Kdyby se nevykreslilo správně, záloha je Rozmazání docku › Žádné (dock pak má jen poloprůhledné pozadí).
