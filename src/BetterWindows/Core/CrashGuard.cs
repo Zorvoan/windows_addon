@@ -13,18 +13,23 @@ public static class CrashGuard
     private static readonly List<(string Name, Action Action)> Cleanups = [];
     private static int _cleanupDone;
 
+    /// <summary>Musí se zavolat dřív, než vznikne jakékoli WinForms okno (ikona v oznamovací oblasti).</summary>
     public static void Install(Application app)
     {
         // Výjimka v UI vlákně (WPF Dispatcher). Stav aplikace už nemusí být v pořádku,
         // takže po zalogování aplikaci řízeně ukončíme.
         app.DispatcherUnhandledException += (_, e) =>
         {
-            Log.Error("Neošetřená výjimka v UI vlákně", e.Exception);
-            RunEmergencyCleanup();
             e.Handled = true;
-            ShowCrashMessage(e.Exception);
-            app.Shutdown(1);
+            HandleFatalUiException(app, "Neošetřená výjimka v UI vlákně", e.Exception);
         };
+
+        // Kód volaný z WinForms (např. kliknutí v nabídce ikony v oznamovací oblasti) by WPF
+        // nezachytil: WinForms má vlastní záchrannou síť a ukázal by svůj dialog
+        // "Pokračovat / Ukončit", takže by se nespustil úklid. Přesměrujeme ho na stejnou cestu.
+        System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.CatchException);
+        System.Windows.Forms.Application.ThreadException += (_, e) =>
+            HandleFatalUiException(app, "Neošetřená výjimka ve WinForms části (oznamovací oblast)", e.Exception);
 
         // Výjimka v jakémkoli jiném vlákně. Tady už proces končí a nejde to zastavit,
         // stihneme jen zalogovat a uklidit.
@@ -74,6 +79,14 @@ public static class CrashGuard
                 Log.Error($"Nouzový úklid '{name}' selhal", ex);
             }
         }
+    }
+
+    private static void HandleFatalUiException(Application app, string context, Exception ex)
+    {
+        Log.Error(context, ex);
+        RunEmergencyCleanup();
+        ShowCrashMessage(ex);
+        app.Shutdown(1);
     }
 
     private static void ShowCrashMessage(Exception ex)

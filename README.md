@@ -31,7 +31,7 @@ Rychlá smyčka při ladění UI:
 
 1. Spusť aplikaci (`dotnet run --project src/BetterWindows`).
 2. V druhém terminálu spusť `npm run watch` ve složce `ui/`. Vite při každé změně přestaví `ui/dist`.
-3. Po změně znovu sestav C# (`dotnet build -p:SkipUiBuild=true`), aby se `ui/dist` zkopíroval vedle exe, a v okně stiskni **Ctrl+R**.
+3. V okně stiskni **Ctrl+R**. Debug build spuštěný z repozitáře čte rozhraní přímo z `ui/dist`, takže C# není potřeba znovu sestavovat.
 
 V Debug buildu fungují v každém okně vývojářské nástroje (**F12**).
 

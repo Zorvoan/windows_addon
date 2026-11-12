@@ -21,8 +21,24 @@ public static class AppInfo
 
     public static string LogDir { get; } = EnsureDir(Path.Combine(DataDir, "logs"));
 
-    /// <summary>Složka se sestaveným webovým rozhraním (kopie ui/dist vedle exe).</summary>
-    public static string UiDir { get; } = Path.Combine(AppContext.BaseDirectory, "ui");
+    /// <summary>
+    /// Složka se sestaveným webovým rozhraním: normálně kopie ui/dist vedle exe.
+    /// V Debug buildu spuštěném z repozitáře se čte přímo ui/dist, takže stačí
+    /// `npm run watch` v ui/ a Ctrl+R v okně, bez přestavění C#.
+    /// </summary>
+    public static string UiDir { get; } = ResolveUiDir();
+
+    private static string ResolveUiDir()
+    {
+#if DEBUG
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "ui", "vite.config.ts")))
+                return Path.Combine(dir.FullName, "ui", "dist");
+        }
+#endif
+        return Path.Combine(AppContext.BaseDirectory, "ui");
+    }
 
     private static string EnsureDir(string path)
     {

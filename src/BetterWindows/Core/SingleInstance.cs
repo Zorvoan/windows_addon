@@ -1,4 +1,5 @@
 using System.Threading;
+using Windows.Win32;
 
 namespace BetterWindows.Core;
 
@@ -43,6 +44,9 @@ public sealed class SingleInstance : IDisposable
         if (createdNew)
             return new SingleInstance(mutex, activateEvent);
 
+        // Povolíme běžící instanci, aby si směla přenést okno do popředí. Musí to být PŘED
+        // zazvoněním, jinak by Windows cizímu procesu popředí nedovolil a okno by jen blikalo.
+        PInvoke.AllowSetForegroundWindow(PInvoke.ASFW_ANY);
         activateEvent.Set();
         activateEvent.Dispose();
         mutex.Dispose();

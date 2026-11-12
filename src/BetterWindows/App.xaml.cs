@@ -3,7 +3,6 @@ using System.Windows;
 using BetterWindows.Core;
 using BetterWindows.Tray;
 using BetterWindows.ShellWindows;
-using Windows.Win32;
 
 namespace BetterWindows;
 
@@ -28,9 +27,6 @@ public partial class App : Application
         _singleInstance = SingleInstance.TryAcquire();
         if (_singleInstance is null)
         {
-            // Povolíme běžící instanci, aby si směla přenést okno do popředí
-            // (Windows to jinak cizímu procesu nedovolí a okno by jen blikalo na hlavním panelu).
-            PInvoke.AllowSetForegroundWindow(PInvoke.ASFW_ANY);
             Log.Info("Aplikace už běží, předávám řízení běžící instanci a končím.");
             Shutdown(0);
             return;
