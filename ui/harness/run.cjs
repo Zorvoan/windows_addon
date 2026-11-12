@@ -56,6 +56,9 @@ async function hoverDock(page, report) {
   const layouts = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.layout');
   report.notes.push(`dock.layout zpráv: ${layouts.length}; první: ${JSON.stringify(layouts[0]?.payload)}; poslední: ${JSON.stringify(layouts.at(-1)?.payload)}`);
   if (layouts.length === 0) report.errors.push('dock: nepřišla žádná zpráva dock.layout');
+  const hovers = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.hover');
+  report.notes.push(`dock.hover: ${hovers.map((h) => h.payload.appId ?? 'null').join(' → ')}`);
+  if (!hovers.some((h) => h.payload.appId && h.payload.rect)) report.errors.push('dock: nad spuštěnou aplikací nepřišel dock.hover s obdélníkem');
 }
 
 async function toggleSetting(page, report) {

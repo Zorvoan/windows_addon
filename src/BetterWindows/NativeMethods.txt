@@ -133,3 +133,14 @@ RGN_COMBINE_MODE
 SetForegroundWindow
 PostMessage
 WM_CLOSE
+
+// Náhledy oken (DWM thumbnail)
+DwmRegisterThumbnail
+DwmUnregisterThumbnail
+DwmUpdateThumbnailProperties
+DwmQueryThumbnailSourceSize
+DWM_THUMBNAIL_PROPERTIES
+DWM_TNP_RECTDESTINATION
+DWM_TNP_VISIBLE
+DWM_TNP_OPACITY
+DWM_TNP_SOURCECLIENTAREAONLY

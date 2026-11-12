@@ -26,6 +26,7 @@ internal sealed class DockController : IDisposable
     private DockWindow? _window;
     private DockBackdropWindow? _backdrop;
     private bool _hiddenForFullscreen;
+    private readonly WindowPreviewController _previews;
 
     public DockController(ShellContext context, WindowTracker tracker, AppIdentityResolver identity, IconService icons)
     {
@@ -36,6 +37,10 @@ internal sealed class DockController : IDisposable
 
         _tracker.WindowsChanged += Publish;
         _tracker.ForegroundChanged += Publish;
+        _previews = new WindowPreviewController(context, tracker)
+        {
+            ToScreen = rect => _window?.ToScreen(rect) ?? default,
+        };
         _context.Settings.Changed += OnSettingsChanged;
         _icons.IconReady += (appId, url) =>
         {
@@ -74,6 +79,7 @@ internal sealed class DockController : IDisposable
     public void SetFullscreen(bool fullscreen)
     {
         _hiddenForFullscreen = fullscreen;
+        _previews.Hide();
         if (fullscreen)
             _window?.Hide();
         else
@@ -122,6 +128,7 @@ internal sealed class DockController : IDisposable
 
     private void Activate(string appId)
     {
+        _previews.Hide();
         var action = DockModel.DecideClick(appId, _tracker.Windows, _tracker.ForegroundAppId);
         Log.Info($"Dock: {appId} -> {action}");
         switch (action)
@@ -158,6 +165,7 @@ internal sealed class DockController : IDisposable
     /// </summary>
     private void ShowContextMenu(string appId)
     {
+        _previews.Hide();
         if (_window is null)
             return;
 
@@ -232,6 +240,7 @@ internal sealed class DockController : IDisposable
         _tracker.WindowsChanged -= Publish;
         _tracker.ForegroundChanged -= Publish;
         _context.Settings.Changed -= OnSettingsChanged;
+        _previews.Dispose();
         Stop();
     }
 }

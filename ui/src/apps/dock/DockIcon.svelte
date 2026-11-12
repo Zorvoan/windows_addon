@@ -10,7 +10,7 @@
     launching: boolean;
     onactivate: () => void;
     oncontext: () => void;
-    onhover: (hover: boolean) => void;
+    onhover: (hover: boolean, element: HTMLElement) => void;
   }
 
   let { item, size, icon, hovered, launching, onactivate, oncontext, onhover }: Props = $props();
@@ -34,8 +34,8 @@
       e.preventDefault();
       oncontext();
     }}
-    onmouseenter={() => onhover(true)}
-    onmouseleave={() => onhover(false)}
+    onmouseenter={(e) => onhover(true, e.currentTarget)}
+    onmouseleave={(e) => onhover(false, e.currentTarget)}
   >
     {#if icon}
       <img src={icon} alt="" draggable="false" />

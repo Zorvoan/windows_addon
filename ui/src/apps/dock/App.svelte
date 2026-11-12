@@ -54,7 +54,15 @@
   function onLeave() {
     targetStrength = 0;
     hovered = null;
+    send('dock.hover', { appId: null, rect: null });
     animate();
+  }
+
+  /** Náhledy oken: C# je ukáže nad ikonou spuštěné aplikace (po krátkém zpoždění). */
+  function hover(item: DockItem, h: boolean, element: HTMLElement) {
+    hovered = h ? item.appId : hovered === item.appId ? null : hovered;
+    if (h && item.running) send('dock.hover', { appId: item.appId, rect: rectOf(element) });
+    else if (!h) send('dock.hover', { appId: null, rect: null });
   }
 
   // Plynulý náběh / doznění efektu.
@@ -168,7 +176,7 @@
         launching={item.appId in launching}
         onactivate={() => activate(item)}
         oncontext={() => send('dock.contextMenu', { appId: item.appId })}
-        onhover={(h) => (hovered = h ? item.appId : hovered === item.appId ? null : hovered)}
+        onhover={(h, el) => hover(item, h, el)}
       />
       {#if i === separatorAfter}
         <span class="separator" aria-hidden="true"></span>
