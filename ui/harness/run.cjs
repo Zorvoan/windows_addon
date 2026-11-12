@@ -21,7 +21,7 @@ const pages = [
   { name: 'topbar', width: 1600, height: 36, backdrop: true },
   { name: 'dock', width: 1200, height: 170, backdrop: true, interact: hoverDock },
   { name: 'desktop', width: 1600, height: 900, backdrop: false },
-  { name: 'settings', width: 900, height: 900, backdrop: false, fullPage: true },
+  { name: 'settings', width: 900, height: 900, backdrop: false, fullPage: true, interact: toggleSetting },
 ].filter((p) => fs.existsSync(path.join(root, `${p.name}.html`)));
 
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.svg': 'image/svg+xml', '.png': 'image/png' };
@@ -56,6 +56,16 @@ async function hoverDock(page, report) {
   const layouts = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.layout');
   report.notes.push(`dock.layout zpráv: ${layouts.length}; první: ${JSON.stringify(layouts[0]?.payload)}; poslední: ${JSON.stringify(layouts.at(-1)?.payload)}`);
   if (layouts.length === 0) report.errors.push('dock: nepřišla žádná zpráva dock.layout');
+}
+
+async function toggleSetting(page, report) {
+  await page.getByRole('switch', { name: 'Testovací karta' }).click();
+  await page.getByRole('switch', { name: 'Skrýt hlavní panel' }).click(); // má se jen zeptat
+  await page.waitForTimeout(200);
+  const updates = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'settings.update');
+  report.notes.push(`settings.update zpráv: ${updates.length}; showTestCard=${updates.at(-1)?.payload.settings.desktop.showTestCard}; taskbar.hide=${updates.at(-1)?.payload.settings.taskbar.hide}`);
+  if (updates.length !== 1) report.errors.push('nastavení: čekal jsem právě 1 settings.update (hlavní panel se má nejdřív potvrdit)');
+  if (!(await page.getByText('Opravdu skrýt?').isVisible())) report.errors.push('nastavení: chybí potvrzení skrytí hlavního panelu');
 }
 
 (async () => {

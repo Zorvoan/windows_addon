@@ -36,6 +36,7 @@ internal sealed class ShellController : IDisposable
     private readonly IconService _icons = new();
     private readonly DockController _dock;
     private readonly AudioVisualizerService _visualizer;
+    private readonly TaskbarService _taskbar;
     private readonly Logic.Storage.KeyValueStore _store = new(System.IO.Path.Combine(AppInfo.DataDir, "widgets-data.json"));
 
     private TopBarWindow? _topBar;
@@ -71,6 +72,9 @@ internal sealed class ShellController : IDisposable
         _privacy = new PrivacyIndicatorService(dispatcher);
         _privacy.Changed += p => _hub.Publish(MessageTypes.PrivacyState, p);
         _dock = new DockController(_context, _tracker, _identity, _icons);
+        _taskbar = new TaskbarService(_settings, dispatcher);
+        // Po skrytí/ukázání panelu Windows chvíli přepočítává pracovní plochu -> dock posunout s malým zpožděním.
+        _taskbar.WorkAreaChanged += () => DelayOnUi(TimeSpan.FromMilliseconds(600), OnMonitorsChanged);
         _visualizer = new AudioVisualizerService(_settings);
         _visualizer.Frame += bins => _hub.Publish(MessageTypes.VisualizerFrame, new VisualizerFramePayload(bins), sticky: false, page: "desktop");
         Themes.ThemeResources.Apply(_theme.IsDark);
@@ -97,6 +101,18 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Počasí", _weather.Start);
         Safe.Run("Mikrofon a kamera", _privacy.Start);
         Safe.Run("Vizualizér", _visualizer.Start);
+        Safe.Run("Hlavní panel", _taskbar.Start);
+    }
+
+    private void DelayOnUi(TimeSpan delay, Action action)
+    {
+        var timer = new DispatcherTimer(delay, DispatcherPriority.Background, null, _dispatcher);
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            Safe.Run("Odložená akce", action);
+        };
+        timer.Start();
     }
 
     // ================= Okna =================
@@ -197,6 +213,9 @@ internal sealed class ShellController : IDisposable
             case "clearWallpaper":
                 _settings.Update(s => s.Desktop.WallpaperPath = null);
                 break;
+            case "unpin" when p.Arg is not null:
+                _settings.Update(s => s.Dock.Pinned.RemoveAll(x => Logic.Apps.AppId.Equal(x.AppId, p.Arg)));
+                break;
             default:
                 Log.Warn($"Neznámá akce nastavení: {p.Action}");
                 break;
@@ -223,7 +242,8 @@ internal sealed class ShellController : IDisposable
             s.Taskbar.Hide = false;
         });
         Safe.Run("Ruční obnova ikon", () => ExplorerWindows.SetDesktopIconsVisible(true));
-        Safe.Run("Ruční obnova hlavního panelu", () =>
+        Safe.Run("Ruční obnova hlavního panelu", _taskbar.ForceShow);
+        Safe.Run("Ruční zobrazení oken panelu", () =>
         {
             foreach (var t in ExplorerWindows.FindTaskbars())
                 Windows.Win32.PInvoke.ShowWindowAsync(t, Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD.SW_SHOWNA);
@@ -259,6 +279,7 @@ internal sealed class ShellController : IDisposable
     private void OnExplorerRestarted()
     {
         _desktop.OnExplorerRestarted();
+        DelayOnUi(TimeSpan.FromSeconds(2), _taskbar.OnExplorerRestarted);
         // AppBar je potřeba u nového Průzkumníka zaregistrovat znovu -> lištu vytvoříme znovu.
         if (_topBar is not null)
         {
@@ -290,6 +311,7 @@ internal sealed class ShellController : IDisposable
             _topBar?.Close();
         });
         Safe.Run("Zavření plochy", _desktop.Dispose);
+        Safe.Run("Hlavní panel", _taskbar.Dispose);
         Safe.Run("Vizualizér", _visualizer.Dispose);
         Safe.Run("Dock", _dock.Dispose);
         Safe.Run("Ikony", _icons.Dispose);
