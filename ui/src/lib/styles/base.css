@@ -36,3 +36,12 @@ button {
   outline: none;
   box-shadow: var(--bw-focus-ring);
 }
+
+/* Ztlumené animace (režim výkonu): vypnout i nekonečné animace (poskakování, vrtění widgetů). */
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}

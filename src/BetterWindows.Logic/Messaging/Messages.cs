@@ -46,6 +46,36 @@ public sealed record StoreValuePayload(string Key, JsonElement? Value);
 
 public sealed record DiagnosticsPayload(string Version, string WindowsVersion, string LogDir, string DataDir, string? DesktopMode, string? DesktopDetail);
 
+public sealed record PerformanceStatePayload(bool Reduced, string Reason);
+
+/// <param name="Thumbnail">Obal alba jako data URL, nebo null.</param>
+/// <param name="Position">Pozice v sekundách (null = neznámá).</param>
+public sealed record MediaStatePayload(
+    bool Available,
+    string? Title,
+    string? Artist,
+    string? Source,
+    string? Thumbnail,
+    bool Playing,
+    double? Position,
+    double? Duration,
+    bool CanPrevious,
+    bool CanNext);
+
+/// <param name="Level">Hlasitost 0..1.</param>
+/// <param name="Changed">true = změna právě teď (ukázat ukazatel v ostrůvku).</param>
+public sealed record VolumeStatePayload(double Level, bool Muted, bool Changed);
+
+public sealed record StartAppItem(string AppId, string Name);
+
+public sealed record StartAppsPayload(IReadOnlyList<StartAppItem> Apps);
+
+public sealed record StartVisibilityPayload(bool Open);
+
+public sealed record ThemeCodePayload(string Code);
+
+public sealed record ThemeImportResultPayload(bool Ok, string? Error);
+
 // ===== UI -> C# =====
 
 public sealed record UiReadyPayload(string? Page);
@@ -73,3 +103,18 @@ public sealed record StoreGetPayload(string Key);
 public sealed record StoreSetPayload(string Key, JsonElement? Value);
 
 public sealed record UiLogPayload(string Level, string Message);
+
+/// <param name="AppId">Ikona pod kurzorem (null = kurzor odešel).</param>
+/// <param name="Rect">Ikona v CSS px relativně k oknu docku.</param>
+public sealed record DockHoverPayload(string? AppId, CssRect? Rect);
+
+/// <param name="Command">"playPause" | "next" | "previous"</param>
+public sealed record MediaCommandPayload(string Command);
+
+public sealed record VolumeSetPayload(double? Level, bool? Muted);
+
+public sealed record StartLaunchPayload(string AppId);
+
+public sealed record StartPinPayload(string AppId);
+
+public sealed record ThemeImportPayload(string Code);

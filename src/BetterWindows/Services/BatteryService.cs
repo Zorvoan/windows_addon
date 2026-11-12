@@ -13,6 +13,8 @@ internal sealed class BatteryService : IDisposable
     private readonly DispatcherTimer _timer;
 
     public BatteryStatePayload Current { get; private set; } = new(false, null, false, true);
+    /// <summary>Zapnutá "Úspora energie" Windows.</summary>
+    public bool BatterySaver { get; private set; }
     public event Action<BatteryStatePayload>? Changed;
 
     public BatteryService(Dispatcher dispatcher)
@@ -39,9 +41,11 @@ internal sealed class BatteryService : IDisposable
             Percent: s.BatteryLifePercent == 255 ? null : s.BatteryLifePercent,
             Charging: present && (s.BatteryFlag & 8) != 0,
             OnAc: s.ACLineStatus == 1);
-        if (state == Current)
+        var saver = s.SystemStatusFlag == 1;
+        if (state == Current && saver == BatterySaver)
             return;
         Current = state;
+        BatterySaver = saver;
         Changed?.Invoke(state);
     });
 

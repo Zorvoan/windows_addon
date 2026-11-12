@@ -35,6 +35,19 @@ public class ContractTests
         yield return (MessageTypes.DesktopStatus, new DesktopStatusPayload("embed-raised", true, "Progman (24H2+)"));
         yield return (MessageTypes.VisualizerFrame, new VisualizerFramePayload(Enumerable.Range(0, 48).Select(i => (float)Math.Round(0.5 + 0.45 * Math.Sin(i / 4.0), 3)).ToList()));
         yield return (MessageTypes.StoreValue, new StoreValuePayload("reminders", JsonSerializer.SerializeToElement(new[] { new { id = "1", text = "Koupit mléko", done = false } })));
+        yield return (MessageTypes.PerformanceState, new PerformanceStatePayload(false, "Plné animace"));
+        yield return (MessageTypes.MediaState, new MediaStatePayload(true, "Testovací skladba s dlouhým názvem", "Interpret", "Spotify", TinyPngDataUrl, true, 83, 215, true, true));
+        yield return (MessageTypes.VolumeState, new VolumeStatePayload(0.42, false, false));
+        yield return (MessageTypes.StartApps, new StartAppsPayload(
+        [
+            new StartAppItem("aumid:Microsoft.WindowsCalculator_8wekyb3d8bbwe!App", "Kalkulačka"),
+            new StartAppItem("exe:c:\\windows\\notepad.exe", "Poznámkový blok"),
+            new StartAppItem("exe:c:\\program files\\mozilla firefox\\firefox.exe", "Firefox"),
+            new StartAppItem("aumid:windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel", "Nastavení"),
+            new StartAppItem("aumid:Microsoft.Paint_8wekyb3d8bbwe!App", "Malování"),
+            new StartAppItem("aumid:Microsoft.WindowsTerminal_8wekyb3d8bbwe!App", "Terminál"),
+        ]));
+        yield return (MessageTypes.StartVisibility, new StartVisibilityPayload(true));
         yield return (MessageTypes.Diagnostics, new DiagnosticsPayload("0.1.0", "10.0.26200", "C:\\logs", "C:\\data", "embed-raised", "Progman (24H2+)"));
     }
 

@@ -29,6 +29,9 @@ public enum DesktopMode
 
 public enum VisualizerScene { Dots, Wave, Ring }
 
+/// <summary>Režim výkonu: Auto = ztlumit animace podle situace (baterie, celá obrazovka).</summary>
+public enum PerformanceMode { Auto, AlwaysReduced, NeverReduced }
+
 public sealed class AppSettings
 {
     public int Version { get; set; } = 1;
@@ -37,6 +40,9 @@ public sealed class AppSettings
     public DockSettings Dock { get; set; } = new();
     public DesktopSettings Desktop { get; set; } = new();
     public TaskbarSettings Taskbar { get; set; } = new();
+    public StartSettings Start { get; set; } = new();
+    public IslandSettings Island { get; set; } = new();
+    public PerformanceSettings Performance { get; set; } = new();
 }
 
 public sealed class AppearanceSettings
@@ -44,8 +50,31 @@ public sealed class AppearanceSettings
     public ThemeMode Theme { get; set; } = ThemeMode.System;
     public BackdropMode TopBarBackdrop { get; set; } = BackdropMode.SystemAcrylic;
     public BackdropMode DockBackdrop { get; set; } = BackdropMode.SystemAcrylic;
-    /// <summary>Ztlumit animace (připraveno pro režim úspory výkonu).</summary>
+    /// <summary>Ztlumit animace vždy (ruční volba).</summary>
     public bool ReduceMotion { get; set; }
+    /// <summary>Motiv: barvy, průhlednost, rozmazání, zaoblení (sdílí se kódem, viz ThemeCodec).</summary>
+    public ThemeStyle Style { get; set; } = new();
+}
+
+/// <summary>
+/// Vizuální motiv – přepisuje designové tokeny v UI. Nesahá na systémové rozmazání (tón určuje Windows)
+/// ani na nativní kontextovou nabídku.
+/// </summary>
+public sealed class ThemeStyle
+{
+    public string Name { get; set; } = "Výchozí";
+    /// <summary>Barva zvýraznění #rrggbb.</summary>
+    public string Accent { get; set; } = "#3a6df0";
+    /// <summary>Zaoblení karet a widgetů (px).</summary>
+    public double RadiusCard { get; set; } = 22;
+    /// <summary>Rozmazání skla widgetů (px).</summary>
+    public double GlassBlur { get; set; } = 28;
+    /// <summary>Neprůhlednost skla widgetů 0..1.</summary>
+    public double GlassOpacity { get; set; } = 0.35;
+    /// <summary>Tón přes rozmazání horní lišty 0..0.8.</summary>
+    public double BarTint { get; set; } = 0.12;
+    /// <summary>Tón přes rozmazání docku 0..0.8.</summary>
+    public double DockTint { get; set; } = 0.16;
 }
 
 public sealed class WeatherSettings
@@ -72,6 +101,8 @@ public sealed class DockSettings
     /// <summary>Velikost ikony v klidu (WPF jednotky / CSS px).</summary>
     public int IconSize { get; set; } = 48;
     public bool Magnification { get; set; } = true;
+    /// <summary>Náhledy oken při najetí na ikonu.</summary>
+    public bool Previews { get; set; } = true;
     /// <summary>Největší zvětšení ikony pod kurzorem (1.0 = žádné).</summary>
     public double MaxScale { get; set; } = 1.7;
 
@@ -145,6 +176,27 @@ public sealed class VisualizerSettings
     public bool Enabled { get; set; } = true;
     public VisualizerScene Scene { get; set; } = VisualizerScene.Dots;
     public double Sensitivity { get; set; } = 1.0;
+}
+
+public sealed class StartSettings
+{
+    public bool Enabled { get; set; } = true;
+    /// <summary>Otevírat Start Better Windows klávesou Windows. Výchozí VYPNUTO.</summary>
+    public bool ReplaceWinKey { get; set; }
+}
+
+public sealed class IslandSettings
+{
+    public bool Enabled { get; set; } = true;
+    /// <summary>Při změně hlasitosti ukázat ukazatel v ostrůvku.</summary>
+    public bool ShowVolume { get; set; } = true;
+}
+
+public sealed class PerformanceSettings
+{
+    public PerformanceMode Mode { get; set; } = PerformanceMode.Auto;
+    public bool ReduceOnBattery { get; set; } = true;
+    public bool ReduceOnFullscreen { get; set; } = true;
 }
 
 public sealed class TaskbarSettings

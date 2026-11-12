@@ -61,7 +61,7 @@
   function animate() {
     if (frame) return;
     const step = () => {
-      const reduce = host.settings?.appearance.reduceMotion;
+      const reduce = host.performance.reduced; // režim výkonu (zahrnuje i ruční „Omezit animace“)
       strength = reduce ? targetStrength : strength + (targetStrength - strength) * 0.22;
       if (Math.abs(targetStrength - strength) < 0.01) {
         strength = targetStrength;

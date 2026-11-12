@@ -11,6 +11,10 @@ public static class SettingsNormalizer
         s.Desktop ??= new();
         s.Taskbar ??= new();
         s.Desktop.Visualizer ??= new();
+        s.Start ??= new();
+        s.Island ??= new();
+        s.Performance ??= new();
+        s.Appearance.Style = Themes.ThemeCodec.Sanitize(s.Appearance.Style);
 
         s.Weather.City = string.IsNullOrWhiteSpace(s.Weather.City) ? "Praha" : s.Weather.City.Trim();
         if (s.Weather.Resolved is { } r && !string.Equals(r.Query, s.Weather.City, StringComparison.OrdinalIgnoreCase))

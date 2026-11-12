@@ -31,6 +31,18 @@ export interface WidgetPlacement {
   y: number;
 }
 
+export type PerformanceMode = 'auto' | 'alwaysReduced' | 'neverReduced';
+
+export interface ThemeStyle {
+  name: string;
+  accent: string;
+  radiusCard: number;
+  glassBlur: number;
+  glassOpacity: number;
+  barTint: number;
+  dockTint: number;
+}
+
 export interface AppSettings {
   version: number;
   appearance: {
@@ -38,6 +50,7 @@ export interface AppSettings {
     topBarBackdrop: BackdropMode;
     dockBackdrop: BackdropMode;
     reduceMotion: boolean;
+    style: ThemeStyle;
   };
   weather: {
     enabled: boolean;
@@ -49,6 +62,7 @@ export interface AppSettings {
     pinned: PinnedApp[];
     iconSize: number;
     magnification: boolean;
+    previews: boolean;
     maxScale: number;
   };
   desktop: {
@@ -68,6 +82,43 @@ export interface AppSettings {
   taskbar: {
     hide: boolean;
   };
+  start: {
+    enabled: boolean;
+    replaceWinKey: boolean;
+  };
+  island: {
+    enabled: boolean;
+    showVolume: boolean;
+  };
+  performance: {
+    mode: PerformanceMode;
+    reduceOnBattery: boolean;
+    reduceOnFullscreen: boolean;
+  };
+}
+
+export interface MediaState {
+  available: boolean;
+  title: string | null;
+  artist: string | null;
+  source: string | null;
+  thumbnail: string | null;
+  playing: boolean;
+  position: number | null;
+  duration: number | null;
+  canPrevious: boolean;
+  canNext: boolean;
+}
+
+export interface VolumeState {
+  level: number;
+  muted: boolean;
+  changed: boolean;
+}
+
+export interface StartApp {
+  appId: string;
+  name: string;
 }
 
 // ---------- Stavy z C# ----------
@@ -135,7 +186,14 @@ export type HostMessage =
   | { type: 'desktop.status'; payload: { mode: string; iconsHidden: boolean; detail: string | null } }
   | { type: 'visualizer.frame'; payload: { bins: number[] } }
   | { type: 'store.value'; payload: { key: string; value: unknown } }
-  | { type: 'diagnostics.state'; payload: Diagnostics };
+  | { type: 'diagnostics.state'; payload: Diagnostics }
+  | { type: 'performance.state'; payload: { reduced: boolean; reason: string } }
+  | { type: 'media.state'; payload: MediaState }
+  | { type: 'volume.state'; payload: VolumeState }
+  | { type: 'start.apps'; payload: { apps: StartApp[] } }
+  | { type: 'start.visibility'; payload: { open: boolean } }
+  | { type: 'theme.code'; payload: { code: string } }
+  | { type: 'theme.importResult'; payload: { ok: boolean; error: string | null } };
 
 // ---------- UI -> C# ----------
 export type SettingsAction =
@@ -158,7 +216,17 @@ export type UiMessage =
   | { type: 'settings.open'; payload: Record<string, never> }
   | { type: 'settings.action'; payload: { action: SettingsAction; arg: string | null } }
   | { type: 'store.get'; payload: { key: string } }
-  | { type: 'store.set'; payload: { key: string; value: unknown } };
+  | { type: 'store.set'; payload: { key: string; value: unknown } }
+  | { type: 'dock.hover'; payload: { appId: string | null; rect: CssRect | null } }
+  | { type: 'island.layout'; payload: { hit: CssRect[]; band: CssRect | null } }
+  | { type: 'media.command'; payload: { command: 'playPause' | 'next' | 'previous' } }
+  | { type: 'volume.set'; payload: { level: number | null; muted: boolean | null } }
+  | { type: 'start.launch'; payload: { appId: string } }
+  | { type: 'start.close'; payload: Record<string, never> }
+  | { type: 'start.toggle'; payload: Record<string, never> }
+  | { type: 'start.pin'; payload: { appId: string } }
+  | { type: 'theme.export'; payload: Record<string, never> }
+  | { type: 'theme.import'; payload: { code: string } };
 
 export type HostType = HostMessage['type'];
 export type HostPayload<T extends HostType> = Extract<HostMessage, { type: T }>['payload'];

@@ -37,6 +37,7 @@ internal sealed class ShellController : IDisposable
     private readonly DockController _dock;
     private readonly AudioVisualizerService _visualizer;
     private readonly TaskbarService _taskbar;
+    private readonly PerformanceService _performance;
     private readonly Logic.Storage.KeyValueStore _store = new(System.IO.Path.Combine(AppInfo.DataDir, "widgets-data.json"));
 
     private TopBarWindow? _topBar;
@@ -75,6 +76,9 @@ internal sealed class ShellController : IDisposable
         _taskbar = new TaskbarService(_settings, dispatcher);
         // Po skrytí/ukázání panelu Windows chvíli přepočítává pracovní plochu -> dock posunout s malým zpožděním.
         _taskbar.WorkAreaChanged += () => DelayOnUi(TimeSpan.FromMilliseconds(600), OnMonitorsChanged);
+        _performance = new PerformanceService(_settings, _battery);
+        _performance.Changed += OnPerformanceChanged;
+        _hub.Publish(MessageTypes.PerformanceState, _performance.State);
         _visualizer = new AudioVisualizerService(_settings);
         _visualizer.Frame += bins => _hub.Publish(MessageTypes.VisualizerFrame, new VisualizerFramePayload(bins), sticky: false, page: "desktop");
         Themes.ThemeResources.Apply(_theme.IsDark);
@@ -100,7 +104,11 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Baterie", _battery.Start);
         Safe.Run("Počasí", _weather.Start);
         Safe.Run("Mikrofon a kamera", _privacy.Start);
-        Safe.Run("Vizualizér", _visualizer.Start);
+        Safe.Run("Vizualizér", () =>
+        {
+            _visualizer.Start();
+            _visualizer.SetPaused(_performance.Reduced);
+        });
         Safe.Run("Hlavní panel", _taskbar.Start);
     }
 
@@ -152,7 +160,7 @@ internal sealed class ShellController : IDisposable
         else
             _topBar?.Show();
         _dock.SetFullscreen(fullscreen);
-        Safe.Run("Vizualizér – pauza", () => _visualizer.SetPaused(fullscreen));
+        _performance.SetFullscreen(fullscreen);
     }
 
     // ================= Zprávy z UI =================
@@ -182,6 +190,28 @@ internal sealed class ShellController : IDisposable
             _store.Set(p.Key, p.Value);
             // Ostatním stránkám (např. druhý monitor později) poslat novou hodnotu.
             _hub.Publish(MessageTypes.StoreValue, new StoreValuePayload(p.Key, p.Value), sticky: false);
+        });
+        // Motivy: sdílení přes kód (dekodér v Logic hlídá nedůvěryhodný vstup).
+        _hub.On<object>(MessageTypes.ThemeExport, (bridge, _) =>
+            _hub.Send(bridge, MessageTypes.ThemeCode, new ThemeCodePayload(
+                Logic.Themes.ThemeCodec.Encode(_settings.Current.Appearance.Style, _settings.Current.Dock.IconSize))));
+        _hub.On<ThemeImportPayload>(MessageTypes.ThemeImport, (bridge, p) =>
+        {
+            if (Logic.Themes.ThemeCodec.TryDecode(p?.Code, out var decoded, out var error) && decoded is not null)
+            {
+                _settings.Update(s =>
+                {
+                    s.Appearance.Style = decoded.Style;
+                    if (decoded.DockIconSize is { } size)
+                        s.Dock.IconSize = size;
+                });
+                Log.Info($"Motiv importován: {decoded.Style.Name}");
+                _hub.Send(bridge, MessageTypes.ThemeImportResult, new ThemeImportResultPayload(true, null));
+            }
+            else
+            {
+                _hub.Send(bridge, MessageTypes.ThemeImportResult, new ThemeImportResultPayload(false, error));
+            }
         });
         _hub.On<UiLogPayload>(MessageTypes.UiLog, (bridge, p) =>
         {
@@ -259,6 +289,13 @@ internal sealed class ShellController : IDisposable
             _theme.SetMode(now.Appearance.Theme);
         if (old.Appearance.TopBarBackdrop != now.Appearance.TopBarBackdrop)
             _topBar?.SetBackdrop(now.Appearance.TopBarBackdrop);
+    }
+
+    private void OnPerformanceChanged()
+    {
+        _hub.Publish(MessageTypes.PerformanceState, _performance.State);
+        // Vizualizér je nejdražší animace: při ztlumení (baterie, hra) se pozastaví úplně.
+        Safe.Run("Vizualizér – pauza", () => _visualizer.SetPaused(_performance.Reduced));
     }
 
     private void OnThemeChanged(bool dark)

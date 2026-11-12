@@ -3,7 +3,17 @@
  * Stačí import { host } a číst host.battery, host.weather atd.
  */
 import { on } from '$lib/bridge/bridge';
-import type { AppSettings, BatteryState, Diagnostics, DockItem, PrivacyState, WeatherState } from '$lib/bridge/messages';
+import type {
+  AppSettings,
+  BatteryState,
+  Diagnostics,
+  DockItem,
+  MediaState,
+  PrivacyState,
+  StartApp,
+  VolumeState,
+  WeatherState,
+} from '$lib/bridge/messages';
 
 export const host = $state({
   settings: null as AppSettings | null,
@@ -18,6 +28,11 @@ export const host = $state({
   diagnostics: null as Diagnostics | null,
   /** Data widgetů z C# úložiště (klíč -> hodnota). */
   store: {} as Record<string, unknown>,
+  performance: { reduced: false, reason: '' },
+  media: null as MediaState | null,
+  volume: null as VolumeState | null,
+  startApps: [] as StartApp[],
+  startOpen: false,
 });
 
 on('settings.state', (p) => (host.settings = p.settings));
@@ -31,3 +46,8 @@ on('wallpaper.state', (p) => (host.wallpaper = p));
 on('desktop.status', (p) => (host.desktop = p));
 on('diagnostics.state', (p) => (host.diagnostics = p));
 on('store.value', (p) => (host.store[p.key] = p.value));
+on('performance.state', (p) => (host.performance = p));
+on('media.state', (p) => (host.media = p));
+on('volume.state', (p) => (host.volume = p));
+on('start.apps', (p) => (host.startApps = p.apps));
+on('start.visibility', (p) => (host.startOpen = p.open));
