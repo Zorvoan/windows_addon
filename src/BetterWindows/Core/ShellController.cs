@@ -35,6 +35,8 @@ internal sealed class ShellController : IDisposable
     private readonly PrivacyIndicatorService _privacy;
     private readonly IconService _icons = new();
     private readonly DockController _dock;
+    private readonly AudioVisualizerService _visualizer;
+    private readonly Logic.Storage.KeyValueStore _store = new(System.IO.Path.Combine(AppInfo.DataDir, "widgets-data.json"));
 
     private TopBarWindow? _topBar;
     private SettingsWindow? _settingsWindow;
@@ -69,6 +71,8 @@ internal sealed class ShellController : IDisposable
         _privacy = new PrivacyIndicatorService(dispatcher);
         _privacy.Changed += p => _hub.Publish(MessageTypes.PrivacyState, p);
         _dock = new DockController(_context, _tracker, _identity, _icons);
+        _visualizer = new AudioVisualizerService(_settings);
+        _visualizer.Frame += bins => _hub.Publish(MessageTypes.VisualizerFrame, new VisualizerFramePayload(bins), sticky: false, page: "desktop");
         Themes.ThemeResources.Apply(_theme.IsDark);
 
         WebViewHost.SetColorScheme(_theme.IsDark);
@@ -92,6 +96,7 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Baterie", _battery.Start);
         Safe.Run("Počasí", _weather.Start);
         Safe.Run("Mikrofon a kamera", _privacy.Start);
+        Safe.Run("Vizualizér", _visualizer.Start);
     }
 
     // ================= Okna =================
@@ -131,6 +136,7 @@ internal sealed class ShellController : IDisposable
         else
             _topBar?.Show();
         _dock.SetFullscreen(fullscreen);
+        Safe.Run("Vizualizér – pauza", () => _visualizer.SetPaused(fullscreen));
     }
 
     // ================= Zprávy z UI =================
@@ -147,6 +153,19 @@ internal sealed class ShellController : IDisposable
         {
             if (p is not null)
                 HandleSettingsAction(p);
+        });
+        // Data widgetů (např. připomínky).
+        _hub.On<StoreGetPayload>(MessageTypes.StoreGet, (bridge, p) =>
+        {
+            if (p is not null)
+                _hub.Send(bridge, MessageTypes.StoreValue, new StoreValuePayload(p.Key, _store.Get(p.Key)));
+        });
+        _hub.On<StoreSetPayload>(MessageTypes.StoreSet, (_, p) =>
+        {
+            if (p is null) return;
+            _store.Set(p.Key, p.Value);
+            // Ostatním stránkám (např. druhý monitor později) poslat novou hodnotu.
+            _hub.Publish(MessageTypes.StoreValue, new StoreValuePayload(p.Key, p.Value), sticky: false);
         });
         _hub.On<UiLogPayload>(MessageTypes.UiLog, (bridge, p) =>
         {
@@ -271,6 +290,7 @@ internal sealed class ShellController : IDisposable
             _topBar?.Close();
         });
         Safe.Run("Zavření plochy", _desktop.Dispose);
+        Safe.Run("Vizualizér", _visualizer.Dispose);
         Safe.Run("Dock", _dock.Dispose);
         Safe.Run("Ikony", _icons.Dispose);
         Safe.Run("Sledování oken", _tracker.Dispose);

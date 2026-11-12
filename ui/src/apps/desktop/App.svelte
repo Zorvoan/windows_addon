@@ -1,14 +1,17 @@
 <!--
-  Vrstva plochy: leží pod všemi aplikacemi. Kreslí tapetu, nad ní widgety a vizualizér.
+  Vrstva plochy: leží pod všemi aplikacemi. Kreslí tapetu, nad ní vizualizér a widgety.
   Rozmazání karet = CSS backdrop-filter nad tapetou (ve stejné stránce), ne systémové.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { ready } from '$lib/bridge/bridge';
   import { host } from '$lib/stores/host.svelte';
+  import Visualizer from '$lib/components/Visualizer.svelte';
   import TestCard from './TestCard.svelte';
+  import WidgetLayer from './WidgetLayer.svelte';
 
   let loadedUrl = $state<string | null>(null);
+  let desktop = $derived(host.settings?.desktop);
 
   onMount(() => ready('desktop'));
 </script>
@@ -27,7 +30,15 @@
     {/key}
   {/if}
 
-  {#if host.settings?.desktop.showTestCard}
+  {#if desktop?.visualizer.enabled}
+    <Visualizer scene={desktop.visualizer.scene} />
+  {/if}
+
+  {#if desktop?.showWidgets}
+    <WidgetLayer />
+  {/if}
+
+  {#if desktop?.showTestCard}
     <TestCard />
   {/if}
 </main>

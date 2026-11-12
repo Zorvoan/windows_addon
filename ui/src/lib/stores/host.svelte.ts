@@ -16,6 +16,8 @@ export const host = $state({
   wallpaper: null as { url: string | null; color: string } | null,
   desktop: null as { mode: string; iconsHidden: boolean; detail: string | null } | null,
   diagnostics: null as Diagnostics | null,
+  /** Data widgetů z C# úložiště (klíč -> hodnota). */
+  store: {} as Record<string, unknown>,
 });
 
 on('settings.state', (p) => (host.settings = p.settings));
@@ -28,3 +30,4 @@ on('privacy.state', (p) => (host.privacy = p));
 on('wallpaper.state', (p) => (host.wallpaper = p));
 on('desktop.status', (p) => (host.desktop = p));
 on('diagnostics.state', (p) => (host.diagnostics = p));
+on('store.value', (p) => (host.store[p.key] = p.value));

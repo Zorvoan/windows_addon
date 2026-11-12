@@ -95,6 +95,19 @@ async function hoverDock(page, report) {
         await page.addStyleTag({ content: `html{background:${scheme === 'dark' ? 'linear-gradient(90deg,#2d3b55,#11151d)' : 'linear-gradient(90deg,#c9d6e8,#f1e9e0)'}}` });
       }
       for (const msg of fixtures) await page.evaluate((m) => window.__deliver(m), msg);
+      if (def.name === 'desktop') {
+        // Barevná "tapeta" (vygenerovaná v prohlížeči), ať je vidět rozmazání skleněných karet.
+        await page.evaluate(() => {
+          const c = document.createElement('canvas');
+          c.width = 320; c.height = 180;
+          const g = c.getContext('2d');
+          const grad = g.createLinearGradient(0, 0, 320, 180);
+          grad.addColorStop(0, '#1d4e89'); grad.addColorStop(0.5, '#00b2ca'); grad.addColorStop(1, '#f79256');
+          g.fillStyle = grad; g.fillRect(0, 0, 320, 180);
+          for (let i = 0; i < 40; i++) { g.fillStyle = `hsl(${i * 37} 70% 60% / 0.8)`; g.beginPath(); g.arc((i * 53) % 320, (i * 29) % 180, 6 + (i % 5) * 4, 0, 7); g.fill(); }
+          window.__deliver({ type: 'wallpaper.state', payload: { url: c.toDataURL('image/png'), color: '#000' } });
+        });
+      }
       await page.waitForTimeout(500);
       await page.screenshot({ path: path.join(outDir, `${def.name}-${scheme}.png`), fullPage: !!def.fullPage });
       if (def.interact) await def.interact(page, report);
