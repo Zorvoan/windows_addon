@@ -1,30 +1,32 @@
 using System.Reflection;
+using System.Threading;
 using System.Windows;
 using BetterWindows.Core;
-using BetterWindows.Monitors;
-using BetterWindows.Native;
-using BetterWindows.Services;
-using BetterWindows.ShellWindows;
 using BetterWindows.Tray;
-using BetterWindows.Web;
 
 namespace BetterWindows;
 
 /// <summary>
-/// Vstupní bod aplikace. Tady se vytvářejí a propojují služby a okna ("composition root").
+/// Vstupní bod aplikace: watchdog režim, jedna instance, obnova po pádu, ikona v oznamovací oblasti.
+/// Služby a okna propojuje ShellController.
 /// </summary>
 public partial class App : Application
 {
     private SingleInstance? _singleInstance;
     private TrayIcon? _tray;
-    private SettingsWindow? _settingsWindow;
-    private MonitorService? _monitors;
-    private ThemeService? _theme;
-    private TopBarWindow? _topBar;
+    private ShellController? _shell;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Režim hlídacího procesu: žádná okna, jen čekat a případně obnovit systém.
+        if (e.Args.Contains(Watchdog.Argument))
+        {
+            Watchdog.Run(e.Args);
+            Shutdown(0);
+            return;
+        }
 
         Log.Init();
         CrashGuard.Install(this);
@@ -38,62 +40,43 @@ public partial class App : Application
             Shutdown(0);
             return;
         }
+
+        // Předchozí běh mohl skončit tak, že nestihl nic vrátit (zabití i s watchdogem).
+        if (SystemGuard.RestoreFromFile("zbytky po předchozím běhu"))
+            Log.Warn("Předchozí běh neskončil čistě – ikony plochy / hlavní panel obnoveny.");
+
+        // Od teď: při pádu vrátit vše, co jsme na systému změnili.
+        CrashGuard.RegisterEmergencyCleanup("Obnova systému", () => SystemGuard.RestoreCurrent("nouzový úklid"));
+        Watchdog.Launch();
+
+        _shell = new ShellController(Dispatcher);
         // Událost přichází z jiného vlákna -> přesun do UI vlákna přes Dispatcher.
-        _singleInstance.SecondInstanceStarted += () => Dispatcher.InvokeAsync(ShowSettings);
+        _singleInstance.SecondInstanceStarted += () => Dispatcher.InvokeAsync(() => _shell.ShowSettings());
 
-        // --- Služby ---
-        _monitors = new MonitorService(Dispatcher);
-        _theme = new ThemeService(Dispatcher);
-        WebViewHost.SetColorScheme(_theme.IsDark);
-
-        // --- Okna shellu (zatím jen hlavní monitor) ---
-        _topBar = new TopBarWindow(_monitors, _monitors.GetPrimary(), _theme.IsDark);
-        _topBar.Show();
-
-        _theme.Changed += dark =>
-        {
-            WebViewHost.SetColorScheme(dark);
-            _topBar.SetDarkMode(dark);
-        };
-        _monitors.Changed += () => _topBar.RefreshMonitor();
-
-        // --- Ikona v oznamovací oblasti ---
         _tray = new TrayIcon();
-        _tray.SettingsRequested += ShowSettings;
+        _tray.SettingsRequested += _shell.ShowSettings;
+        _tray.RestoreSystemRequested += _shell.RestoreSystem;
+        _tray.BackdropRequested += mode => _shell.Settings.Update(s =>
+        {
+            s.Appearance.TopBarBackdrop = mode;
+            s.Appearance.DockBackdrop = mode;
+        });
+        _tray.ShowBackdrop(_shell.Settings.Current.Appearance.TopBarBackdrop);
+        _shell.Settings.Changed += (_, now) => _tray.ShowBackdrop(now.Appearance.TopBarBackdrop);
         _tray.ExitRequested += () => Shutdown(0);
-        _tray.ShowBackdrop(BackdropKind.SystemAcrylic);
 #if DEBUG
-        _tray.CrashTestRequested += () => throw new InvalidOperationException("Testovací pád vyvolaný z nabídky.");
-        _tray.BackdropRequested += kind =>
-        {
-            _topBar.SetBackdrop(kind);
-            _tray.ShowBackdrop(kind);
-        };
+        _tray.UiErrorTestRequested += () => throw new InvalidOperationException("Testovací chyba v UI vlákně (aplikace má běžet dál).");
+        _tray.CrashTestRequested += () => new Thread(() => throw new InvalidOperationException("Testovací pád procesu.")).Start();
 #endif
-    }
 
-    private void ShowSettings()
-    {
-        if (_settingsWindow is null)
-        {
-            _settingsWindow = new SettingsWindow();
-            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
-            _settingsWindow.Show();
-            return;
-        }
-
-        if (_settingsWindow.WindowState == WindowState.Minimized)
-            _settingsWindow.WindowState = WindowState.Normal;
-        _settingsWindow.Activate();
+        _shell.Start();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
-        _settingsWindow?.Close();
-        _topBar?.Close();
+        Safe.Run("Ukončení shellu", () => _shell?.Dispose());
+        Safe.Run("Obnova systému při ukončení", () => SystemGuard.RestoreCurrent("ukončení"));
         _tray?.Dispose();
-        _theme?.Dispose();
-        _monitors?.Dispose();
         _singleInstance?.Dispose();
         Log.Info($"Konec (kód {e.ApplicationExitCode}).");
         base.OnExit(e);

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Čistá logika bez WPF a Win32: nastavení, zprávy, rozhodování docku, FFT, parsování dat.
+    Díky tomu jde testovat kdekoli (i na Linuxu): dotnet test
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>BetterWindows.Logic</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="BetterWindows.Logic.Tests" />
+  </ItemGroup>
+</Project>

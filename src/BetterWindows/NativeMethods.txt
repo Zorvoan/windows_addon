@@ -11,6 +11,7 @@ SetWindowLong
 SetWindowPos
 HWND_TOPMOST
 WINDOW_EX_STYLE
+WINDOW_STYLE
 WM_MOUSEACTIVATE
 MA_NOACTIVATE
 
@@ -28,3 +29,39 @@ GetMonitorInfo
 MONITORINFOEXW
 GetDpiForMonitor
 MONITORINFOF_PRIMARY
+
+// Okna Průzkumníka (plocha, hlavní panel)
+FindWindow
+FindWindowEx
+ShowWindowAsync
+ShowWindow
+IsWindow
+IsWindowVisible
+GetParent
+SetParent
+EnumWindows
+GetClassName
+GetWindowRect
+GetSystemMetrics
+SendMessageTimeout
+RegisterWindowMessage
+SetLayeredWindowAttributes
+HWND_BOTTOM
+WM_WINDOWPOSCHANGING
+WINDOWPOS
+
+// AppBar (horní lišta rezervuje místo jako hlavní panel)
+SHAppBarMessage
+APPBARDATA
+ABM_NEW
+ABM_REMOVE
+ABM_QUERYPOS
+ABM_SETPOS
+ABM_GETSTATE
+ABM_SETSTATE
+ABN_POSCHANGED
+ABN_FULLSCREENAPP
+ABN_STATECHANGE
+ABE_TOP
+ABS_AUTOHIDE
+ABS_ALWAYSONTOP

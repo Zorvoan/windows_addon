@@ -1,6 +1,10 @@
 <script lang="ts">
   import Surface from '$lib/components/Surface.svelte';
   import Section from '$lib/components/Section.svelte';
+  import { onMount } from 'svelte';
+  import { ready } from '$lib/bridge/bridge';
+
+  onMount(() => ready('settings'));
 </script>
 
 <main>

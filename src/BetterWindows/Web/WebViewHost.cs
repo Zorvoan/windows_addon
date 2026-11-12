@@ -52,7 +52,7 @@ public static class WebViewHost
 
     /// <summary>Připraví WebView2 a načte stránku ui/&lt;page&gt;.html.</summary>
     /// <exception cref="WebView2RuntimeNotFoundException">Na počítači chybí WebView2 Runtime.</exception>
-    public static async Task InitializeAsync(WebView2 view, string page)
+    public static async Task<CoreWebView2> InitializeAsync(WebView2 view, string page)
     {
         if (!File.Exists(Path.Combine(AppInfo.UiDir, $"{page}.html")))
             throw new FileNotFoundException(
@@ -102,5 +102,6 @@ public static class WebViewHost
 
         core.Navigate($"{Origin}{page}.html");
         Log.Info($"WebView2 '{page}' načteno (runtime {environment.BrowserVersionString}).");
+        return core;
     }
 }

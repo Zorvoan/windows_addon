@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using BetterWindows.Bridge;
 using BetterWindows.Core;
 using BetterWindows.Web;
 using Microsoft.Web.WebView2.Core;
@@ -11,23 +12,31 @@ namespace BetterWindows.ShellWindows;
 /// Okno nastavení – běžné okno s rámečkem, obsah je stránka ui/settings.html.
 /// (Oproti liště a docku se ukazuje v Alt+Tab a na hlavním panelu, je to "normální" aplikace.)
 /// </summary>
-public sealed class SettingsWindow : Window
+internal sealed class SettingsWindow : Window
 {
     private readonly WebView2 _web = new();
+    private readonly MessageHub _hub;
+    private MessageBridge? _bridge;
 
-    public SettingsWindow()
+    public SettingsWindow(MessageHub hub)
     {
+        _hub = hub;
         Title = $"{AppInfo.DisplayName} – Nastavení";
         Icon = AppIcons.WindowIcon;
-        Width = 760;
-        Height = 560;
-        MinWidth = 480;
-        MinHeight = 360;
+        Width = 900;
+        Height = 680;
+        MinWidth = 560;
+        MinHeight = 420;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         Content = _web;
 
         Loaded += OnLoaded;
-        Closed += (_, _) => _web.Dispose();
+        Closed += (_, _) =>
+        {
+            if (_bridge is not null)
+                _hub.Unregister(_bridge);
+            _web.Dispose();
+        };
     }
 
     // "async void" je v pořádku jen u obsluhy událostí; chyby proto chytáme uvnitř.
@@ -35,7 +44,9 @@ public sealed class SettingsWindow : Window
     {
         try
         {
-            await WebViewHost.InitializeAsync(_web, "settings");
+            var core = await WebViewHost.InitializeAsync(_web, "settings");
+            _bridge = new MessageBridge("settings", core);
+            _hub.Register(_bridge);
         }
         catch (WebView2RuntimeNotFoundException ex)
         {

@@ -1,11 +1,11 @@
 using BetterWindows.Core;
-using BetterWindows.Native;
+using BetterWindows.Logic.Settings;
 using Forms = System.Windows.Forms;
 
 namespace BetterWindows.Tray;
 
 /// <summary>
-/// Ikona v oznamovací oblasti (vedle hodin) s nabídkou Nastavení / Ukončit.
+/// Ikona v oznamovací oblasti (vedle hodin) s nabídkou.
 /// WPF vlastní NotifyIcon nemá, proto půjčujeme ten z WinForms.
 /// Běží ve stejném (UI) vlákně jako WPF – zprávy mu doručuje WPF Dispatcher.
 /// </summary>
@@ -14,35 +14,43 @@ public sealed class TrayIcon : IDisposable
     private readonly Forms.NotifyIcon _notifyIcon;
     private readonly Forms.ContextMenuStrip _menu;
     private readonly System.Drawing.Icon _icon;
+    private readonly Dictionary<BackdropMode, Forms.ToolStripMenuItem> _backdropItems = [];
 
     public event Action? SettingsRequested;
+    public event Action? RestoreSystemRequested;
+    public event Action<BackdropMode>? BackdropRequested;
     public event Action? ExitRequested;
 #if DEBUG
+    public event Action? UiErrorTestRequested;
     public event Action? CrashTestRequested;
-    public event Action<BackdropKind>? BackdropRequested;
-    private readonly Dictionary<BackdropKind, Forms.ToolStripMenuItem> _backdropItems = [];
 #endif
 
     public TrayIcon()
     {
         _menu = new Forms.ContextMenuStrip();
         _menu.Items.Add("Nastavení", null, (_, _) => SettingsRequested?.Invoke());
-#if DEBUG
-        // Testovací přepínač: porovnání způsobů rozmazání horní lišty (krok 1).
-        var backdropMenu = new Forms.ToolStripMenuItem("Test: rozmazání lišty");
-        foreach (var (kind, text) in new[]
+
+        // Rychlé přepnutí rozmazání lišty a docku (totéž je v Nastavení > Vzhled).
+        var backdropMenu = new Forms.ToolStripMenuItem("Rozmazání lišty a docku");
+        foreach (var (mode, text) in new[]
                  {
-                     (BackdropKind.SystemAcrylic, "Systémové (Windows 11 Acrylic)"),
-                     (BackdropKind.AccentAcrylic, "Vlastní tón (API z Windows 10)"),
-                     (BackdropKind.None, "Žádné"),
+                     (BackdropMode.SystemAcrylic, "Systémové (Windows 11 Acrylic)"),
+                     (BackdropMode.AccentAcrylic, "Vlastní tón (API z Windows 10)"),
+                     (BackdropMode.None, "Žádné"),
                  })
         {
-            var item = new Forms.ToolStripMenuItem(text, null, (_, _) => BackdropRequested?.Invoke(kind));
-            _backdropItems[kind] = item;
+            var item = new Forms.ToolStripMenuItem(text, null, (_, _) => BackdropRequested?.Invoke(mode));
+            _backdropItems[mode] = item;
             backdropMenu.DropDownItems.Add(item);
         }
         _menu.Items.Add(backdropMenu);
-        _menu.Items.Add("Test: vyvolat pád", null, (_, _) => CrashTestRequested?.Invoke());
+
+        // Nouzové tlačítko: ukáže ikony plochy a hlavní panel Windows, kdyby cokoli zlobilo.
+        _menu.Items.Add("Obnovit ikony plochy a hlavní panel", null, (_, _) => RestoreSystemRequested?.Invoke());
+#if DEBUG
+        _menu.Items.Add(new Forms.ToolStripSeparator());
+        _menu.Items.Add("Test: chyba v UI (aplikace běží dál)", null, (_, _) => UiErrorTestRequested?.Invoke());
+        _menu.Items.Add("Test: pád procesu (obnoví watchdog)", null, (_, _) => CrashTestRequested?.Invoke());
 #endif
         _menu.Items.Add(new Forms.ToolStripSeparator());
         _menu.Items.Add("Ukončit", null, (_, _) => ExitRequested?.Invoke());
@@ -63,13 +71,11 @@ public sealed class TrayIcon : IDisposable
         };
     }
 
-    /// <summary>Zaškrtne aktuální způsob rozmazání v testovací nabídce.</summary>
-    public void ShowBackdrop(BackdropKind current)
+    /// <summary>Zaškrtne aktuální způsob rozmazání.</summary>
+    public void ShowBackdrop(BackdropMode current)
     {
-#if DEBUG
-        foreach (var (kind, item) in _backdropItems)
-            item.Checked = kind == current;
-#endif
+        foreach (var (mode, item) in _backdropItems)
+            item.Checked = mode == current;
     }
 
     public void Dispose()

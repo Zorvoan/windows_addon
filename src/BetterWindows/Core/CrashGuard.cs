@@ -11,17 +11,22 @@ namespace BetterWindows.Core;
 public static class CrashGuard
 {
     private static readonly List<(string Name, Action Action)> Cleanups = [];
+    private static readonly Queue<DateTime> RecentUiErrors = new();
     private static int _cleanupDone;
+
+    /// <summary>Kolik chyb v UI vlákně během 30 s už bereme jako "aplikace je rozbitá".</summary>
+    private const int FatalErrorBurst = 5;
 
     /// <summary>Musí se zavolat dřív, než vznikne jakékoli WinForms okno (ikona v oznamovací oblasti).</summary>
     public static void Install(Application app)
     {
-        // Výjimka v UI vlákně (WPF Dispatcher). Stav aplikace už nemusí být v pořádku,
-        // takže po zalogování aplikaci řízeně ukončíme.
+        // Výjimka v UI vlákně (WPF Dispatcher). Jedna chyba (např. ve widgetu) nesmí shodit
+        // celý shell: zalogujeme a běžíme dál. Až když chyby chodí v rychlém sledu,
+        // je aplikace zjevně rozbitá -> úklid a řízené ukončení.
         app.DispatcherUnhandledException += (_, e) =>
         {
             e.Handled = true;
-            HandleFatalUiException(app, "Neošetřená výjimka v UI vlákně", e.Exception);
+            HandleUiException(app, "Neošetřená výjimka v UI vlákně", e.Exception);
         };
 
         // Kód volaný z WinForms (např. kliknutí v nabídce ikony v oznamovací oblasti) by WPF
@@ -29,7 +34,7 @@ public static class CrashGuard
         // "Pokračovat / Ukončit", takže by se nespustil úklid. Přesměrujeme ho na stejnou cestu.
         System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.CatchException);
         System.Windows.Forms.Application.ThreadException += (_, e) =>
-            HandleFatalUiException(app, "Neošetřená výjimka ve WinForms části (oznamovací oblast)", e.Exception);
+            HandleUiException(app, "Neošetřená výjimka ve WinForms části (oznamovací oblast)", e.Exception);
 
         // Výjimka v jakémkoli jiném vlákně. Tady už proces končí a nejde to zastavit,
         // stihneme jen zalogovat a uklidit.
@@ -81,9 +86,18 @@ public static class CrashGuard
         }
     }
 
-    private static void HandleFatalUiException(Application app, string context, Exception ex)
+    private static void HandleUiException(Application app, string context, Exception ex)
     {
         Log.Error(context, ex);
+
+        var now = DateTime.UtcNow;
+        RecentUiErrors.Enqueue(now);
+        while (RecentUiErrors.Count > 0 && now - RecentUiErrors.Peek() > TimeSpan.FromSeconds(30))
+            RecentUiErrors.Dequeue();
+        if (RecentUiErrors.Count < FatalErrorBurst)
+            return;
+
+        Log.Error($"{FatalErrorBurst} chyb během 30 s – aplikace se ukončí.");
         RunEmergencyCleanup();
         ShowCrashMessage(ex);
         app.Shutdown(1);

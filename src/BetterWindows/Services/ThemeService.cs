@@ -1,4 +1,5 @@
 using BetterWindows.Core;
+using BetterWindows.Logic.Settings;
 using Microsoft.Win32;
 
 namespace BetterWindows.Services;
@@ -11,7 +12,10 @@ public sealed class ThemeService : IDisposable
 {
     private const string PersonalizeKey = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
     private readonly System.Windows.Threading.Dispatcher _dispatcher;
+    private ThemeMode _mode = ThemeMode.System;
+    private bool _systemIsDark;
 
+    /// <summary>Výsledný režim (systém nebo ruční volba z nastavení).</summary>
     public bool IsDark { get; private set; }
 
     /// <summary>Režim se změnil. Volá se v UI vlákně.</summary>
@@ -20,7 +24,8 @@ public sealed class ThemeService : IDisposable
     public ThemeService(System.Windows.Threading.Dispatcher dispatcher)
     {
         _dispatcher = dispatcher;
-        IsDark = ReadIsDark();
+        _systemIsDark = ReadIsDark();
+        IsDark = _systemIsDark;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         Log.Info($"Motiv Windows: {(IsDark ? "tmavý" : "světlý")}");
     }
@@ -40,13 +45,31 @@ public sealed class ThemeService : IDisposable
 
         _dispatcher.InvokeAsync(() =>
         {
-            var dark = ReadIsDark();
-            if (dark == IsDark)
-                return;
-            IsDark = dark;
-            Log.Info($"Motiv Windows změněn na {(dark ? "tmavý" : "světlý")}");
-            Changed?.Invoke(dark);
+            _systemIsDark = ReadIsDark();
+            Recompute();
         });
+    }
+
+    /// <summary>Ruční volba z nastavení: podle systému / vždy světlý / vždy tmavý.</summary>
+    public void SetMode(ThemeMode mode)
+    {
+        _mode = mode;
+        Recompute();
+    }
+
+    private void Recompute()
+    {
+        var dark = _mode switch
+        {
+            ThemeMode.Light => false,
+            ThemeMode.Dark => true,
+            _ => _systemIsDark,
+        };
+        if (dark == IsDark)
+            return;
+        IsDark = dark;
+        Log.Info($"Motiv změněn na {(dark ? "tmavý" : "světlý")} (volba: {_mode})");
+        Changed?.Invoke(dark);
     }
 
     public void Dispose() => SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;

@@ -13,10 +13,14 @@ public static class Log
     private const int KeepDays = 7;
     private static readonly object Gate = new();
 
-    public static string CurrentFile => Path.Combine(AppInfo.LogDir, $"{DateTime.Now:yyyy-MM-dd}.log");
+    private static string _suffix = "";
 
-    public static void Init()
+    public static string CurrentFile => Path.Combine(AppInfo.LogDir, $"{DateTime.Now:yyyy-MM-dd}{_suffix}.log");
+
+    /// <param name="suffix">Watchdog píše do vlastního souboru (…watchdog.log), ať si procesy nepřekážejí.</param>
+    public static void Init(string? suffix = null)
     {
+        _suffix = string.IsNullOrEmpty(suffix) ? "" : "." + suffix;
         // Smaž staré logy, ať složka neroste donekonečna.
         try
         {

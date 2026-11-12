@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using BetterWindows.Bridge;
 using BetterWindows.Core;
+using BetterWindows.Logic.Settings;
 using BetterWindows.Monitors;
 using BetterWindows.Native;
 using BetterWindows.Web;
@@ -14,52 +16,67 @@ using Windows.Win32.UI.WindowsAndMessaging;
 namespace BetterWindows.ShellWindows;
 
 /// <summary>
-/// Společný základ oken shellu, která leží NAD aplikacemi (horní lišta, dock, později Dynamic Island):
-///  - bez rámečku, vždy navrchu, není v Alt+Tab, kliknutím nebere fokus,
-///  - celé okno je "sklo" a pod ním systémové rozmazání (viz BackdropKind),
-///  - obsah je průhledné WebView2 se stránkou ui/&lt;page&gt;.html,
+/// Společný základ oken shellu (horní lišta, dock, pozadí docku, plocha):
+///  - bez rámečku, není v Alt+Tab, (volitelně) vždy navrchu a kliknutím nebere fokus,
+///  - celé okno je "sklo" (DWM) a pod ním volitelně systémové rozmazání,
+///  - obsah je průhledné WebView2 se stránkou ui/&lt;page&gt;.html (page = null -> bez obsahu),
 ///  - pozici počítá potomek ve fyzických pixelech pro daný monitor.
 ///
 /// Proč ne AllowsTransparency=true: v tom režimu WPF kreslí okno jako "vrstvené" a WebView2
-/// (které je samostatné nativní okno uvnitř) se pak nevykreslí. Proto průhlednost děláme přes DWM.
+/// (samostatné nativní okno uvnitř) se pak nevykreslí. Průhlednost proto děláme přes DWM.
 /// </summary>
 internal abstract class ShellWindowBase : Window
 {
-    private readonly string _page;
-    private readonly MonitorService _monitors;
-    private HWND _hwnd;
-    private BackdropKind _backdrop = BackdropKind.SystemAcrylic;
-    private bool _dark;
+    private readonly string? _page;
+    private HwndSourceHook? _hook; // odkaz držíme, aby delegáta neuklidil GC
+    private BackdropMode _backdrop = BackdropMode.None;
 
-    protected WebView2 Web { get; } = new();
+    protected ShellContext Context { get; }
+    protected WebView2? Web { get; }
+    protected HWND Hwnd { get; private set; }
+    protected bool IsDark { get; private set; }
+
+    /// <summary>Spojení se stránkou (po načtení WebView2).</summary>
+    public MessageBridge? Bridge { get; private set; }
 
     /// <summary>Monitor, na kterém okno leží.</summary>
     public MonitorInfo Monitor { get; private set; }
 
-    protected ShellWindowBase(string page, MonitorService monitors, MonitorInfo monitor, bool dark)
+    protected ShellWindowBase(string? page, ShellContext context, MonitorInfo monitor)
     {
         _page = page;
-        _monitors = monitors;
-        _dark = dark;
+        Context = context;
         Monitor = monitor;
+        IsDark = context.Theme.IsDark;
 
-        Title = $"{AppInfo.DisplayName} – {page}";
+        Title = $"{AppInfo.DisplayName} – {page ?? GetType().Name}";
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = false;
         ShowActivated = false;
-        Topmost = true;
+        Topmost = IsTopmost;
         Background = Brushes.Transparent;
 
-        Web.DefaultBackgroundColor = System.Drawing.Color.Transparent;
-        Content = Web;
+        if (page is not null)
+        {
+            Web = new WebView2 { DefaultBackgroundColor = System.Drawing.Color.Transparent };
+            Content = Web;
+        }
 
         SourceInitialized += OnSourceInitialized;
         Loaded += OnLoaded;
         // Okno se ocitlo na monitoru s jiným měřítkem (nebo se měřítko změnilo) -> přepočítat.
-        DpiChanged += (_, _) => RefreshMonitor();
-        Closed += (_, _) => Web.Dispose();
+        DpiChanged += (_, _) => Safe.Run($"{Title}: DPI", RefreshMonitor);
+        Closed += OnClosed;
     }
+
+    // ---------- Chování, které potomci mění ----------
+
+    /// <summary>Vždy navrchu (lišta, dock). Plocha ne.</summary>
+    protected virtual bool IsTopmost => true;
+
+    /// <summary>Kliknutí nebere fokus aktuální aplikaci.</summary>
+    protected virtual bool NoActivate => true;
 
     /// <summary>Kde má okno na daném monitoru ležet (fyzické pixely).</summary>
     protected abstract PixelRect ComputeBounds(MonitorInfo monitor);
@@ -67,11 +84,32 @@ internal abstract class ShellWindowBase : Window
     /// <summary>Zaoblení rohů od Windows 11. Výchozí: hranaté.</summary>
     protected virtual DWM_WINDOW_CORNER_PREFERENCE CornerPreference => DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_DONOTROUND;
 
-    /// <summary>Tón pro BackdropKind.AccentAcrylic: (průhlednost, R, G, B). Nízká alfa = hodně průhledné.</summary>
+    /// <summary>Tón pro AccentAcrylic: (průhlednost, R, G, B). Nízká alfa = hodně průhledné.</summary>
     protected virtual (byte A, byte R, byte G, byte B) AccentTint(bool dark) =>
         dark ? ((byte)0x38, (byte)0x0E, (byte)0x0E, (byte)0x12) : ((byte)0x38, (byte)0xF6, (byte)0xF6, (byte)0xF8);
 
-    public void SetBackdrop(BackdropKind backdrop)
+    /// <summary>Okno (HWND) právě vzniklo, ještě není vidět.</summary>
+    protected virtual void OnHandleCreated() { }
+
+    /// <summary>Zprávy okna pro potomky (AppBar apod.).</summary>
+    protected virtual nint OnWindowMessage(int msg, nint wParam, nint lParam, ref bool handled) => 0;
+
+    /// <summary>Stránka je načtená a most zpráv připravený.</summary>
+    protected virtual void OnBridgeReady(MessageBridge bridge) { }
+
+    /// <summary>Umístění okna. Výchozí: ComputeBounds + SetWindowPos.</summary>
+    protected virtual void Place()
+    {
+        var r = ComputeBounds(Monitor);
+        var insertAfter = IsTopmost ? HWND.HWND_TOPMOST : HWND.Null;
+        var flags = SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | (IsTopmost ? 0 : SET_WINDOW_POS_FLAGS.SWP_NOZORDER);
+        PInvoke.SetWindowPos(Hwnd, insertAfter, r.Left, r.Top, r.Width, r.Height, flags);
+        Log.Info($"{Title}: {r.Width}×{r.Height} px na [{r.Left},{r.Top}], monitor {Monitor.DeviceName} ({Monitor.Scale:P0})");
+    }
+
+    // ---------- Veřejné ovládání ----------
+
+    public void SetBackdrop(BackdropMode backdrop)
     {
         _backdrop = backdrop;
         ApplyBackdrop();
@@ -79,41 +117,52 @@ internal abstract class ShellWindowBase : Window
 
     public void SetDarkMode(bool dark)
     {
-        _dark = dark;
+        IsDark = dark;
         ApplyBackdrop();
     }
 
     /// <summary>Znovu načte údaje o svém monitoru (rozlišení, měřítko) a přesune se.</summary>
     public void RefreshMonitor()
     {
-        Monitor = _monitors.GetAll().FirstOrDefault(m => m.DeviceName == Monitor.DeviceName) ?? _monitors.GetPrimary();
-        PlaceOnMonitor();
+        Monitor = Context.Monitors.GetAll().FirstOrDefault(m => m.DeviceName == Monitor.DeviceName) ?? Context.Monitors.GetPrimary();
+        if (!Hwnd.IsNull)
+            Place();
     }
+
+    // ---------- Interní ----------
 
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         var handle = new WindowInteropHelper(this).Handle;
-        _hwnd = new HWND(handle);
+        Hwnd = new HWND(handle);
 
         // WPF jinak vyplní pozadí okna černou. Průhledná barva + "sklo" přes celé okno
-        // (ExtendFrameIntoClientArea) = DWM ukáže pod průhlednými pixely rozmazání.
+        // (ExtendFrameIntoClientArea) = DWM ukáže pod průhlednými pixely to, co je za oknem.
         var source = HwndSource.FromHwnd(handle)!;
         source.CompositionTarget.BackgroundColor = Colors.Transparent;
-        source.AddHook(WndProc);
+        _hook = WndProc;
+        source.AddHook(_hook);
 
-        WindowStyles.MakeShellPanel(_hwnd);
-        Dwm.ExtendFrameIntoClientArea(_hwnd);
-        Dwm.SetCornerPreference(_hwnd, CornerPreference);
-        Dwm.HideBorder(_hwnd);
+        WindowStyles.MakeShellPanel(Hwnd, NoActivate);
+        Dwm.ExtendFrameIntoClientArea(Hwnd);
+        Dwm.SetCornerPreference(Hwnd, CornerPreference);
+        Dwm.HideBorder(Hwnd);
         ApplyBackdrop();
-        PlaceOnMonitor();
+
+        Safe.Run($"{Title}: inicializace", OnHandleCreated);
+        Safe.Run($"{Title}: umístění", Place);
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        if (Web is null || _page is null)
+            return;
         try
         {
-            await WebViewHost.InitializeAsync(Web, _page);
+            var core = await WebViewHost.InitializeAsync(Web, _page);
+            Bridge = new MessageBridge(_page, core);
+            Context.Hub.Register(Bridge);
+            OnBridgeReady(Bridge);
         }
         catch (Exception ex)
         {
@@ -121,53 +170,57 @@ internal abstract class ShellWindowBase : Window
         }
     }
 
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        if (Bridge is not null)
+            Context.Hub.Unregister(Bridge);
+        Web?.Dispose();
+    }
+
     private void ApplyBackdrop()
     {
-        if (_hwnd.IsNull)
+        if (Hwnd.IsNull)
             return;
 
         // Každý režim nejdřív vypne ostatní, aby se efekty nesčítaly.
-        Dwm.SetDarkMode(_hwnd, _dark);
+        Dwm.SetDarkMode(Hwnd, IsDark);
         switch (_backdrop)
         {
-            case BackdropKind.SystemAcrylic:
-                AccentPolicy.Disable(_hwnd);
-                Dwm.SetSystemBackdrop(_hwnd, DWM_SYSTEMBACKDROP_TYPE.DWMSBT_TRANSIENTWINDOW);
+            case BackdropMode.SystemAcrylic:
+                AccentPolicy.Disable(Hwnd);
+                Dwm.SetSystemBackdrop(Hwnd, DWM_SYSTEMBACKDROP_TYPE.DWMSBT_TRANSIENTWINDOW);
                 break;
-            case BackdropKind.AccentAcrylic:
-                Dwm.SetSystemBackdrop(_hwnd, DWM_SYSTEMBACKDROP_TYPE.DWMSBT_NONE);
-                var (a, r, g, b) = AccentTint(_dark);
-                AccentPolicy.EnableAcrylic(_hwnd, a, r, g, b);
+            case BackdropMode.AccentAcrylic:
+                Dwm.SetSystemBackdrop(Hwnd, DWM_SYSTEMBACKDROP_TYPE.DWMSBT_NONE);
+                var (a, r, g, b) = AccentTint(IsDark);
+                AccentPolicy.EnableAcrylic(Hwnd, a, r, g, b);
                 break;
-            case BackdropKind.None:
-                Dwm.SetSystemBackdrop(_hwnd, DWM_SYSTEMBACKDROP_TYPE.DWMSBT_NONE);
-                AccentPolicy.Disable(_hwnd);
+            default:
+                Dwm.SetSystemBackdrop(Hwnd, DWM_SYSTEMBACKDROP_TYPE.DWMSBT_NONE);
+                AccentPolicy.Disable(Hwnd);
                 break;
         }
-        Log.Info($"Okno '{_page}': pozadí {_backdrop}, {(_dark ? "tmavé" : "světlé")}");
-    }
-
-    private void PlaceOnMonitor()
-    {
-        if (_hwnd.IsNull)
-            return;
-
-        var r = ComputeBounds(Monitor);
-        // Pozice ve fyzických pixelech, HWND_TOPMOST = nad běžnými okny, SWP_NOACTIVATE = nebrat fokus.
-        PInvoke.SetWindowPos(_hwnd, HWND.HWND_TOPMOST, r.Left, r.Top, r.Width, r.Height,
-            SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
-        Log.Info($"Okno '{_page}': {r.Width}×{r.Height} px na [{r.Left},{r.Top}], monitor {Monitor.DeviceName} ({Monitor.Scale:P0})");
+        Log.Info($"{Title}: pozadí {_backdrop}, {(IsDark ? "tmavé" : "světlé")}");
     }
 
     private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
         // Kliknutí myší: "neaktivuj mě". Pojistka k WS_EX_NOACTIVATE, aby aplikace,
-        // se kterou pracuješ, zůstala v popředí i po kliknutí na lištu.
-        if (msg == (int)PInvoke.WM_MOUSEACTIVATE)
+        // se kterou pracuješ, zůstala v popředí i po kliknutí na lištu nebo dock.
+        if (NoActivate && msg == (int)PInvoke.WM_MOUSEACTIVATE)
         {
             handled = true;
             return (nint)PInvoke.MA_NOACTIVATE;
         }
-        return 0;
+
+        try
+        {
+            return OnWindowMessage(msg, wParam, lParam, ref handled);
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"{Title}: obsluha zprávy 0x{msg:X4} selhala", ex);
+            return 0;
+        }
     }
 }
