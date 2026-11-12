@@ -5,7 +5,7 @@ Architektura a vrstvy oken: viz [ARCHITECTURE.md](ARCHITECTURE.md).
 ## Fáze 1
 
 - [x] **0. Kostra** – řešení, Vite + Svelte, jedna instance, ikona v oznamovací oblasti, CrashGuard, log
-- [x] **1. Horní lišta** – bezrámečkové okno nad aplikacemi, mimo Alt+Tab, bez kradení fokusu, systémové rozmazání (Win11 Acrylic / API z Win10 / žádné – testovací přepínač), designové tokeny (Inter, 22px, světlý/tmavý), statické rozvržení s volným místem pro Dynamic Island
+- [ ] **1. Horní lišta** _(hotovo, čeká na test na Windows)_ – bezrámečkové okno nad aplikacemi, mimo Alt+Tab, bez kradení fokusu, systémové rozmazání (Win11 Acrylic / API z Win10 / žádné – testovací přepínač), designové tokeny (Inter, 22px, světlý/tmavý), statické rozvržení s volným místem pro Dynamic Island
 - [ ] **2. DesktopLayer** ⚠️ rizikový bod – okno přes celý monitor POD aplikacemi (WorkerW trik, záložně HWND_BOTTOM), skrytí ikon plochy (vratně: obnova při ukončení, pádu i zabití procesu), tapeta (výchozí = aktuální tapeta Windows), jedna testovací skleněná karta s CSS `backdrop-filter`
 - [ ] **3. AppBar** – horní lišta registrovaná přes `SHAppBarMessage`, maximalizovaná okna pod ni nezajedou
 - [ ] **4. Most C# ↔ JS + aktivní aplikace** – typované zprávy, `WindowTracker` (okno v popředí)

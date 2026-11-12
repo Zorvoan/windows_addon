@@ -38,19 +38,11 @@ V Debug buildu fungují v každém okně vývojářské nástroje (**F12**).
 ## Struktura
 
 ```
-src/BetterWindows/        WPF aplikace (.NET 8)
-  App.xaml.cs             vstupní bod, propojení služeb a oken
-  Core/                   AppInfo (cesty), Log, CrashGuard, SingleInstance, AppIcons
-  Web/                    WebViewHost – společné nastavení WebView2
-  ShellWindows/           okna (zatím SettingsWindow)
-  Tray/                   ikona v oznamovací oblasti
-  NativeMethods.txt       Win32 funkce, pro které CsWin32 generuje deklarace
+src/BetterWindows/        WPF aplikace (.NET 8) – Core, Native, Monitors, Services, ShellWindows, Web, Tray
 ui/                       rozhraní (Svelte + TypeScript + Vite)
-  <část>.html             jedna stránka = jedno okno (settings, později topbar, dock…)
-  src/apps/<část>/        kořenová komponenta dané části
-  src/lib/components/     sdílené komponenty (použijí je Start, widgety i nastavení)
-  src/lib/styles/         designové tokeny (CSS proměnné, základ pro motivy)
+  src/lib/styles/tokens.css   designové tokeny: jediné místo pro barvy, blur, zaoblení, písmo
 tools/make_icon.py        generátor vlastní ikony aplikace
+docs/ARCHITECTURE.md      vrstvy oken, složky, zásady
 docs/ROADMAP.md           plán kroků a dalších fází
 ```
 

@@ -8,7 +8,7 @@
   <Surface variant="solid">
     <Section
       title="Nastavení"
-      description="Zatím jen kostra. Skutečná nastavení (město pro počasí, připnuté aplikace, hlavní panel) přibudou v kroku 10."
+      description="Zatím jen kostra. Skutečná nastavení (město pro počasí, připnuté aplikace, hlavní panel) přibudou v kroku 13."
     >
       <p class="ok">WebView2 i sestavení rozhraní fungují.</p>
     </Section>
