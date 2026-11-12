@@ -65,6 +65,9 @@ public static class WebViewHost
         Cores.Add(core);
         core.Profile.PreferredColorScheme = _dark ? CoreWebView2PreferredColorScheme.Dark : CoreWebView2PreferredColorScheme.Light;
         core.SetVirtualHostNameToFolderMapping(HostName, AppInfo.UiDir, CoreWebView2HostResourceAccessKind.Deny);
+        // Tapeta pro vrstvu plochy (kopie v %LocalAppData%, viz WallpaperService).
+        core.SetVirtualHostNameToFolderMapping(Services.WallpaperService.HostName, Services.WallpaperService.CacheDir,
+            CoreWebView2HostResourceAccessKind.Allow);
 
         var settings = core.Settings;
         settings.IsStatusBarEnabled = false;

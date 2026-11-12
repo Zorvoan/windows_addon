@@ -26,6 +26,9 @@ internal sealed class ShellController : IDisposable
     private readonly ShellMessageWindow _shellMessages;
     private readonly ShellContext _context;
 
+    private readonly WallpaperService _wallpaper;
+    private readonly DesktopLayerHost _desktop;
+
     private TopBarWindow? _topBar;
     private SettingsWindow? _settingsWindow;
     private bool _fullscreen;
@@ -43,6 +46,12 @@ internal sealed class ShellController : IDisposable
         _shellMessages = new ShellMessageWindow();
         _context = new ShellContext(dispatcher, _hub, _monitors, _theme, _settings);
 
+        _wallpaper = new WallpaperService(_settings, dispatcher);
+        _wallpaper.Changed += w => _hub.Publish(MessageTypes.WallpaperState, w);
+        _hub.Publish(MessageTypes.WallpaperState, _wallpaper.Current);
+        _desktop = new DesktopLayerHost(_context);
+        _desktop.StatusChanged += () => PublishDiagnostics();
+
         WebViewHost.SetColorScheme(_theme.IsDark);
         RegisterMessageHandlers();
         PublishSettings();
@@ -56,6 +65,8 @@ internal sealed class ShellController : IDisposable
 
     public void Start()
     {
+        // Plocha první (leží vespod), pak lišta.
+        Safe.Run("Vrstva plochy", _desktop.Start);
         Safe.Run("Horní lišta", StartTopBar);
     }
 
@@ -133,10 +144,27 @@ internal sealed class ShellController : IDisposable
             case "restoreSystem":
                 RestoreSystem();
                 break;
+            case "pickWallpaper":
+                PickWallpaper();
+                break;
+            case "clearWallpaper":
+                _settings.Update(s => s.Desktop.WallpaperPath = null);
+                break;
             default:
                 Log.Warn($"Neznámá akce nastavení: {p.Action}");
                 break;
         }
+    }
+
+    private void PickWallpaper()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "Vyber tapetu",
+            Filter = "Obrázky|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif|Všechny soubory|*.*",
+        };
+        if (dialog.ShowDialog(_settingsWindow) == true)
+            _settings.Update(s => s.Desktop.WallpaperPath = dialog.FileName);
     }
 
     /// <summary>Nouzové tlačítko: ukázat ikony plochy a hlavní panel a vypnout jejich skrývání.</summary>
@@ -175,10 +203,12 @@ internal sealed class ShellController : IDisposable
     private void OnMonitorsChanged()
     {
         _topBar?.RefreshMonitor();
+        _desktop.OnMonitorsChanged();
     }
 
     private void OnExplorerRestarted()
     {
+        _desktop.OnExplorerRestarted();
         // AppBar je potřeba u nového Průzkumníka zaregistrovat znovu -> lištu vytvoříme znovu.
         if (_topBar is not null)
         {
@@ -198,8 +228,8 @@ internal sealed class ShellController : IDisposable
             Environment.OSVersion.Version.ToString(),
             AppInfo.LogDir,
             AppInfo.DataDir,
-            desktopMode,
-            desktopDetail));
+            desktopMode ?? _desktop?.Mode,
+            desktopDetail ?? _desktop?.Detail));
 
     public void Dispose()
     {
@@ -209,6 +239,8 @@ internal sealed class ShellController : IDisposable
             _topBar?.UnregisterAppBar();
             _topBar?.Close();
         });
+        Safe.Run("Zavření plochy", _desktop.Dispose);
+        _wallpaper.Dispose();
         _shellMessages.Dispose();
         _theme.Dispose();
         _monitors.Dispose();

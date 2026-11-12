@@ -106,7 +106,7 @@ public sealed class DesktopSettings
     public string? WallpaperPath { get; set; }
     public bool ShowWidgets { get; set; } = true;
     /// <summary>Testovací skleněná karta z kroku 2 (diagnostika vrstvy plochy).</summary>
-    public bool ShowTestCard { get; set; }
+    public bool ShowTestCard { get; set; } = true;
     public List<WidgetPlacement> Widgets { get; set; } = DefaultWidgets();
     public VisualizerSettings Visualizer { get; set; } = new();
 
