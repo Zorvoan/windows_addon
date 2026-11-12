@@ -28,6 +28,11 @@ internal sealed class ShellController : IDisposable
 
     private readonly WallpaperService _wallpaper;
     private readonly DesktopLayerHost _desktop;
+    private readonly AppIdentityResolver _identity = new();
+    private readonly WindowTracker _tracker;
+    private readonly BatteryService _battery;
+    private readonly WeatherService _weather;
+    private readonly PrivacyIndicatorService _privacy;
 
     private TopBarWindow? _topBar;
     private SettingsWindow? _settingsWindow;
@@ -52,6 +57,16 @@ internal sealed class ShellController : IDisposable
         _desktop = new DesktopLayerHost(_context);
         _desktop.StatusChanged += () => PublishDiagnostics();
 
+        _tracker = new WindowTracker(_identity, dispatcher);
+        _tracker.ForegroundChanged += () => _hub.Publish(MessageTypes.ForegroundChanged,
+            new ForegroundChangedPayload(_tracker.ForegroundAppId, _tracker.ForegroundName, _tracker.ForegroundTitle));
+        _battery = new BatteryService(dispatcher);
+        _battery.Changed += b => _hub.Publish(MessageTypes.BatteryState, b);
+        _weather = new WeatherService(_settings, dispatcher);
+        _weather.Changed += w => _hub.Publish(MessageTypes.WeatherState, w);
+        _privacy = new PrivacyIndicatorService(dispatcher);
+        _privacy.Changed += p => _hub.Publish(MessageTypes.PrivacyState, p);
+
         WebViewHost.SetColorScheme(_theme.IsDark);
         RegisterMessageHandlers();
         PublishSettings();
@@ -68,6 +83,10 @@ internal sealed class ShellController : IDisposable
         // Plocha první (leží vespod), pak lišta.
         Safe.Run("Vrstva plochy", _desktop.Start);
         Safe.Run("Horní lišta", StartTopBar);
+        Safe.Run("Sledování oken", _tracker.Start);
+        Safe.Run("Baterie", _battery.Start);
+        Safe.Run("Počasí", _weather.Start);
+        Safe.Run("Mikrofon a kamera", _privacy.Start);
     }
 
     // ================= Okna =================
@@ -146,6 +165,9 @@ internal sealed class ShellController : IDisposable
                 break;
             case "pickWallpaper":
                 PickWallpaper();
+                break;
+            case "refreshWeather":
+                _weather.Refresh();
                 break;
             case "clearWallpaper":
                 _settings.Update(s => s.Desktop.WallpaperPath = null);
@@ -240,6 +262,10 @@ internal sealed class ShellController : IDisposable
             _topBar?.Close();
         });
         Safe.Run("Zavření plochy", _desktop.Dispose);
+        Safe.Run("Sledování oken", _tracker.Dispose);
+        Safe.Run("Baterie", _battery.Dispose);
+        Safe.Run("Počasí", _weather.Dispose);
+        Safe.Run("Mikrofon a kamera", _privacy.Dispose);
         _wallpaper.Dispose();
         _shellMessages.Dispose();
         _theme.Dispose();

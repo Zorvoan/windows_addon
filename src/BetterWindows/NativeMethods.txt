@@ -70,3 +70,47 @@ ABS_ALWAYSONTOP
 SEND_MESSAGE_TIMEOUT_FLAGS
 LAYERED_WINDOW_ATTRIBUTES_FLAGS
 SET_WINDOW_POS_FLAGS
+
+// Sledování oken (WindowTracker) a identita aplikací
+SetWinEventHook
+UnhookWinEvent
+WINEVENTPROC
+EVENT_SYSTEM_FOREGROUND
+EVENT_SYSTEM_MINIMIZESTART
+EVENT_SYSTEM_MINIMIZEEND
+EVENT_OBJECT_CREATE
+EVENT_OBJECT_DESTROY
+EVENT_OBJECT_SHOW
+EVENT_OBJECT_HIDE
+EVENT_OBJECT_NAMECHANGE
+EVENT_OBJECT_CLOAKED
+EVENT_OBJECT_UNCLOAKED
+WINEVENT_OUTOFCONTEXT
+WINEVENT_SKIPOWNPROCESS
+GetWindow
+GetAncestor
+GetWindowTextLength
+GetWindowText
+GetWindowThreadProcessId
+GetForegroundWindow
+IsIconic
+DwmGetWindowAttribute
+OpenProcess
+QueryFullProcessImageName
+CloseHandle
+GetApplicationUserModelId
+EnumChildWindows
+SHGetPropertyStoreForWindow
+IPropertyStore
+PropVariantToStringAlloc
+PropVariantClear
+PKEY_AppUserModel_ID
+SHCreateItemFromParsingName
+IShellItem
+CoTaskMemFree
+
+// Baterie
+GetSystemPowerStatus
+
+// Registr (hlídání změn ConsentStore)
+RegNotifyChangeKeyValue
