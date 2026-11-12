@@ -1,0 +1,66 @@
+/*
+ * Sdílené designové tokeny pro všechny části shellu.
+ * Motivy (pozdější fáze) budou přepisovat jen tyto proměnné.
+ */
+:root {
+  color-scheme: light dark;
+
+  --bw-font: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --bw-font-size: 13px;
+
+  --bw-radius-sm: 6px;
+  --bw-radius-md: 10px;
+  --bw-radius-lg: 18px;
+
+  --bw-space-1: 4px;
+  --bw-space-2: 8px;
+  --bw-space-3: 12px;
+  --bw-space-4: 16px;
+  --bw-space-6: 24px;
+
+  --bw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --bw-duration: 180ms;
+
+  /* Světlý režim */
+  --bw-fg: #1b1b1f;
+  --bw-fg-muted: #5c5c66;
+  --bw-surface: rgb(255 255 255 / 0.72);
+  --bw-surface-strong: #ffffff;
+  --bw-border: rgb(0 0 0 / 0.1);
+  --bw-accent: #3a6df0;
+  --bw-page: #f3f3f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bw-fg: #f2f2f5;
+    --bw-fg-muted: #a3a3ad;
+    --bw-surface: rgb(32 32 38 / 0.72);
+    --bw-surface-strong: #26262c;
+    --bw-border: rgb(255 255 255 / 0.1);
+    --bw-accent: #7c9cff;
+    --bw-page: #18181c;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: var(--bw-font);
+  font-size: var(--bw-font-size);
+  color: var(--bw-fg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --bw-duration: 0ms;
+  }
+}

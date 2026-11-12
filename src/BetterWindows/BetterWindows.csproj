@@ -1,0 +1,92 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- 22621 = Windows 11 22H2. Dává přístup k WinRT API (média, notifikace) pro další fáze. -->
+    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.22621.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <!-- WinForms jen kvůli ikoně v oznamovací oblasti (NotifyIcon), WPF vlastní nemá. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Umožní sestavit projekt i mimo Windows (CI, Linux). Spustit ho ale jde jen na Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+
+    <RootNamespace>BetterWindows</RootNamespace>
+    <AssemblyName>BetterWindows</AssemblyName>
+    <Product>Better Windows</Product>
+    <Version>0.1.0</Version>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WFAC010 je rada pro čisté WinForms aplikace. U WPF je DPI v manifestu správná cesta. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF a WinForms mají třídy se stejným jménem (Application, MessageBox...).
+         Globální using pro WinForms vypneme a WinForms použijeme jen tam, kde je potřeba. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+    <!-- CsWin32 generuje P/Invoke deklarace pro Win32 funkce uvedené v NativeMethods.txt. -->
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.371" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <!--
+    ===== Sestavení webového rozhraní (složka ui/) =====
+    Při každém `dotnet build` se:
+      1. nainstalují npm balíčky, pokud se změnil package-lock.json,
+      2. spustí `npm run build` (jen když se něco v ui/ změnilo),
+      3. obsah ui/dist se zkopíruje vedle exe do složky "ui".
+    Přeskočit jde přes:  dotnet build -p:SkipUiBuild=true
+  -->
+  <PropertyGroup>
+    <UiDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\ui'))\</UiDir>
+    <UiStamp>$(UiDir)dist\.build-stamp</UiStamp>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <UiSource Include="$(UiDir)src\**\*;$(UiDir)*.html;$(UiDir)package.json;$(UiDir)package-lock.json;$(UiDir)vite.config.ts;$(UiDir)tsconfig.json;$(UiDir)svelte.config.js" />
+  </ItemGroup>
+
+  <Target Name="UiInstall" Condition="'$(SkipUiBuild)' != 'true'"
+          Inputs="$(UiDir)package-lock.json" Outputs="$(UiDir)node_modules\.package-lock.json">
+    <Message Importance="high" Text="ui: npm ci" />
+    <Exec Command="npm ci --no-audit --no-fund" WorkingDirectory="$(UiDir)" />
+  </Target>
+
+  <Target Name="UiBuild" BeforeTargets="BeforeBuild" DependsOnTargets="UiInstall" Condition="'$(SkipUiBuild)' != 'true'"
+          Inputs="@(UiSource)" Outputs="$(UiStamp)">
+    <Message Importance="high" Text="ui: npm run build" />
+    <Exec Command="npm run build" WorkingDirectory="$(UiDir)" />
+    <Touch Files="$(UiStamp)" AlwaysCreate="true" />
+  </Target>
+
+  <Target Name="UiCopyToOutput" AfterTargets="Build">
+    <ItemGroup>
+      <UiDist Include="$(UiDir)dist\**\*" Exclude="$(UiStamp)" />
+    </ItemGroup>
+    <Error Condition="'@(UiDist)' == ''" Text="Ve složce ui/dist nic není. Spusť build bez -p:SkipUiBuild=true nebo 'npm run build' v ui/." />
+    <RemoveDir Directories="$(OutDir)ui" />
+    <Copy SourceFiles="@(UiDist)" DestinationFiles="@(UiDist->'$(OutDir)ui\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+  <Target Name="UiCopyToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <UiDistPublish Include="$(UiDir)dist\**\*" Exclude="$(UiStamp)" />
+    </ItemGroup>
+    <Copy SourceFiles="@(UiDistPublish)" DestinationFiles="@(UiDistPublish->'$(PublishDir)ui\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+</Project>

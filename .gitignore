@@ -1,0 +1,16 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+
+# UI
+ui/node_modules/
+ui/dist/
+
+# OS / editory
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

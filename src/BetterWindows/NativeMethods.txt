@@ -1,0 +1,4 @@
+// Seznam Win32 funkcí/konstant, pro které CsWin32 vygeneruje C# deklarace (třída Windows.Win32.PInvoke).
+// Stačí sem dopsat jméno a znovu sestavit.
+AllowSetForegroundWindow
+ASFW_ANY
