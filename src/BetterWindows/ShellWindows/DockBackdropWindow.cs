@@ -14,6 +14,7 @@ namespace BetterWindows.ShellWindows;
 internal sealed class DockBackdropWindow : ShellWindowBase
 {
     private PixelRect? _rect;
+    private bool _visible = true;
 
     public DockBackdropWindow(ShellContext context, MonitorInfo monitor)
         : base(null, context, monitor)
@@ -29,12 +30,30 @@ internal sealed class DockBackdropWindow : ShellWindowBase
         // Pozice určuje dock (MoveUnder).
     }
 
+    /// <summary>
+    /// Vytvoří okno (HWND) BEZ zobrazení – ukáže se až MoveUnder na správném místě.
+    /// (Window.Show by ho nejdřív ukázal ve výchozí pozici jako rozmazaný čtverec.)
+    /// </summary>
+    public void Create() => new System.Windows.Interop.WindowInteropHelper(this).EnsureHandle();
+
+    /// <summary>Skrýt / ukázat (celá obrazovka). Řešíme nativně, protože WPF okno "nezobrazujeme".</summary>
+    public void SetVisible(bool visible)
+    {
+        _visible = visible;
+        if (Hwnd.IsNull)
+            return;
+        if (!visible || _rect is null)
+            PInvoke.ShowWindowAsync(Hwnd, SHOW_WINDOW_CMD.SW_HIDE);
+        else
+            PInvoke.ShowWindowAsync(Hwnd, SHOW_WINDOW_CMD.SW_SHOWNA);
+    }
+
     /// <summary>Přesune pozadí pod pás docku a v pořadí oken těsně pod okno docku.</summary>
     public void MoveUnder(HWND dock, PixelRect? rect)
     {
         if (Hwnd.IsNull)
             return;
-        if (rect is null || rect.Value.Width <= 0 || rect.Value.Height <= 0)
+        if (!_visible || rect is null || rect.Value.Width <= 0 || rect.Value.Height <= 0)
         {
             PInvoke.ShowWindowAsync(Hwnd, SHOW_WINDOW_CMD.SW_HIDE);
             _rect = null;

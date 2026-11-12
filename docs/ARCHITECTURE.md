@@ -6,44 +6,65 @@ Jeden proces (`BetterWindows.exe`), víc oken. Každé okno = WPF okno s průhle
 
 | Vrstva | Okna | Rozmazání | Stav |
 |---|---|---|---|
-| **DesktopLayer** – pod všemi aplikacemi | jedno okno přes celý monitor: tapeta, widgety, scény vizualizéru | CSS `backdrop-filter` nad tapetou ve stejné stránce | krok 2 |
+| **DesktopLayer** – pod všemi aplikacemi | jedno okno přes celý monitor: tapeta, widgety, vizualizér | CSS `backdrop-filter` nad tapetou ve stejné stránce | `DesktopWindow` |
 | Aplikace Windows | – | – | – |
-| **Nad aplikacemi** (topmost, bez fokusu, mimo Alt+Tab) | horní lišta, dock (+ okno pozadí docku), Dynamic Island | systémové (DWM) | lišta: krok 1 |
+| **Nad aplikacemi** (topmost, bez fokusu, mimo Alt+Tab) | horní lišta (AppBar), dock + okno pozadí docku, později Dynamic Island | systémové (DWM) | `TopBarWindow`, `DockWindow`, `DockBackdropWindow` |
 | **Vyskakovací** | nabídka Start, náhledy oken, kontextové nabídky | dle potřeby | další fáze |
 
 Proč dva druhy rozmazání: CSS `backdrop-filter` vidí jen obsah vlastní stránky. Pro widgety je to v pořádku, protože tapetu kreslí stejná stránka. Lišta a dock leží nad cizími okny, ta umí rozmazat jen systém (DWM).
 
-## C# (`src/BetterWindows`)
+## C# (`src/BetterWindows` + `src/BetterWindows.Logic`)
+
+**BetterWindows.Logic** (net8.0, bez WPF, testy v `tests/`): model nastavení a jeho ukládání, typy zpráv,
+rozhodování docku (pořadí ikon, klik = spustit / přepnout / minimalizovat), FFT a pásma vizualizéru,
+parsování Open-Meteo a ConsentStore, stav změn systému a plán obnovy.
+
+**BetterWindows** (WPF):
 
 | Složka | Co obsahuje |
 |---|---|
-| `Core/` | AppInfo (cesty), Log, CrashGuard (pády + nouzový úklid), SingleInstance, AppIcons |
-| `Native/` | tenké obaly nad Win32: Dwm, AccentPolicy, WindowStyles, BackdropKind |
+| `Core/` | AppInfo, Log, CrashGuard, Safe (pojistka funkcí), SingleInstance, SystemGuard (pojistka změn systému), Watchdog, ShellController (propojení všeho) |
+| `Bridge/` | MessageHub (ústředna zpráv, sticky stav), MessageBridge (jedno WebView2) |
+| `Native/` | obaly nad Win32: Dwm, AccentPolicy, WindowStyles, ExplorerWindows, DesktopEmbedder, AppBarNative, ShellItems, WindowInfo, ShellMessageWindow |
 | `Monitors/` | MonitorInfo (fyzické pixely + DPI), MonitorService |
-| `Services/` | ThemeService; později WindowTracker, IconService, PrivacyIndicatorService, SettingsService, WeatherService, … |
-| `ShellWindows/` | ShellWindowBase (společný základ oken nad aplikacemi), TopBarWindow, SettingsWindow |
-| `Web/` | WebViewHost – sdílené prostředí WebView2, virtuální host `https://app.betterwindows/`, světlý/tmavý režim |
+| `Services/` | Settings, Theme, Wallpaper, DesktopLayerHost, WindowTracker, AppIdentityResolver, IconService, AppLauncher, DockController, Battery, Weather, PrivacyIndicator, AudioVisualizer, Taskbar |
+| `ShellWindows/` | ShellWindowBase, TopBarWindow, DesktopWindow, DockWindow, DockBackdropWindow, SettingsWindow |
+| `Themes/` | vzhled nativní kontextové nabídky (světlý/tmavý) |
 | `Tray/` | ikona v oznamovací oblasti |
 
 Zásady:
 - **Okna se vytvářejí pro konkrétní monitor** (`MonitorInfo`). Víc monitorů = víc instancí oken.
 - **Pozice ve fyzických pixelech** přes `SetWindowPos`, výšky/šířky v DIP převádí `MonitorInfo.ToPixels`.
-- **Motiv má jeden zdroj**: `ThemeService` → tón DWM rozmazání + `PreferredColorScheme` ve WebView2.
-- **Změny systému musí jít vrátit** i při pádu: `CrashGuard.RegisterEmergencyCleanup`.
+- **Motiv má jeden zdroj**: `ThemeService` → tón DWM rozmazání + `PreferredColorScheme` ve WebView2 + nativní nabídky.
+- **Změny systému se zapisují předem** (`SystemGuard.Record`) a vrací se při ukončení, pádu, zabití procesu (watchdog) i dalším startu.
+- **Chyba jedné funkce nesmí shodit shell**: služby se spouští přes `Safe.Run`, obsluhy zpráv a háčky mají vlastní try/catch.
+- **Cizí okna jen neblokujícími voláními** (`ShowWindowAsync`, `SendMessageTimeout`, `PostMessage`).
+
+## Zprávy C# ↔ JS
+
+Tvar `{ type, payload }`. Typy: `ui/src/lib/bridge/messages.ts` ⇄ `src/BetterWindows.Logic/Messaging/Messages.cs`.
+Stav (nastavení, baterie, počasí…) je „sticky“: stránka po načtení pošle `ui.ready` a dostane poslední hodnoty.
 
 ## UI (`ui/`)
 
 | Cesta | Co obsahuje |
 |---|---|
-| `<část>.html` | jedna stránka = jedno okno (`settings`, `topbar`, později `desktop`, `dock`, `island`, `start`) |
+| `<část>.html` | jedna stránka = jedno okno (`topbar`, `dock`, `desktop`, `settings`; později `island`, `start`) |
 | `src/apps/<část>/` | kořenová komponenta dané části |
-| `src/lib/components/` | sdílené komponenty – použijí je lišta, dock, Start, widgety i nastavení |
+| `src/lib/components/` | sdílené komponenty (Surface, Icon, Clock, Visualizer, formulářové prvky v `forms/`) |
+| `src/lib/widgets/` | widgety (hodiny, kalendář, počasí, připomínky, baterie) |
+| `src/lib/bridge/` | typy zpráv a most do C# |
 | `src/lib/styles/tokens.css` | **jediné místo** pro barvy, průhlednost, blur, zaoblení, stíny, písmo (světlý i tmavý motiv) |
-| `src/lib/stores/` | sdílený stav (např. `clock`) |
+| `src/lib/stores/` | sdílený stav: `host` (vše z C#), `clock`, `visualizer`, `kv` (data widgetů) |
 
 Font Inter je přibalený lokálně (`@fontsource-variable/inter`), nic se nestahuje z internetu.
 
-## Rizika podle vrstev
+## Kontroly bez Windows
 
-- **Nad aplikacemi:** systémový Acrylic na okně, které nikdy není aktivní – ověřuje krok 1 (testovací přepínač v oznamovací oblasti).
-- **DesktopLayer:** Windows 11 24H2 změnil hierarchii oken plochy (WorkerW už není samostatné okno nejvyšší úrovně, ale potomek Progman). Krok 2 vyzkouší obě varianty, záložně HWND_BOTTOM, a zaloguje, co na daném systému funguje. Otevřená otázka: jestli okno vložené do plochy dostává kliknutí myší (pro widgety).
+- `dotnet test` – logika (nastavení, dock, FFT, parsování, obnova systému) + vygeneruje `ui/harness/fixtures.json`.
+- `npm run harness` (v `ui/`) – vykreslí všechny stránky v headless Chromiu se zprávami z C#, ve světlém i tmavém režimu,
+  vyzkouší zvětšení docku a přepínače nastavení; selže při chybě v konzoli.
+
+## Rizika
+
+Viz [TESTING.md](TESTING.md) – sekce „Kde jsou známá rizika“.

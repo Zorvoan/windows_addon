@@ -57,7 +57,7 @@ internal sealed class DockController : IDisposable
         var monitor = _context.Monitors.GetPrimary();
         _backdrop = new DockBackdropWindow(_context, monitor);
         _backdrop.SetBackdrop(_context.Settings.Current.Appearance.DockBackdrop);
-        _backdrop.Show();
+        _backdrop.Create(); // ukáže se až pod pásem docku (MoveUnder)
         _window = new DockWindow(_context, monitor);
         _window.Show();
         Publish();
@@ -75,15 +75,10 @@ internal sealed class DockController : IDisposable
     {
         _hiddenForFullscreen = fullscreen;
         if (fullscreen)
-        {
             _window?.Hide();
-            _backdrop?.Hide();
-        }
         else
-        {
             _window?.Show();
-            _backdrop?.Show();
-        }
+        _backdrop?.SetVisible(!fullscreen);
     }
 
     public void SetDarkMode(bool dark)

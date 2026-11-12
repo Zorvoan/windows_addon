@@ -23,6 +23,15 @@ Jen sestavení:
 dotnet build
 ```
 
+Testy logiky a kontrola rozhraní bez Windows (běží i na Linuxu):
+
+```powershell
+dotnet test
+cd ui; npm run harness
+```
+
+Co vyzkoušet ručně na Windows: [docs/TESTING.md](docs/TESTING.md).
+
 ## Vývoj rozhraní
 
 Rozhraní je Svelte 5 + TypeScript, sestavované přes Vite. Nenačítá se z vývojového serveru: WebView2 čte soubory přímo ze složky `ui` vedle exe přes virtuální doménu `https://app.betterwindows/`.
@@ -38,18 +47,23 @@ V Debug buildu fungují v každém okně vývojářské nástroje (**F12**).
 ## Struktura
 
 ```
-src/BetterWindows/        WPF aplikace (.NET 8) – Core, Native, Monitors, Services, ShellWindows, Web, Tray
+src/BetterWindows/        WPF aplikace (.NET 8) – Core, Bridge, Native, Monitors, Services, ShellWindows, Web, Tray
+src/BetterWindows.Logic/  čistá logika bez WPF (testovatelná kdekoli)
+tests/                    testy logiky (xunit)
 ui/                       rozhraní (Svelte + TypeScript + Vite)
   src/lib/styles/tokens.css   designové tokeny: jediné místo pro barvy, blur, zaoblení, písmo
 tools/make_icon.py        generátor vlastní ikony aplikace
 docs/ARCHITECTURE.md      vrstvy oken, složky, zásady
 docs/ROADMAP.md           plán kroků a dalších fází
+docs/TESTING.md           testy na Windows
 ```
 
 ## Data aplikace
 
 | Co | Kde |
 |---|---|
-| Nastavení (od kroku 10) | `%AppData%\BetterWindows\settings.json` |
+| Nastavení | `%AppData%\BetterWindows\settings.json` |
+| Data widgetů (připomínky) | `%AppData%\BetterWindows\widgets-data.json` |
+| Pojistka změn systému | `%AppData%\BetterWindows\system-state.json` (jen když je něco změněno) |
 | Logy (7 dní) | `%AppData%\BetterWindows\logs\` |
-| Cache WebView2 | `%LocalAppData%\BetterWindows\WebView2\` |
+| Cache WebView2, ikon, tapety | `%LocalAppData%\BetterWindows\` |

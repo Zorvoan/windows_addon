@@ -18,7 +18,7 @@ internal sealed class AudioVisualizerService : IDisposable
 {
     private readonly SettingsService _settings;
     private readonly object _gate = new();
-    private readonly MMDeviceEnumerator _enumerator = new();
+    private readonly MMDeviceEnumerator? _enumerator;
     private readonly DeviceNotifications _notifications;
     private WasapiLoopbackCapture? _capture;
     private SpectrumAnalyzer? _analyzer;
@@ -38,7 +38,10 @@ internal sealed class AudioVisualizerService : IDisposable
     {
         _settings = settings;
         _notifications = new DeviceNotifications(this);
-        Safe.Run("Zvuková zařízení – upozornění", () => _enumerator.RegisterEndpointNotificationCallback(_notifications));
+        // Když zvuková služba Windows neběží, vizualizér prostě nebude – zbytek aplikace ano.
+        _enumerator = Safe.Run("Zvuková zařízení", () => new MMDeviceEnumerator());
+        if (_enumerator is not null)
+            Safe.Run("Zvuková zařízení – upozornění", () => _enumerator.RegisterEndpointNotificationCallback(_notifications));
         _settings.Changed += OnSettingsChanged;
     }
 
@@ -243,7 +246,8 @@ internal sealed class AudioVisualizerService : IDisposable
     public void Dispose()
     {
         _settings.Changed -= OnSettingsChanged;
-        Safe.Run("Zvuková zařízení – odhlášení", () => _enumerator.UnregisterEndpointNotificationCallback(_notifications));
+        if (_enumerator is not null)
+            Safe.Run("Zvuková zařízení – odhlášení", () => _enumerator.UnregisterEndpointNotificationCallback(_notifications));
         WasapiLoopbackCapture? old;
         lock (_gate)
         {
@@ -251,6 +255,6 @@ internal sealed class AudioVisualizerService : IDisposable
             old = DetachCapture();
         }
         DisposeOutsideLock(old);
-        _enumerator.Dispose();
+        _enumerator?.Dispose();
     }
 }

@@ -49,7 +49,18 @@ public partial class App : Application
         CrashGuard.RegisterEmergencyCleanup("Obnova systému", () => SystemGuard.RestoreCurrent("nouzový úklid"));
         Watchdog.Launch();
 
-        _shell = new ShellController(Dispatcher);
+        try
+        {
+            _shell = new ShellController(Dispatcher);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Spuštění shellu selhalo", ex);
+            MessageBox.Show($"{AppInfo.DisplayName} se nepodařilo spustit:\n{ex.Message}\n\nPodrobnosti v logu:\n{Log.CurrentFile}",
+                AppInfo.DisplayName, MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
         // Událost přichází z jiného vlákna -> přesun do UI vlákna přes Dispatcher.
         _singleInstance.SecondInstanceStarted += () => Dispatcher.InvokeAsync(() => _shell.ShowSettings());
 

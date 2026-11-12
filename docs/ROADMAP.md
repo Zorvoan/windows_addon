@@ -4,21 +4,23 @@ Architektura a vrstvy oken: viz [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Fáze 1
 
-- [x] **0. Kostra** – řešení, Vite + Svelte, jedna instance, ikona v oznamovací oblasti, CrashGuard, log
-- [ ] **1. Horní lišta** _(hotovo, čeká na test na Windows)_ – bezrámečkové okno nad aplikacemi, mimo Alt+Tab, bez kradení fokusu, systémové rozmazání (Win11 Acrylic / API z Win10 / žádné – testovací přepínač), designové tokeny (Inter, 22px, světlý/tmavý), statické rozvržení s volným místem pro Dynamic Island
-- [ ] **2. DesktopLayer** ⚠️ rizikový bod – okno přes celý monitor POD aplikacemi (WorkerW trik, záložně HWND_BOTTOM), skrytí ikon plochy (vratně: obnova při ukončení, pádu i zabití procesu), tapeta (výchozí = aktuální tapeta Windows), jedna testovací skleněná karta s CSS `backdrop-filter`
-- [ ] **3. AppBar** – horní lišta registrovaná přes `SHAppBarMessage`, maximalizovaná okna pod ni nezajedou
-- [ ] **4. Most C# ↔ JS + aktivní aplikace** – typované zprávy, `WindowTracker` (okno v popředí)
-- [ ] **5. Baterie, počasí** (Open-Meteo); hodiny a datum už běží v JS od kroku 1
-- [ ] **6. Indikátory mikrofonu a kamery** (`CapabilityAccessManager\ConsentStore`)
-- [ ] **7. UI docku** – zvětšování ikon, propustnost kliknutí mimo dock (`SetWindowRgn`)
-- [ ] **8. Spuštěné aplikace v docku** – seznam oken, identita aplikace (exe / AUMID), ikony
-- [ ] **9. Připnuté aplikace, klik, kontextová nabídka**
-- [ ] **10. Systémové rozmazání docku** – viz konflikt níže
-- [ ] **11. Vizualizér zvuku** – WASAPI loopback + FFT v C#, tečky na canvasu ve DesktopLayer
-- [ ] **12. Widgety na ploše** – počasí, kalendář, připomínky, hodiny (sklo nad tapetou)
-- [ ] **13. Okno nastavení** – tapeta, město, připnuté aplikace, přepínač hlavního panelu
-- [ ] **14. Skrytí hlavního panelu Windows** – watchdog, obnova při pádu i dalším startu
+Všechny kroky jsou **naprogramované a sestavené, ale zatím neotestované na Windows** – testovací seznam je v [TESTING.md](TESTING.md).
+
+- [x] **0. Kostra** – řešení, Vite + Svelte, jedna instance, ikona v oznamovací oblasti, CrashGuard, log *(otestováno)*
+- [ ] **1. Horní lišta** – okno nad aplikacemi, systémové rozmazání (3 režimy), designové tokeny, světlý/tmavý *(čeká na test)*
+- [ ] **2. DesktopLayer** ⚠️ – vložení do plochy (klasicky / 24H2+), záloha HWND_BOTTOM, skrytí ikon s obnovou, tapeta, testovací karta *(čeká na test)*
+- [ ] **3. AppBar** – rezervace horního okraje, skrytí při aplikaci přes celou obrazovku *(čeká na test)*
+- [ ] **4. Most C# ↔ JS + aktivní aplikace** – typované zprávy, WindowTracker, identita aplikací (exe / AUMID) *(čeká na test)*
+- [ ] **5. Baterie, počasí** (Open-Meteo) *(čeká na test)*
+- [ ] **6. Mikrofon a kamera** (ConsentStore) *(čeká na test)*
+- [ ] **7. UI docku** – zvětšování, region okna *(čeká na test)*
+- [ ] **8. Spuštěné aplikace v docku** – seznam oken, ikony *(čeká na test)*
+- [ ] **9. Připnuté aplikace, klik, kontextová nabídka** *(čeká na test)*
+- [ ] **10. Systémové rozmazání docku** – samostatné okno pod pásem *(čeká na test)*
+- [ ] **11. Vizualizér zvuku** – WASAPI loopback + FFT, scény tečky / vlna / kruh *(čeká na test)*
+- [ ] **12. Widgety na ploše** – hodiny, kalendář, počasí, připomínky, baterie, režim úprav *(čeká na test)*
+- [ ] **13. Okno nastavení** *(čeká na test)*
+- [ ] **14. Skrytí hlavního panelu** – výchozí vypnuto, pojistka, watchdog *(čeká na test)*
 
 ### Konflikt: dock se systémovým rozmazáním × zvětšování ikon
 
@@ -27,7 +29,7 @@ Systémové rozmazání (DWM) se vždy kreslí pod **celým obdélníkem okna**.
 - okno s ikonami je průhledné (bez rozmazání) a kliknutí mimo dock propouští (`SetWindowRgn`),
 - rozmazané pozadí dělá **samostatné okno pod ním**, velké přesně jako viditelný pás docku.
 
-Pokud by se pozadí při animaci šířky viditelně opožďovalo, dostane pevnou šířku.
+Pokud by se pozadí při animaci šířky viditelně opožďovalo, dostane pevnou šířku. (Implementováno: DockBackdropWindow.)
 
 ## Další fáze (po dokončení fáze 1)
 
