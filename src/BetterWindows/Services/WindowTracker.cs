@@ -29,6 +29,8 @@ internal sealed class WindowTracker : IDisposable
 
     public IReadOnlyList<AppWindowInfo> Windows { get; private set; } = [];
     public string? ForegroundAppId { get; private set; }
+    /// <summary>Poslední cizí okno v popředí (pro vrácení fokusu po kontextové nabídce).</summary>
+    public nint ForegroundHwnd { get; private set; }
     public string ForegroundName { get; private set; } = "Plocha";
     public string ForegroundTitle { get; private set; } = "";
 
@@ -153,6 +155,7 @@ internal sealed class WindowTracker : IDisposable
     {
         if (hwnd.IsNull || WindowInfo.GetProcessId(hwnd) == _ownPid)
             return; // klik do lišty / docku – "aktivní aplikace" zůstává
+        ForegroundHwnd = (nint)hwnd;
 
         string? appId;
         string name, title;

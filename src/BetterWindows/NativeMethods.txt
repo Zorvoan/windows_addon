@@ -114,3 +114,22 @@ GetSystemPowerStatus
 
 // Registr (hlídání změn ConsentStore)
 RegNotifyChangeKeyValue
+
+// Dock: ikony, region okna, spouštění/přepínání
+IShellItemImageFactory
+SIIGBF
+GetDIBits
+GetObject
+DeleteObject
+CreateCompatibleDC
+DeleteDC
+BITMAPINFO
+BITMAP
+DIB_USAGE
+CreateRectRgn
+CombineRgn
+SetWindowRgn
+RGN_COMBINE_MODE
+SetForegroundWindow
+PostMessage
+WM_CLOSE

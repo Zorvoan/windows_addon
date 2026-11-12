@@ -33,6 +33,8 @@ internal sealed class ShellController : IDisposable
     private readonly BatteryService _battery;
     private readonly WeatherService _weather;
     private readonly PrivacyIndicatorService _privacy;
+    private readonly IconService _icons = new();
+    private readonly DockController _dock;
 
     private TopBarWindow? _topBar;
     private SettingsWindow? _settingsWindow;
@@ -66,6 +68,8 @@ internal sealed class ShellController : IDisposable
         _weather.Changed += w => _hub.Publish(MessageTypes.WeatherState, w);
         _privacy = new PrivacyIndicatorService(dispatcher);
         _privacy.Changed += p => _hub.Publish(MessageTypes.PrivacyState, p);
+        _dock = new DockController(_context, _tracker, _identity, _icons);
+        Themes.ThemeResources.Apply(_theme.IsDark);
 
         WebViewHost.SetColorScheme(_theme.IsDark);
         RegisterMessageHandlers();
@@ -84,6 +88,7 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Vrstva plochy", _desktop.Start);
         Safe.Run("Horní lišta", StartTopBar);
         Safe.Run("Sledování oken", _tracker.Start);
+        Safe.Run("Dock", _dock.Start);
         Safe.Run("Baterie", _battery.Start);
         Safe.Run("Počasí", _weather.Start);
         Safe.Run("Mikrofon a kamera", _privacy.Start);
@@ -120,11 +125,12 @@ internal sealed class ShellController : IDisposable
         if (_fullscreen == fullscreen)
             return;
         _fullscreen = fullscreen;
-        // Hra / video přes celou obrazovku: lišta (a dock) zmizí, aby nepřekážely.
+        // Hra / video přes celou obrazovku: lišta a dock zmizí, aby nepřekážely.
         if (fullscreen)
             _topBar?.Hide();
         else
             _topBar?.Show();
+        _dock.SetFullscreen(fullscreen);
     }
 
     // ================= Zprávy z UI =================
@@ -220,12 +226,15 @@ internal sealed class ShellController : IDisposable
     {
         WebViewHost.SetColorScheme(dark);
         _topBar?.SetDarkMode(dark);
+        _dock.SetDarkMode(dark);
+        Themes.ThemeResources.Apply(dark);
     }
 
     private void OnMonitorsChanged()
     {
         _topBar?.RefreshMonitor();
         _desktop.OnMonitorsChanged();
+        _dock.OnMonitorsChanged();
     }
 
     private void OnExplorerRestarted()
@@ -262,6 +271,8 @@ internal sealed class ShellController : IDisposable
             _topBar?.Close();
         });
         Safe.Run("Zavření plochy", _desktop.Dispose);
+        Safe.Run("Dock", _dock.Dispose);
+        Safe.Run("Ikony", _icons.Dispose);
         Safe.Run("Sledování oken", _tracker.Dispose);
         Safe.Run("Baterie", _battery.Dispose);
         Safe.Run("Počasí", _weather.Dispose);

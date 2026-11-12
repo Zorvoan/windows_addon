@@ -29,7 +29,7 @@
 
   /* --- Zaoblení --- */
   --bw-radius-card: 22px;   /* widgety, karty, velké panely */
-  --bw-radius-dock: 18px;
+  --bw-radius-dock: 8px;    /* stejné jako systémové zaoblení okna (DWM "ROUND"), pod kterým je rozmazání */
   --bw-radius-lg: 14px;
   --bw-radius-md: 10px;
   --bw-radius-sm: 6px;

@@ -1,0 +1,71 @@
+<!--
+  Vzhled kontextové nabídky docku (WPF ContextMenu). Barvy jsou DynamicResource,
+  takže je ThemeResources přepíná podle světlého/tmavého režimu.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <SolidColorBrush x:Key="Bw.Menu.Background" Color="#F2202024" />
+  <SolidColorBrush x:Key="Bw.Menu.Border" Color="#33FFFFFF" />
+  <SolidColorBrush x:Key="Bw.Menu.Foreground" Color="#FFF5F5F7" />
+  <SolidColorBrush x:Key="Bw.Menu.Muted" Color="#99F5F5F7" />
+  <SolidColorBrush x:Key="Bw.Menu.Hover" Color="#FF3A6DF0" />
+  <SolidColorBrush x:Key="Bw.Menu.Separator" Color="#22FFFFFF" />
+
+  <Style TargetType="ContextMenu" x:Key="Bw.ContextMenu">
+    <Setter Property="SnapsToDevicePixels" Value="True" />
+    <Setter Property="OverridesDefaultStyle" Value="True" />
+    <Setter Property="HasDropShadow" Value="True" />
+    <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Foreground" Value="{DynamicResource Bw.Menu.Foreground}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ContextMenu">
+          <Border Background="{DynamicResource Bw.Menu.Background}"
+                  BorderBrush="{DynamicResource Bw.Menu.Border}"
+                  BorderThickness="1" CornerRadius="10" Padding="5" Margin="8">
+            <Border.Effect>
+              <DropShadowEffect BlurRadius="18" ShadowDepth="4" Opacity="0.35" />
+            </Border.Effect>
+            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" MinWidth="190" />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="MenuItem" x:Key="Bw.MenuItem">
+    <Setter Property="OverridesDefaultStyle" Value="True" />
+    <Setter Property="Foreground" Value="{DynamicResource Bw.Menu.Foreground}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="MenuItem">
+          <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="10,6">
+            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+              <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Bw.Menu.Hover}" />
+              <Setter Property="Foreground" Value="White" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Foreground" Value="{DynamicResource Bw.Menu.Muted}" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style TargetType="Separator" x:Key="Bw.Separator">
+    <Setter Property="OverridesDefaultStyle" Value="True" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Separator">
+          <Border Height="1" Margin="6,4" Background="{DynamicResource Bw.Menu.Separator}" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+</ResourceDictionary>
