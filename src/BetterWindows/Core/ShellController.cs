@@ -91,7 +91,13 @@ internal sealed class ShellController : IDisposable
         _performance.Changed += OnPerformanceChanged;
         _hub.Publish(MessageTypes.PerformanceState, _performance.State);
         _visualizer = new AudioVisualizerService(_settings);
-        _visualizer.Frame += bins => _hub.Publish(MessageTypes.VisualizerFrame, new VisualizerFramePayload(bins), sticky: false, page: "desktop");
+        // Spektrum: vizualizér na ploše + zvukové proužky v ostrůvku.
+        _visualizer.Frame += bins =>
+        {
+            var payload = new VisualizerFramePayload(bins);
+            _hub.Publish(MessageTypes.VisualizerFrame, payload, sticky: false, page: "desktop");
+            _hub.Publish(MessageTypes.VisualizerFrame, payload, sticky: false, page: "island");
+        };
         Themes.ThemeResources.Apply(_theme.IsDark);
 
         WebViewHost.SetColorScheme(_theme.IsDark);

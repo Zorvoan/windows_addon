@@ -17,6 +17,7 @@
   import { motionReduced } from '$lib/motion.svelte';
   import { IslandAnimator, EXPANDED, type IslandLook, type IslandMode } from './motion';
   import Icon from '$lib/components/Icon.svelte';
+  import Waveform from '$lib/components/Waveform.svelte';
   import { host } from '$lib/stores/host.svelte';
   import { ready, send } from '$lib/bridge/bridge';
   import type { CssRect } from '$lib/bridge/messages';
@@ -195,7 +196,7 @@
     >
       {#if media.thumbnail}<img class="art small" src={media.thumbnail} alt="" />{:else}<span class="art small ph"><Icon name="volume" size={12} /></span>{/if}
       <span class="title">{media.title}</span>
-      <span class="dots" class:playing={media.playing} aria-hidden="true">{#each [0, 1, 2, 3] as c (c)}<span class="col">{#each [0, 1, 2] as r (r)}<i></i>{/each}</span>{/each}</span>
+      <Waveform playing={media.playing} art={media.thumbnail} active={look.compact.opacity > 0.01} width={22} height={16} />
     </div>
     <div
       class="layer body-expanded"
@@ -213,7 +214,7 @@
           <div class="artist">{media.artist ?? ''}</div>
           {#if media.source}<div class="source">{media.source}</div>{/if}
         </div>
-        <span class="dots big" class:playing={media.playing} aria-hidden="true">{#each [0, 1, 2, 3] as c (c)}<span class="col">{#each [0, 1, 2] as r (r)}<i></i>{/each}</span>{/each}</span>
+        <Waveform playing={media.playing} art={media.thumbnail} active={look.expanded.opacity > 0.01} width={28} height={22} />
       </div>
       {#if media.duration}
         <div class="progress">
@@ -291,9 +292,6 @@
   }
   .layer.shown {
     pointer-events: auto;
-  }
-  .layer:not(.shown) .dots i {
-    animation: none;
   }
   .row-compact,
   .row-volume {
@@ -438,52 +436,5 @@
   .vol input {
     width: 88px;
     accent-color: #ededed;
-  }
-  /* Podpis shellu: tečková matice. Při přehrávání sloupce teček "dýchají" (živý stav), jinak stojí. */
-  .dots {
-    display: inline-flex;
-    align-items: flex-end;
-    gap: 2px;
-    flex: none;
-  }
-  .col {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 2px;
-  }
-  .dots i {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: #ededed;
-    opacity: 0.25;
-  }
-  .dots i:first-child {
-    opacity: 0.9;
-  }
-  .dots.big i {
-    width: 4px;
-    height: 4px;
-  }
-  .dots.playing i {
-    animation: level 1.2s var(--bw-ease) infinite alternate;
-  }
-  .dots.playing .col:nth-child(1) i:nth-child(2) { animation-delay: -0.2s; }
-  .dots.playing .col:nth-child(2) i:nth-child(2) { animation-delay: -0.7s; }
-  .dots.playing .col:nth-child(2) i:nth-child(3) { animation-delay: -0.4s; }
-  .dots.playing .col:nth-child(3) i:nth-child(2) { animation-delay: -1s; }
-  .dots.playing .col:nth-child(3) i:nth-child(3) { animation-delay: -0.1s; }
-  .dots.playing .col:nth-child(4) i:nth-child(2) { animation-delay: -0.5s; }
-  .dots.playing .col:nth-child(4) i:nth-child(3) { animation-delay: -0.9s; }
-  .dots.playing i:first-child {
-    animation: none;
-  }
-  @keyframes level {
-    from {
-      opacity: 0.2;
-    }
-    to {
-      opacity: 0.9;
-    }
   }
 </style>

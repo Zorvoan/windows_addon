@@ -45,7 +45,9 @@ internal sealed class AudioVisualizerService : IDisposable
         _settings.Changed += OnSettingsChanged;
     }
 
-    private bool ShouldRun => _settings.Current.Desktop.Enabled && _settings.Current.Desktop.Visualizer.Enabled && !_paused;
+    /// <summary>Zachytávat, když zvuk potřebuje vizualizér na ploše nebo proužky v ostrůvku.</summary>
+    private bool ShouldRun => !_paused &&
+        ((_settings.Current.Desktop.Enabled && _settings.Current.Desktop.Visualizer.Enabled) || _settings.Current.Island.Enabled);
 
     public void Start()
     {
@@ -220,7 +222,7 @@ internal sealed class AudioVisualizerService : IDisposable
     private void OnSettingsChanged(AppSettings old, AppSettings now)
     {
         var shouldRun = ShouldRun;
-        var wasRunning = old.Desktop.Enabled && old.Desktop.Visualizer.Enabled;
+        var wasRunning = !_paused && ((old.Desktop.Enabled && old.Desktop.Visualizer.Enabled) || old.Island.Enabled);
         if (shouldRun && !wasRunning) StartCapture();
         else if (!shouldRun && wasRunning) StopCapture();
     }
