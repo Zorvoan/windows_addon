@@ -73,6 +73,11 @@ export class SpringChannel {
     this.velocity = normalized * (this.target - this.value);
   }
 
+  /** Přidat rychlost (jednotky za sekundu) – „šťouchnutí“, pružina se pak sama vrátí. */
+  impulse(velocity: number) {
+    this.velocity += velocity;
+  }
+
   /** Okamžitě na hodnotu (bez pohybu). */
   jump(value: number) {
     this.value = this.target = value;

@@ -19,6 +19,11 @@ internal sealed class IslandWindow : ShellWindowBase
     {
     }
 
+    public HWND Handle => Hwnd;
+
+    /// <summary>Poloha okna ostrůvku na obrazovce (fyzické px).</summary>
+    public PixelRect Bounds => ComputeBounds(Monitor);
+
     protected override PixelRect ComputeBounds(MonitorInfo m)
     {
         var w = m.ToPixels(WidthDip);

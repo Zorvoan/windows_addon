@@ -43,7 +43,12 @@ const P = {
   collapseH: { response: 0.44, dampingFraction: 0.96, precision: 0.2 },
   collapseY: { response: 0.49, dampingFraction: 0.8, precision: 0.2 },
   other: { response: 0.42, dampingFraction: 0.8, precision: 0.2 },
+  /** Pohlcení okna aplikace: měkčí pružina s viditelným zhoupnutím. */
+  absorb: { response: 0.45, dampingFraction: 0.6, precision: 0.2 },
 } satisfies Record<string, SpringParams>;
+
+/** Šťouchnutí při pohlcení (násobek rozměru za sekundu): ~+12 % šířky, ~+28 % výšky kolem středu. */
+const ABSORB_KICK = { w: 2.8, h: 6.5 };
 
 /** Počáteční rychlosti (násobek vzdálenosti k cíli za sekundu), napasované spolu s pružinami. */
 const KICK = { expandW: 1, expandH: 2, collapseW: 1, collapseH: 1, collapseY: 2 };
@@ -189,6 +194,20 @@ export class IslandAnimator {
       else if (mode !== 'compact') this.#compact.set(now, 0, 90);
       this.#volume.set(now, mode === 'volume' ? 1 : 0, mode === 'volume' ? 160 : 90, mode === 'volume' ? 70 : 0);
     }
+    this.#run();
+  }
+
+  /**
+   * Okno hrající aplikace vletělo do ostrůvku (jako na telefonu): krátké nafouknutí kolem středu
+   * s doznívajícím zhoupnutím. Jen šťouchnutí do pružin – naváže na cokoli, co právě běží.
+   */
+  absorb(reduced: boolean) {
+    if (reduced || this.#phase === 'pre' || this.#mode === 'hidden' || this.#mode === 'expanded') return;
+    const c = this.sizeFor(this.#mode);
+    this.#w.retarget(c.w, P.absorb);
+    this.#h.retarget(c.h, P.absorb);
+    this.#w.impulse(c.w * ABSORB_KICK.w);
+    this.#h.impulse(c.h * ABSORB_KICK.h);
     this.#run();
   }
 

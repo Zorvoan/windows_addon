@@ -19,7 +19,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import Waveform from '$lib/components/Waveform.svelte';
   import { host } from '$lib/stores/host.svelte';
-  import { ready, send } from '$lib/bridge/bridge';
+  import { on, ready, send } from '$lib/bridge/bridge';
   import type { CssRect } from '$lib/bridge/messages';
 
   let pill: HTMLDivElement | undefined = $state();
@@ -97,6 +97,14 @@
     },
   );
   let look: IslandLook = $state(animator.look);
+
+  // Okno hrající aplikace vletělo do ostrůvku (C# ho při minimalizaci animuje sem) -> pohltit.
+  on('island.absorb', () => {
+    const c = sizeFor(mode);
+    envelope = { w: Math.min(c.w * 1.2 + 8, window.innerWidth), h: Math.min(c.h * 1.45 + 8 + TOP, window.innerHeight) };
+    report();
+    animator.absorb(motionReduced()); // po doznění: přesný tvar (onSettle)
+  });
 
   let lastExpanded = false;
   $effect(() => {

@@ -84,7 +84,7 @@ internal sealed class ShellController : IDisposable
         _taskbar = new TaskbarService(_settings, dispatcher);
         // Po skrytí/ukázání panelu Windows chvíli přepočítává pracovní plochu -> dock posunout s malým zpožděním.
         _taskbar.WorkAreaChanged += () => DelayOnUi(TimeSpan.FromMilliseconds(600), OnMonitorsChanged);
-        _island = new IslandController(_context, _identity);
+        _island = new IslandController(_context, _identity, _tracker, () => _performance?.Reduced ?? false);
         _start = new StartController(_context);
         _lock = new LockScreenController(_context, _shellMessages, () => _island.MediaPlaying, () => _performance?.Fullscreen ?? false);
         _performance = new PerformanceService(_settings, _battery);

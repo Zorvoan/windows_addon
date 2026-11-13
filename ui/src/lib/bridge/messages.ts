@@ -219,6 +219,7 @@ export type HostMessage =
   | { type: 'volume.state'; payload: VolumeState }
   | { type: 'start.apps'; payload: { apps: StartApp[] } }
   | { type: 'start.visibility'; payload: { open: boolean } }
+  | { type: 'island.absorb'; payload: Record<string, never> }
   | { type: 'island.expanded'; payload: { expanded: boolean } }
   | { type: 'theme.code'; payload: { code: string } }
   | { type: 'theme.importResult'; payload: { ok: boolean; error: string | null } }

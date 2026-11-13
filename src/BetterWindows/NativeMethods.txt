@@ -192,6 +192,10 @@ SHQueryRecycleBin
 SHQUERYRBINFO
 SHEmptyRecycleBin
 
+// Ostrůvek: okno hrající aplikace „vletí“ do ostrůvku při minimalizaci
+GetWindowPlacement
+WINDOWPLACEMENT
+
 // Diagnostika: kdo dostane klik na vrstvě plochy
 WindowFromPoint
 IsChild

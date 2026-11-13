@@ -36,6 +36,8 @@ internal sealed class WindowTracker : IDisposable
 
     public event Action? WindowsChanged;
     public event Action? ForegroundChanged;
+    /// <summary>Okno se začíná minimalizovat (ostrůvek do sebe „vtáhne“ hrající aplikaci).</summary>
+    public event Action<HWND>? WindowMinimizing;
 
     public WindowTracker(AppIdentityResolver identity, Dispatcher dispatcher)
     {
@@ -86,6 +88,9 @@ internal sealed class WindowTracker : IDisposable
             const int OBJID_WINDOW = 0, CHILDID_SELF = 0;
             if (idObject != OBJID_WINDOW || idChild != CHILDID_SELF || hwnd.IsNull)
                 return;
+
+            if (@event == PInvoke.EVENT_SYSTEM_MINIMIZESTART)
+                Safe.Run("Minimalizace okna", () => WindowMinimizing?.Invoke(hwnd));
 
             if (@event == PInvoke.EVENT_OBJECT_NAMECHANGE)
             {

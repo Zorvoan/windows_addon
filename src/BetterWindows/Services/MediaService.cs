@@ -24,6 +24,8 @@ internal sealed class MediaService : IDisposable
     private bool _refreshAgain;
 
     public MediaStatePayload Current { get; private set; } = Empty;
+    /// <summary>AUMID aplikace, která přehrává (jak ho hlásí Windows; např. "Spotify.exe").</summary>
+    public string? SourceAumid { get; private set; }
     public event Action<MediaStatePayload>? Changed;
 
     private static readonly MediaStatePayload Empty = new(false, null, null, null, null, false, null, null, false, false);
@@ -110,6 +112,7 @@ internal sealed class MediaService : IDisposable
                 var playback = s.GetPlaybackInfo();
                 var timeline = s.GetTimelineProperties();
 
+                SourceAumid = s.SourceAppUserModelId;
                 var key = $"{props?.Title}|{props?.Artist}|{s.SourceAppUserModelId}";
                 if (key != _thumbKey)
                 {
