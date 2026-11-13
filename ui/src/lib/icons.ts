@@ -36,6 +36,14 @@ export const icons = {
   image: ['M5 5h14v14H5z', 'M5 16l4-4l4 4l2-2l4 4', 'M15.5 9.5h.01'],
   folder: ['M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z'],
   refresh: ['M19 8a7.5 7.5 0 1 0 1 5', 'M19 3.5V8h-4.5'],
+  play: ['M8 5.5v13l10.5-6.5z'],
+  pause: ['M8.5 5.5v13', 'M15.5 5.5v13'],
+  next: ['M6.5 6v12l8.5-6z', 'M17.5 6v12'],
+  previous: ['M17.5 6v12L9 12z', 'M6.5 6v12'],
+  volume: ['M4.5 9.5h3l4.5-4v13l-4.5-4h-3z', 'M15.5 9a4 4 0 0 1 0 6', 'M18 6.5a7.5 7.5 0 0 1 0 11'],
+  mute: ['M4.5 9.5h3l4.5-4v13l-4.5-4h-3z', 'M16 9.5l5 5', 'M21 9.5l-5 5'],
+  search2: ['M10.5 4a6.5 6.5 0 1 1 0 13a6.5 6.5 0 0 1 0-13z', 'M15.5 15.5L20 20'],
+  grid: ['M5 5h3v3H5z', 'M10.5 5h3v3h-3z', 'M16 5h3v3h-3z', 'M5 10.5h3v3H5z', 'M10.5 10.5h3v3h-3z', 'M16 10.5h3v3h-3z', 'M5 16h3v3H5z', 'M10.5 16h3v3h-3z', 'M16 16h3v3h-3z'],
 } as const satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof icons;

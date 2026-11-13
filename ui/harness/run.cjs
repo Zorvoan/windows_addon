@@ -21,6 +21,7 @@ const pages = [
   { name: 'topbar', width: 1600, height: 36, backdrop: true },
   { name: 'dock', width: 1200, height: 170, backdrop: true, interact: hoverDock },
   { name: 'desktop', width: 1600, height: 900, backdrop: false },
+  { name: 'island', width: 480, height: 176, backdrop: true, interact: hoverIsland },
   { name: 'settings', width: 900, height: 900, backdrop: false, fullPage: true, interact: toggleSetting },
 ].filter((p) => fs.existsSync(path.join(root, `${p.name}.html`)));
 
@@ -59,6 +60,21 @@ async function hoverDock(page, report) {
   const hovers = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.hover');
   report.notes.push(`dock.hover: ${hovers.map((h) => h.payload.appId ?? 'null').join(' → ')}`);
   if (!hovers.some((h) => h.payload.appId && h.payload.rect)) report.errors.push('dock: nad spuštěnou aplikací nepřišel dock.hover s obdélníkem');
+}
+
+async function hoverIsland(page, report) {
+  const sentBefore = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.layout');
+  const compact = sentBefore.at(-1)?.payload.hit[0];
+  await page.mouse.move(240, 18, { steps: 5 });
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: path.join(outDir, `island-${report.scheme}-hover.png`) });
+  const after = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.layout');
+  const expanded = after.at(-1)?.payload.hit[0];
+  report.notes.push(`island.layout kompaktní ${JSON.stringify(compact)} -> rozbalený ${JSON.stringify(expanded)}`);
+  if (!compact || !expanded || expanded.height <= compact.height) report.errors.push('ostrůvek: tvar se po najetí nezvětšil');
+  await page.getByRole('button', { name: 'Další' }).click();
+  const cmd = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'media.command');
+  if (cmd.at(-1)?.payload.command !== 'next') report.errors.push('ostrůvek: tlačítko Další neposlalo media.command');
 }
 
 async function toggleSetting(page, report) {

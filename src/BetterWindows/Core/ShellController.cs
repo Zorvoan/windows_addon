@@ -38,6 +38,7 @@ internal sealed class ShellController : IDisposable
     private readonly AudioVisualizerService _visualizer;
     private readonly TaskbarService _taskbar;
     private readonly PerformanceService _performance;
+    private readonly IslandController _island;
     private readonly Logic.Storage.KeyValueStore _store = new(System.IO.Path.Combine(AppInfo.DataDir, "widgets-data.json"));
 
     private TopBarWindow? _topBar;
@@ -76,6 +77,7 @@ internal sealed class ShellController : IDisposable
         _taskbar = new TaskbarService(_settings, dispatcher);
         // Po skrytí/ukázání panelu Windows chvíli přepočítává pracovní plochu -> dock posunout s malým zpožděním.
         _taskbar.WorkAreaChanged += () => DelayOnUi(TimeSpan.FromMilliseconds(600), OnMonitorsChanged);
+        _island = new IslandController(_context, _identity);
         _performance = new PerformanceService(_settings, _battery);
         _performance.Changed += OnPerformanceChanged;
         _hub.Publish(MessageTypes.PerformanceState, _performance.State);
@@ -101,6 +103,7 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Horní lišta", StartTopBar);
         Safe.Run("Sledování oken", _tracker.Start);
         Safe.Run("Dock", _dock.Start);
+        Safe.Run("Dynamic Island", _island.Start);
         Safe.Run("Baterie", _battery.Start);
         Safe.Run("Počasí", _weather.Start);
         Safe.Run("Mikrofon a kamera", _privacy.Start);
@@ -130,6 +133,7 @@ internal sealed class ShellController : IDisposable
         _topBar = new TopBarWindow(_context, _monitors.GetPrimary());
         _topBar.SetBackdrop(_settings.Current.Appearance.TopBarBackdrop);
         _topBar.FullscreenChanged += OnFullscreenChanged;
+        _topBar.Placed += () => _island?.BringToTop();
         _topBar.Show();
     }
 
@@ -160,6 +164,7 @@ internal sealed class ShellController : IDisposable
         else
             _topBar?.Show();
         _dock.SetFullscreen(fullscreen);
+        _island.SetFullscreen(fullscreen);
         _performance.SetFullscreen(fullscreen);
     }
 
@@ -303,6 +308,7 @@ internal sealed class ShellController : IDisposable
         WebViewHost.SetColorScheme(dark);
         _topBar?.SetDarkMode(dark);
         _dock.SetDarkMode(dark);
+        _island.SetDarkMode(dark);
         Themes.ThemeResources.Apply(dark);
     }
 
@@ -311,6 +317,7 @@ internal sealed class ShellController : IDisposable
         _topBar?.RefreshMonitor();
         _desktop.OnMonitorsChanged();
         _dock.OnMonitorsChanged();
+        _island.OnMonitorsChanged();
     }
 
     private void OnExplorerRestarted()
@@ -349,6 +356,7 @@ internal sealed class ShellController : IDisposable
         });
         Safe.Run("Zavření plochy", _desktop.Dispose);
         Safe.Run("Hlavní panel", _taskbar.Dispose);
+        Safe.Run("Dynamic Island", _island.Dispose);
         Safe.Run("Vizualizér", _visualizer.Dispose);
         Safe.Run("Dock", _dock.Dispose);
         Safe.Run("Ikony", _icons.Dispose);

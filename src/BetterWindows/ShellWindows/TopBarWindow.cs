@@ -22,6 +22,9 @@ internal sealed class TopBarWindow : ShellWindowBase
     /// <summary>Na monitoru se otevřela / zavřela aplikace přes celou obrazovku (hra, video).</summary>
     public event Action<bool>? FullscreenChanged;
 
+    /// <summary>Lišta se přesunula navrch (SetWindowPos) – okna, která mají být nad ní, se mají přesunout znovu.</summary>
+    public event Action? Placed;
+
     public TopBarWindow(ShellContext context, MonitorInfo monitor)
         : base("topbar", context, monitor)
     {
@@ -55,6 +58,7 @@ internal sealed class TopBarWindow : ShellWindowBase
         PInvoke.SetWindowPos(Hwnd, HWND.HWND_TOPMOST, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top,
             SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
         Log.Info($"Horní lišta (AppBar): {rc.right - rc.left}×{rc.bottom - rc.top} px na [{rc.left},{rc.top}] ({Monitor.Scale:P0})");
+        Placed?.Invoke();
     }
 
     protected override nint OnWindowMessage(int msg, nint wParam, nint lParam, ref bool handled)

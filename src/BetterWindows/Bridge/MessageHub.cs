@@ -60,6 +60,17 @@ internal sealed class MessageHub(Dispatcher dispatcher)
         }
     }
 
+    /// <summary>Jen zapamatovat stav pro později načtené stránky (nic neposílat).</summary>
+    public void Remember(string type, object payload)
+    {
+        if (!dispatcher.CheckAccess())
+        {
+            dispatcher.InvokeAsync(() => Remember(type, payload));
+            return;
+        }
+        _sticky[type] = Envelope.Serialize(type, payload);
+    }
+
     /// <summary>Pošle zprávu jedné konkrétní stránce (např. odpověď na dotaz).</summary>
     public void Send(MessageBridge bridge, string type, object payload)
     {

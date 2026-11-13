@@ -11,6 +11,7 @@ using Microsoft.Web.WebView2.Wpf;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
+using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace BetterWindows.ShellWindows;
@@ -105,6 +106,40 @@ internal abstract class ShellWindowBase : Window
         var flags = SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | (IsTopmost ? 0 : SET_WINDOW_POS_FLAGS.SWP_NOZORDER);
         PInvoke.SetWindowPos(Hwnd, insertAfter, r.Left, r.Top, r.Width, r.Height, flags);
         Log.Info($"{Title}: {r.Width}×{r.Height} px na [{r.Left},{r.Top}], monitor {Monitor.DeviceName} ({Monitor.Scale:P0})");
+    }
+
+    // ---------- Tvar okna (dock, ostrůvek) ----------
+
+    /// <summary>Převod CSS px (relativně k oknu) na fyzické pixely na obrazovce.</summary>
+    public PixelRect ToScreen(Logic.Messaging.CssRect r)
+    {
+        var b = ComputeBounds(Monitor);
+        var s = Monitor.Scale;
+        return new PixelRect(
+            b.Left + (int)Math.Floor(r.X * s), b.Top + (int)Math.Floor(r.Y * s),
+            b.Left + (int)Math.Ceiling((r.X + r.Width) * s), b.Top + (int)Math.Ceiling((r.Y + r.Height) * s));
+    }
+
+    /// <summary>
+    /// Tvar okna = sjednocení obdélníků (CSS px relativně k oknu). Mimo ně okno "neexistuje":
+    /// není vidět a kliknutí jde do oken pod ním (SetWindowRgn).
+    /// </summary>
+    public unsafe void SetHitRects(IReadOnlyList<Logic.Messaging.CssRect> rects)
+    {
+        if (Hwnd.IsNull)
+            return;
+        var s = Monitor.Scale;
+        var region = PInvoke.CreateRectRgn(0, 0, 0, 0);
+        foreach (var r in rects)
+        {
+            var part = PInvoke.CreateRectRgn((int)Math.Floor(r.X * s), (int)Math.Floor(r.Y * s),
+                (int)Math.Ceiling((r.X + r.Width) * s), (int)Math.Ceiling((r.Y + r.Height) * s));
+            PInvoke.CombineRgn(region, region, part, RGN_COMBINE_MODE.RGN_OR);
+            PInvoke.DeleteObject(new HGDIOBJ(part.Value));
+        }
+        // Po úspěchu region patří systému (nemazat). Při neúspěchu ho uklidíme.
+        if (PInvoke.SetWindowRgn(Hwnd, region, true) == 0)
+            PInvoke.DeleteObject(new HGDIOBJ(region.Value));
     }
 
     // ---------- Veřejné ovládání ----------
