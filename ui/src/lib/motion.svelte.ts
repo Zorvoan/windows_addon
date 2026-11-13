@@ -1,5 +1,6 @@
 /**
  * Pohyb na jednom místě (jako tokeny v tokens.css, jen pro animace řízené z JS).
+ * Parametry ostrůvku jsou v apps/island/motion.ts (naměřené z referenční nahrávky).
  *
  * Pružiny se zadávají jako ve SwiftUI: response (s, přibližně délka jednoho kmitu)
  * a dampingFraction (1 = bez překmitu, méně = lehké doznění).
@@ -21,8 +22,8 @@ export interface SpringParams {
 }
 
 export const springs = {
-  /** Ostrůvek: měkké roztažení s lehkým doznáním. Stejná křivka je v tokens.css jako --bw-spring. */
-  island: { response: 0.42, dampingFraction: 0.8, precision: 0.3 } satisfies SpringParams,
+  /** Obecná měkká pružina s lehkým doznáním. Stejná křivka je v tokens.css jako --bw-spring. */
+  soft: { response: 0.42, dampingFraction: 0.8, precision: 0.3 } satisfies SpringParams,
 };
 
 /** Doba doběhu pro plynule sledované hodnoty (zvětšení docku), τ v ms. */
@@ -45,86 +46,55 @@ export function follow(current: number, target: number, dtMs: number, tauMs: num
 const STEP = 1 / 240; // s
 
 /**
- * Pružina pro několik čísel najednou (např. šířka, výška, zaoblení).
- * `value` je reaktivní; `set` vrací Promise: true = dosedla, false = přerušil ji další `set`.
- * Při přerušení se pokračuje ze současné polohy I rychlosti (žádné cuknutí).
+ * Jedna pružina (jedno číslo, např. šířka). Fyzika ve skutečném čase: step(dt) v sekundách,
+ * uvnitř pevné kroky 1/240 s (semi-implicitní Euler), na obnovovací frekvenci nezáleží.
+ * Změna cíle za letu zachová polohu i rychlost -> žádné cuknutí.
  */
-export class SpringBox<K extends string> {
-  value: Record<K, number> = $state() as Record<K, number>;
-  #target: Record<K, number>;
-  #velocity: Record<K, number>;
-  #params: Required<SpringParams>;
-  #frame = 0;
-  #last = 0;
+export class SpringChannel {
+  value: number;
+  velocity = 0;
+  target: number;
+  params: Required<SpringParams>;
   #carry = 0;
-  #done: ((settled: boolean) => void) | null = null;
 
-  constructor(initial: Record<K, number>, params: SpringParams) {
-    this.value = { ...initial };
-    this.#target = { ...initial };
-    this.#velocity = Object.fromEntries(Object.keys(initial).map((k) => [k, 0])) as Record<K, number>;
-    this.#params = { precision: 0.5, ...params };
+  constructor(value: number, params: SpringParams) {
+    this.value = value;
+    this.target = value;
+    this.params = { precision: 0.5, ...params };
   }
 
-  get target(): Record<K, number> {
-    return this.#target;
+  retarget(target: number, params?: SpringParams) {
+    this.target = target;
+    if (params) this.params = { precision: 0.5, ...params };
   }
 
-  set(target: Record<K, number>, options?: { instant?: boolean }): Promise<boolean> {
-    this.#done?.(false);
-    this.#done = null;
-    this.#target = { ...target };
-    if (options?.instant) {
-      this.#stop();
-      for (const k in this.#velocity) this.#velocity[k] = 0;
-      this.value = { ...target };
-      return Promise.resolve(true);
-    }
-    const promise = new Promise<boolean>((resolve) => (this.#done = resolve));
-    if (!this.#frame) {
-      this.#last = performance.now();
-      this.#carry = 0;
-      this.#frame = requestAnimationFrame(this.#tick);
-    }
-    return promise;
+  /** Počáteční rychlost jako násobek vzdálenosti k cíli za sekundu (z napasování na nahrávku). */
+  kick(normalized: number) {
+    this.velocity = normalized * (this.target - this.value);
   }
 
-  #tick = (now: number) => {
-    const omega = (2 * Math.PI) / this.#params.response;
+  /** Okamžitě na hodnotu (bez pohybu). */
+  jump(value: number) {
+    this.value = this.target = value;
+    this.velocity = 0;
+    this.#carry = 0;
+  }
+
+  step(dt: number) {
+    const omega = (2 * Math.PI) / this.params.response;
     const k = omega * omega;
-    const c = 2 * this.#params.dampingFraction * omega;
-    // Max 1/30 s na snímek: po zaseknutí pokračovat plynule, ne skokem.
-    this.#carry += Math.min((now - this.#last) / 1000, 1 / 30);
-    this.#last = now;
-
-    const next = { ...this.value };
+    const c = 2 * this.params.dampingFraction * omega;
+    this.#carry += Math.min(Math.max(dt, 0), 1 / 30); // po zaseknutí pokračovat plynule, ne skokem
     while (this.#carry >= STEP) {
       this.#carry -= STEP;
-      for (const key in next) {
-        // Semi-implicitní Euler: nejdřív rychlost, pak poloha (stabilní pro malé kroky).
-        this.#velocity[key] += (k * (this.#target[key] - next[key]) - c * this.#velocity[key]) * STEP;
-        next[key] += this.#velocity[key] * STEP;
-      }
+      this.velocity += (k * (this.target - this.value) - c * this.velocity) * STEP;
+      this.value += this.velocity * STEP;
     }
+    if (this.settled) this.jump(this.target);
+  }
 
-    const p = this.#params.precision;
-    const settled = (Object.keys(next) as K[]).every(
-      (key) => Math.abs(this.#target[key] - next[key]) < p && Math.abs(this.#velocity[key]) < p * 10,
-    );
-    if (settled) {
-      for (const key in this.#velocity) this.#velocity[key] = 0;
-      this.value = { ...this.#target };
-      this.#frame = 0;
-      this.#done?.(true);
-      this.#done = null;
-      return;
-    }
-    this.value = next;
-    this.#frame = requestAnimationFrame(this.#tick);
-  };
-
-  #stop() {
-    if (this.#frame) cancelAnimationFrame(this.#frame);
-    this.#frame = 0;
+  get settled(): boolean {
+    const p = this.params.precision;
+    return Math.abs(this.target - this.value) < p && Math.abs(this.velocity) < p * 10;
   }
 }

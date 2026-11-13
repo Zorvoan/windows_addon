@@ -36,7 +36,7 @@
   onMount(() => ready('topbar'));
 </script>
 
-<header class="bar">
+<header class="bar" class:receded={host.islandExpanded}>
   <div class="left">
     <button type="button" class="logo" title="Start" aria-label="Start" onclick={() => send('start.toggle', {})}><Logo size={16} /></button>
     <span class="app-name" title={title}>{appName}</span>
@@ -100,6 +100,25 @@
   }
   .right {
     justify-content: flex-end;
+  }
+  /*
+   * Rozbalený ostrůvek: obsah lišty se rozmaže a ztlumí (jako stavový řádek kolem ostrůvku
+   * v referenční nahrávce). Nástup ~150 ms po najetí, během 250 ms; návrat se zpožděním 300 ms
+   * během 400 ms (vyjasní se, až pilulka dosedá). Délky z tokenů -> při omezení pohybu hned.
+   */
+  .left,
+  .right {
+    transition:
+      filter calc(var(--bw-duration) * 2) var(--bw-ease) calc(var(--bw-duration) * 1.5),
+      opacity calc(var(--bw-duration) * 2) var(--bw-ease) calc(var(--bw-duration) * 1.5);
+  }
+  .receded .left,
+  .receded .right {
+    filter: blur(5px);
+    opacity: 0.3;
+    transition:
+      filter calc(var(--bw-duration) * 1.25) var(--bw-ease) calc(var(--bw-duration) * 0.75),
+      opacity calc(var(--bw-duration) * 1.25) var(--bw-ease) calc(var(--bw-duration) * 0.75);
   }
   .right > :global(*) {
     flex: none; /* položky vpravo se nesmršťují ani nezalamují */

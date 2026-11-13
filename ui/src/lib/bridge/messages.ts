@@ -219,6 +219,7 @@ export type HostMessage =
   | { type: 'volume.state'; payload: VolumeState }
   | { type: 'start.apps'; payload: { apps: StartApp[] } }
   | { type: 'start.visibility'; payload: { open: boolean } }
+  | { type: 'island.expanded'; payload: { expanded: boolean } }
   | { type: 'theme.code'; payload: { code: string } }
   | { type: 'theme.importResult'; payload: { ok: boolean; error: string | null } }
   | { type: 'lock.visibility'; payload: { open: boolean; editing: boolean } }
@@ -250,6 +251,7 @@ export type UiMessage =
   | { type: 'store.set'; payload: { key: string; value: unknown } }
   | { type: 'dock.hover'; payload: { appId: string | null; rect: CssRect | null } }
   | { type: 'island.layout'; payload: { hit: CssRect[]; band: CssRect | null } }
+  | { type: 'island.expanded'; payload: { expanded: boolean } }
   | { type: 'media.command'; payload: { command: 'playPause' | 'next' | 'previous' } }
   | { type: 'volume.set'; payload: { level: number | null; muted: boolean | null } }
   | { type: 'start.launch'; payload: { appId: string } }

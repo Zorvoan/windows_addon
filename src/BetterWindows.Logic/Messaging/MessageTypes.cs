@@ -45,6 +45,8 @@ public static class MessageTypes
     public const string UiLog = "ui.log";
     public const string DockHover = "dock.hover";
     public const string IslandLayout = "island.layout";
+    /// <summary>Ostrůvek se rozbaluje / sbaluje. Posílá ostrůvek, C# přepošle liště (ta rozmaže svůj obsah).</summary>
+    public const string IslandExpanded = "island.expanded";
     public const string MediaCommand = "media.command";
     public const string VolumeSet = "volume.set";
     public const string StartLaunch = "start.launch";

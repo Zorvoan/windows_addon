@@ -33,6 +33,8 @@ export const host = $state({
   volume: null as VolumeState | null,
   startApps: [] as StartApp[],
   startOpen: false,
+  /** Ostrůvek je rozbalený (lišta pak rozmaže svůj obsah). */
+  islandExpanded: false,
   trashCount: -1,
   lock: { open: false, editing: false },
   user: null as { name: string; avatar: string | null } | null,
@@ -60,6 +62,7 @@ on('media.state', (p) => (host.media = p));
 on('volume.state', (p) => (host.volume = p));
 on('start.apps', (p) => (host.startApps = p.apps));
 on('start.visibility', (p) => (host.startOpen = p.open));
+on('island.expanded', (p) => (host.islandExpanded = p.expanded));
 on('lock.visibility', (p) => (host.lock = p));
 on('user.state', (p) => (host.user = p));
 on('input.language', (p) => (host.inputLanguage = p));

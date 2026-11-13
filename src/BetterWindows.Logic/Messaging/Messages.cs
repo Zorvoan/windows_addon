@@ -73,6 +73,8 @@ public sealed record StartAppsPayload(IReadOnlyList<StartAppItem> Apps);
 
 public sealed record StartVisibilityPayload(bool Open);
 
+public sealed record IslandExpandedPayload(bool Expanded);
+
 public sealed record ThemeCodePayload(string Code);
 
 public sealed record ThemeImportResultPayload(bool Ok, string? Error);

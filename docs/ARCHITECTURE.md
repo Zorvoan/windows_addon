@@ -77,15 +77,20 @@ jedna křivka pohybu `cubic-bezier(0.22, 1, 0.36, 1)` pro drobné přechody, ž�
 
 ### Pohyb
 
-- **Pružina** jen tam, kde se mění tvar nebo něco přilétá: ostrůvek (`SpringBox` v `src/lib/motion.svelte.ts`,
-  response 0,42 s, tlumení 0,8 → překmit ~1 %) a otevření Startu (stejná křivka jako CSS `--bw-spring` = `linear()`).
-  Zavírání je krátké, bez pružení (`--bw-ease-in`).
+- **Pružina** jen tam, kde se mění tvar nebo něco přilétá: ostrůvek a otevření Startu (CSS `--bw-spring` = `linear()`).
+  Zavírání je krátké, bez pružení (`--bw-ease-in`). Fyzika: `SpringChannel` v `src/lib/motion.svelte.ts`.
+- **Ostrůvek 1:1 podle referenční nahrávky** (`src/apps/island/motion.ts`): rozměry pilulky změřené po snímcích
+  a napasované na pružiny – předfáze (nafouknutí 170 ms, stažení na 87 % šířky 200 ms), roztažení šířky/výšky/středu
+  pružinou 0,50 s / 0,82, sbalení šířka 0,38 / 0,60 (podkmit), výška 0,44 / 0,96, střed 0,49 / 0,80 („želé“),
+  prodleva 33 ms a počáteční rychlosti z fitu. Obsah je v plné velikosti zmenšený na šířku pilulky, rozmazání a
+  průhlednost podle postupu; stín roste s výškou; lišta se rozmaže (`island.expanded` přes C#).
+  Odchylka od nahrávky 1–3 % rozsahu (`docs/screenshots/animace/ostrovek-krivky.png`).
 - **Nezávislé na obnovovací frekvenci:** pružina se počítá v pevných krocích 1/240 s, zvětšování docku exponenciálním
   doběhem podle skutečného času (`follow`, τ 67 ms). `Spring` ze `svelte/motion` se nepoužívá – na 144 Hz běží rychleji.
 - **Ostrůvek a oblast okna:** při roztahování se do C# hned pošle cílová velikost + rezerva na překmit (rostoucí okraj
   se neořízne zpožděním zprávy), při zmenšování oblast sleduje pilulku (nepolyká kliknutí na lištu), po dosednutí přesný tvar.
-- **Ostrůvek – obsah:** všechny tři vrstvy (kompaktní, rozbalená, hlasitost) jsou stále v DOM a jen se prolínají
-  (vytvářet obsah při najetí myší stálo ~10 ms v prvním snímku animace).
+- **Ostrůvek – obsah:** všechny tři vrstvy (kompaktní, rozbalená, hlasitost) jsou stále v DOM, průhlednost/rozmazání/
+  zmenšení jim nastavuje `motion.ts` (vytvářet obsah při najetí myší stálo ~10 ms v prvním snímku animace).
 - **Dock – oblast okna:** během zvětšování stálá obálka největšího možného zvětšení (2 změny tvaru na celé přejetí místo
   jedné za snímek); poloha myši se do DOM promítá jednou za snímek. C# přeskočí `SetWindowRgn`, když se tvar nezměnil.
   Okno s rozmazáním pod pásem se ale dál posouvá každý snímek (pás při zvětšení roste) – to jde ověřit jen na Windows.

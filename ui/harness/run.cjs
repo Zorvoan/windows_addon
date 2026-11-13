@@ -141,10 +141,12 @@ async function hoverIsland(page, report) {
   const sentBefore = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.layout');
   const compact = sentBefore.at(-1)?.payload.hit[0];
   await page.mouse.move(240, 18, { steps: 5 });
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1500); // předfáze 370 ms + pružina ~0,8 s
   await page.screenshot({ path: path.join(outDir, `island-${report.scheme}-hover.png`) });
   const after = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.layout');
   const expanded = after.at(-1)?.payload.hit[0];
+  const expandedMsgs = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.expanded').map((m) => m.payload.expanded);
+  if (expandedMsgs.at(-1) !== true) report.errors.push('ostrůvek: po rozbalení neposlal island.expanded {expanded:true} (lišta se nerozmaže)');
   report.notes.push(`island.layout kompaktní ${JSON.stringify(compact)} -> rozbalený ${JSON.stringify(expanded)}`);
   if (!compact || !expanded || expanded.height <= compact.height) report.errors.push('ostrůvek: tvar se po najetí nezvětšil');
   const pillAfter = await page.evaluate(() => document.querySelector('.pill').getBoundingClientRect().toJSON());
@@ -158,7 +160,7 @@ async function hoverIsland(page, report) {
   report.notes.push(`island.layout během sbalování ${JSON.stringify(collapsing)}`);
   if (!collapsing || collapsing.height > 100) report.errors.push('ostrůvek: oblast okna se při sbalování nezmenšuje s pilulkou');
   await page.mouse.move(240, 18, { steps: 2 });
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1500);
   const cmd = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'media.command');
   if (cmd.at(-1)?.payload.command !== 'next') report.errors.push('ostrůvek: tlačítko Další neposlalo media.command');
 

@@ -48,6 +48,7 @@ public class ContractTests
             new StartAppItem("aumid:Microsoft.WindowsTerminal_8wekyb3d8bbwe!App", "Terminál"),
         ]));
         yield return (MessageTypes.StartVisibility, new StartVisibilityPayload(true));
+        yield return (MessageTypes.IslandExpanded, new IslandExpandedPayload(false));
         yield return (MessageTypes.LockVisibility, new LockVisibilityPayload(true, false));
         yield return (MessageTypes.UserState, new UserStatePayload("Jan Novák", null));
         yield return (MessageTypes.InputLanguage, new InputLanguagePayload("CES", "čeština"));

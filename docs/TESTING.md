@@ -269,7 +269,7 @@ Ideálně vyzkoušej na 60Hz i na 144Hz (nebo jiném rychlém) monitoru – rych
 
 | # | Udělej | Má se stát |
 |---|---|---|
-| 18.1 | Pusť hudbu, najeď myší na ostrůvek a zase odjeď; zkus to i rychle tam a zpět | Pilulka se měkce roztáhne a lehce dosedne; při rychlé změně plynule otočí směr bez cuknutí; obsah se prolne |
+| 18.1 | Pusť hudbu, najeď myší na ostrůvek a zase odjeď; zkus to i rychle tam a zpět | Jako v referenční nahrávce (`docs/screenshots/animace/ostrovek-vs-reference.mp4`): pilulka se nafoukne, stáhne, roztáhne s rozmazaným obsahem, který se zaostří; obsah lišty se rozmaže. Při sbalení se pilulka krátce zúží a „zhoupne“. Při rychlé změně plynule otočí směr bez cuknutí |
 | 18.2 | Sleduj okraj ostrůvku během roztahování | Okraj ani stín se **neořezávají** (rovná hrana uprostřed animace = chyba, napiš mi) |
 | 18.3 | Během roztahování ostrůvku (první ~0,5 s) klikni na lištu těsně vedle něj | Klik může krátce „spolknout“ průhledná rezerva okolo ostrůvku – po dosednutí už ne. Po odjetí myší (sbalení) se lišta dá klikat hned |
 | 18.4 | Otevři Start (Launchpad) | Obsah se lehce zvětší a objeví; rozmazané pozadí okna se objeví naráz (to jinak nejde – kreslí ho Windows) |

@@ -34,6 +34,12 @@ internal sealed class IslandController : IDisposable
             if (p is not null && bridge.Page == "island" && !_fullscreen)
                 _window?.SetHitRects(p.Hit);
         });
+        // Rozbalený ostrůvek -> lišta rozmaže svůj obsah (jako stavový řádek kolem ostrůvku na telefonu).
+        hub.On<IslandExpandedPayload>(MessageTypes.IslandExpanded, (bridge, p) =>
+        {
+            if (p is not null && bridge.Page == "island")
+                _context.Hub.Publish(MessageTypes.IslandExpanded, p, sticky: false, page: "topbar");
+        });
         hub.On<MediaCommandPayload>(MessageTypes.MediaCommand, (_, p) => { if (p is not null) _media.Command(p.Command); });
         hub.On<VolumeSetPayload>(MessageTypes.VolumeSet, (_, p) => { if (p is not null) _volume.Set(p.Level, p.Muted); });
         _context.Settings.Changed += OnSettingsChanged;
