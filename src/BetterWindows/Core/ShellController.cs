@@ -80,11 +80,18 @@ internal sealed class ShellController : IDisposable
         _trash = new TrashService(dispatcher);
         _keyboard = new KeyboardLayoutService(dispatcher);
         _keyboard.Changed += k => _hub.Publish(MessageTypes.InputLanguage, k);
-        _dock = new DockController(_context, _tracker, _identity, _icons, _trash, () => _start?.Toggle(fromWinKey: false));
+        _dock = new DockController(_context, _tracker, _identity, _icons, _trash, () => _start?.Toggle(fromWinKey: false),
+            () => _performance?.Reduced ?? false);
         _taskbar = new TaskbarService(_settings, dispatcher);
         // Po skrytí/ukázání panelu Windows chvíli přepočítává pracovní plochu -> dock posunout s malým zpožděním.
         _taskbar.WorkAreaChanged += () => DelayOnUi(TimeSpan.FromMilliseconds(600), OnMonitorsChanged);
         _island = new IslandController(_context, _identity, _tracker, () => _performance?.Reduced ?? false);
+        // Minimalizace okna: hrající aplikace vletí do ostrůvku, ostatní zajedou do své ikony v docku.
+        _tracker.WindowMinimizing += hwnd => Safe.Run("Animace minimalizace", () =>
+        {
+            if (!_island.TryFlyIn(hwnd))
+                _dock.TryFlyIn(hwnd);
+        });
         _start = new StartController(_context);
         _lock = new LockScreenController(_context, _shellMessages, () => _island.MediaPlaying, () => _performance?.Fullscreen ?? false);
         _performance = new PerformanceService(_settings, _battery);

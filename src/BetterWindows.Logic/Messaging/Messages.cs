@@ -114,7 +114,13 @@ public sealed record CssRect(double X, double Y, double Width, double Height);
 
 /// <param name="Hit">Oblasti, které mají být vidět a reagovat na myš (zbytek okna kliknutí propouští).</param>
 /// <param name="Band">Viditelný pás docku (pod ním se kreslí systémové rozmazání).</param>
-public sealed record DockLayoutPayload(IReadOnlyList<CssRect> Hit, CssRect? Band);
+/// <param name="Icons">Jen dock: kde je ikona které aplikace (minimalizované okno do ní „zajede“).</param>
+public sealed record DockLayoutPayload(IReadOnlyList<CssRect> Hit, CssRect? Band, IReadOnlyList<DockIconRect>? Icons = null);
+
+public sealed record DockIconRect(string AppId, CssRect Rect);
+
+/// <summary>C# -> dock: okno aplikace právě zajelo do její ikony (ikona se krátce zhoupne).</summary>
+public sealed record DockAbsorbPayload(string AppId);
 
 public sealed record SettingsUpdatePayload(AppSettings Settings);
 

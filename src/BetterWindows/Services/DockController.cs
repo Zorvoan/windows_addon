@@ -8,6 +8,8 @@ using BetterWindows.Logic.Dock;
 using BetterWindows.Logic.Messaging;
 using BetterWindows.Logic.Settings;
 using BetterWindows.ShellWindows;
+using BetterWindows.Monitors;
+using BetterWindows.Native;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
@@ -24,6 +26,11 @@ internal sealed class DockController : IDisposable
     private readonly AppIdentityResolver _identity;
     private readonly IconService _icons;
     private DockWindow? _window;
+    private readonly Func<bool> _reducedMotion;
+    /// <summary>Poslední známá poloha ikony každé aplikace (fyzické px) – cíl animace minimalizace.</summary>
+    private readonly Dictionary<string, PixelRect> _iconRects = new(StringComparer.OrdinalIgnoreCase);
+    private IslandGhostWindow? _ghost;
+    private bool _flying;
     private DockBackdropWindow? _backdrop;
     private bool _hiddenForFullscreen;
     private readonly WindowPreviewController _previews;
@@ -36,9 +43,10 @@ internal sealed class DockController : IDisposable
     private readonly Action _openLaunchpad;
 
     public DockController(ShellContext context, WindowTracker tracker, AppIdentityResolver identity, IconService icons,
-        TrashService trash, Action openLaunchpad)
+        TrashService trash, Action openLaunchpad, Func<bool> reducedMotion)
     {
         _context = context;
+        _reducedMotion = reducedMotion;
         _trash = trash;
         _openLaunchpad = openLaunchpad;
         _trash.Changed += () => Publish();
@@ -298,6 +306,54 @@ internal sealed class DockController : IDisposable
             return;
         _window.SetHitRects(layout.Hit);
         _backdrop?.MoveUnder(_window.Handle, layout.Band is null ? null : _window.ToScreen(layout.Band));
+        if (layout.Icons is not null)
+        {
+            _iconRects.Clear();
+            foreach (var icon in layout.Icons)
+                _iconRects[icon.AppId] = _window.ToScreen(icon.Rect);
+        }
+    }
+
+    /// <summary>
+    /// Minimalizované okno „zajede“ do své ikony v docku (jako na Macu): živý obraz okna (DWM) odletí
+    /// k ikoně, zmenší se na její velikost a zprůhlední; ikona se při dopadu zhoupne.
+    /// Skutečnou animaci minimalizace kreslí Windows (letí dolů na hlavní panel) – běží současně.
+    /// </summary>
+    public bool TryFlyIn(HWND hwnd)
+    {
+        if (_window is null || _hiddenForFullscreen || _flying || _reducedMotion())
+            return false;
+        var app = _identity.Resolve(hwnd);
+        if (app is null || !_iconRects.TryGetValue(app.AppId, out var icon))
+            return false;
+        if (!WindowRects.TryGetRestored(hwnd, _context.Monitors, out var from))
+            return false;
+
+        _ghost ??= CreateGhost();
+        if (!_ghost.Attach(hwnd))
+            return false;
+
+        // Cíl: šířka ikony, výška podle poměru stran okna, svisle na střed ikony.
+        var size = _ghost.SourceSize;
+        var w = icon.Width;
+        var h = Math.Max(4, (int)Math.Round(w * (double)size.cy / Math.Max(1, size.cx)));
+        var top = icon.Top + (icon.Height - h) / 2;
+        var to = new PixelRect(icon.Left, top, icon.Left + w, top + h);
+
+        _flying = true;
+        var appId = app.AppId;
+        _ghost.Fly(from, to, _window.Handle,
+            onAbsorb: () => _context.Hub.Publish(MessageTypes.DockAbsorb, new DockAbsorbPayload(appId), sticky: false, page: "dock"),
+            onDone: () => _flying = false);
+        return true;
+    }
+
+    private IslandGhostWindow CreateGhost()
+    {
+        var ghost = new IslandGhostWindow(_context, _context.Monitors.GetPrimary());
+        ghost.SetBackdrop(BackdropMode.None);
+        ghost.Prepare();
+        return ghost;
     }
 
     public void Dispose()

@@ -87,7 +87,11 @@ internal sealed class WallpaperService : IDisposable
         Changed?.Invoke(state);
     }
 
-    /// <summary>Soubor, který Windows právě zobrazuje jako tapetu (nebo null = jednobarevné pozadí).</summary>
+    /// <summary>
+    /// Soubor tapety, kterou Windows zobrazuje (nebo null = jednobarevné pozadí).
+    /// Přednost má ORIGINÁL: TranscodedWallpaper je kopie, kterou Windows znovu zkomprimuje do JPEG
+    /// (a často zmenší) – vypadá znatelně hůř. Ta jde jen jako záloha, když originál neexistuje.
+    /// </summary>
     private static string? FindWindowsWallpaper()
     {
         using var key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop");
@@ -95,11 +99,30 @@ internal sealed class WallpaperService : IDisposable
         if (string.IsNullOrWhiteSpace(registered))
             return null; // uživatel má nastavenou jen barvu
 
-        // TranscodedWallpaper = kopie, kterou Windows skutečně kreslí (funguje i když originál smažeš).
         var transcoded = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Microsoft", "Windows", "Themes", "TranscodedWallpaper");
+
+        // 1) Cesta v registru – obvykle originální obrázek.
+        if (File.Exists(registered) && !string.Equals(Path.GetFullPath(registered), transcoded, StringComparison.OrdinalIgnoreCase))
+            return registered;
+
+        // 2) TranscodedImageCache: binární hodnota, od bajtu 24 je cesta k originálu (UTF-16, ukončená nulou).
+        if (key?.GetValue("TranscodedImageCache") is byte[] cache && cache.Length > 24)
+        {
+            var path = System.Text.Encoding.Unicode.GetString(cache, 24, cache.Length - 24);
+            var end = path.IndexOf('\0');
+            if (end >= 0)
+                path = path[..end];
+            if (path.Length > 3 && File.Exists(path))
+                return path;
+        }
+
+        // 3) Záloha: kopie, kterou Windows kreslí (horší kvalita, ale vždy existuje).
         if (File.Exists(transcoded))
+        {
+            Log.Info("Tapeta: originál nenalezen, používám kopii Windows (TranscodedWallpaper – nižší kvalita).");
             return transcoded;
+        }
         return File.Exists(registered) ? registered : null;
     }
 

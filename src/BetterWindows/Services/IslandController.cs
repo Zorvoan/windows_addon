@@ -2,6 +2,7 @@ using BetterWindows.Core;
 using BetterWindows.Logic.Apps;
 using BetterWindows.Logic.Messaging;
 using BetterWindows.Monitors;
+using BetterWindows.Native;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
@@ -30,7 +31,6 @@ internal sealed class IslandController : IDisposable
         _context = context;
         _identity = identity;
         _reducedMotion = reducedMotion;
-        tracker.WindowMinimizing += OnWindowMinimizing;
         // Ostrůvek leží přímo nad lištou: kdyby se lišta (nebo cokoli) dostala v pořadí oken nad něj,
         // úplně ho zakryje. Proto ho při změně aktivního okna a pravidelně zařadit zpět navrch.
         tracker.ForegroundChanged += () => Safe.Run("Ostrůvek – navrch", Guard);
@@ -115,24 +115,28 @@ internal sealed class IslandController : IDisposable
     /// <summary>Kompaktní pilulka: šířka = CSS token --bw-island-width, výška 28, 4 px od horního okraje.</summary>
     private const double CompactWidthDip = 260, CompactTopDip = 4;
 
-    private void OnWindowMinimizing(HWND hwnd)
+    /// <summary>
+    /// Minimalizuje se okno: patří aplikaci, která hraje? Pak jeho obraz vletí do ostrůvku a vrátí true.
+    /// (Jinak to zkusí dock – viz ShellController.)
+    /// </summary>
+    public bool TryFlyIn(HWND hwnd)
     {
         if (_window is null || _flying || _fullscreen || _reducedMotion())
-            return;
+            return false;
         var media = _media.Current;
         if (!media.Available || !media.Playing || !_context.Settings.Current.Island.Enabled)
-            return;
+            return false;
         var app = _identity.Resolve(hwnd);
         if (app is null || !MediaSourceMatch.Matches(_media.SourceAumid, app.AppId))
-            return;
-        if (!TryGetWindowRect(hwnd, out var from))
-            return;
+            return false;
+        if (!WindowRects.TryGetRestored(hwnd, _context.Monitors, out var from))
+            return false;
 
         _ghost ??= CreateGhost();
         if (!_ghost.Attach(hwnd))
         {
             Log.Warn("Ostrůvek: náhled okna pro animaci nejde vytvořit (DWM).");
-            return;
+            return false;
         }
 
         // Cíl: šířka kompaktní pilulky, výška podle poměru stran okna, horní hrana v pilulce.
@@ -151,6 +155,7 @@ internal sealed class IslandController : IDisposable
         _ghost.Fly(from, to, _window.Handle,
             onAbsorb: () => _context.Hub.Publish(MessageTypes.IslandAbsorb, new { }, sticky: false, page: "island"),
             onDone: () => _flying = false);
+        return true;
     }
 
     private IslandGhostWindow CreateGhost()
@@ -160,45 +165,6 @@ internal sealed class IslandController : IDisposable
         return ghost;
     }
 
-    /// <summary>
-    /// Obdélník okna na začátku minimalizace. Okno může být už na cestě do „minimalizované“ polohy
-    /// (-32000), pak vezmeme uloženou polohu (u maximalizovaného okna pracovní plochu monitoru).
-    /// </summary>
-    private unsafe bool TryGetWindowRect(HWND hwnd, out PixelRect rect)
-    {
-        RECT r;
-        if (PInvoke.DwmGetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.DWMWA_EXTENDED_FRAME_BOUNDS, &r, (uint)sizeof(RECT)).Succeeded
-            && r.left > -30000 && r.right - r.left > 50 && r.bottom - r.top > 50)
-        {
-            rect = new PixelRect(r.left, r.top, r.right, r.bottom);
-            return true;
-        }
-
-        var placement = new WINDOWPLACEMENT { length = (uint)sizeof(WINDOWPLACEMENT) };
-        if (!PInvoke.GetWindowPlacement(hwnd, ref placement))
-        {
-            rect = default;
-            return false;
-        }
-        // rcNormalPosition je v souřadnicích pracovní plochy (bez lišt) – posunout na obrazovku.
-        var n = placement.rcNormalPosition;
-        var mon = MonitorFromRect(n);
-        var dx = mon is null ? 0 : mon.WorkArea.Left - mon.Bounds.Left;
-        var dy = mon is null ? 0 : mon.WorkArea.Top - mon.Bounds.Top;
-        const uint WPF_RESTORETOMAXIMIZED = 0x0002;
-        if ((placement.flags & (WINDOWPLACEMENT_FLAGS)WPF_RESTORETOMAXIMIZED) != 0 && mon is not null)
-            rect = mon.WorkArea;
-        else
-            rect = new PixelRect(n.left + dx, n.top + dy, n.right + dx, n.bottom + dy);
-        return rect.Width > 50 && rect.Height > 50;
-    }
-
-    private MonitorInfo? MonitorFromRect(RECT r)
-    {
-        var cx = (r.left + r.right) / 2;
-        var cy = (r.top + r.bottom) / 2;
-        return _context.Monitors.GetAll().FirstOrDefault(m => cx >= m.Bounds.Left && cx < m.Bounds.Right && cy >= m.Bounds.Top && cy < m.Bounds.Bottom);
-    }
 
     /// <summary>Hraje teď hudba/video? (Zámek po nečinnosti se pak neukáže.)</summary>
     public bool MediaPlaying => _media.Current.Playing;

@@ -10,8 +10,8 @@ using Windows.Win32.UI.WindowsAndMessaging;
 namespace BetterWindows.ShellWindows;
 
 /// <summary>
-/// „Duch“ okna hrající aplikace, který při minimalizaci vletí do ostrůvku (jako aplikace na telefonu
-/// při odchodu na plochu). Obsah kreslí DWM (živý náhled okna, DwmRegisterThumbnail).
+/// „Duch“ minimalizovaného okna: hrající aplikace vletí do ostrůvku (jako aplikace na telefonu
+/// při odchodu na plochu), ostatní zajedou do své ikony v docku (jako na Macu). Obsah kreslí DWM (živý náhled okna, DwmRegisterThumbnail).
 ///
 /// Okno samo se NEHÝBE: je průhledné přes celý monitor a každý snímek se mění jen obdélník náhledu
 /// (DwmUpdateThumbnailProperties – skládá ho přímo DWM). Přesouvat a zvětšovat celé okno každý snímek

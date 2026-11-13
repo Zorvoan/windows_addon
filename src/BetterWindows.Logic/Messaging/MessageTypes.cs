@@ -54,6 +54,8 @@ public static class MessageTypes
     public const string DesktopTextInput = "desktop.textInput";
     /// <summary>C# -> ostrůvek: okno hrající aplikace právě vletělo do ostrůvku (krátké nafouknutí).</summary>
     public const string IslandAbsorb = "island.absorb";
+    /// <summary>C# -> dock: minimalizované okno zajelo do ikony aplikace (zhoupnutí ikony).</summary>
+    public const string DockAbsorb = "dock.absorb";
     /// <summary>C# -> plocha: text z plovoucího vstupního pole (psaní do widgetů, viz desktop.textInput).</summary>
     public const string DesktopTextResult = "desktop.textResult";
     public const string MediaCommand = "media.command";

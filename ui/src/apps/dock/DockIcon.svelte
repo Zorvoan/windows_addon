@@ -10,6 +10,8 @@
     icon: string | undefined;
     hovered: boolean;
     launching: boolean;
+    /** Čas posledního „zajetí“ minimalizovaného okna do ikony (0 = nikdy). */
+    absorbed?: number;
     /** Výška skoku jako podíl velikosti ikony. */
     bounce: number;
     onbouncing: (bouncing: boolean) => void;
@@ -18,7 +20,18 @@
     onhover: (hover: boolean, element: HTMLElement) => void;
   }
 
-  let { item, size, icon, hovered, launching, bounce, onbouncing, onactivate, oncontext, onhover }: Props = $props();
+  let { item, size, icon, hovered, launching, absorbed = 0, bounce, onbouncing, onactivate, oncontext, onhover }: Props = $props();
+
+  // Zhoupnutí ikony, když do ní zajede minimalizované okno (krátké nafouknutí s doznívajícím pružením).
+  let iconEl: HTMLButtonElement | undefined = $state();
+  $effect(() => {
+    if (!absorbed || !iconEl || motionReduced()) return;
+    const inner = iconEl.firstElementChild as HTMLElement | null;
+    inner?.animate(
+      [{ transform: 'scale(1)' }, { transform: 'scale(1.16)', offset: 0.35 }, { transform: 'scale(0.97)', offset: 0.7 }, { transform: 'scale(1)' }],
+      { duration: 420, easing: 'ease-out' },
+    );
+  });
   let letter = $derived(item.name.trim().charAt(0).toUpperCase() || '?');
 
   // Poskakování při spouštění: stejně vysoké skoky, dokud aplikace nenaběhne. Pak se dokončí
@@ -57,6 +70,8 @@
     class="icon"
     class:bouncing
     data-dock-icon
+    data-app-id={item.appId}
+    bind:this={iconEl}
     data-dock-bouncing={bouncing ? '' : undefined}
     style:--lift="{-size * bounce}px"
     onanimationiteration={cycleEnd}

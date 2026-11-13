@@ -40,6 +40,7 @@ internal sealed class MediaService : IDisposable
     {
         _manager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
         _manager.CurrentSessionChanged += (_, _) => OnUi(SwitchSession);
+        _manager.SessionsChanged += (_, _) => OnUi(SwitchSession); // přibyla / zmizela aplikace s médii
         SwitchSession();
         Log.Info("Média: ovládání médií Windows připojeno.");
     });
@@ -84,20 +85,35 @@ internal sealed class MediaService : IDisposable
     /// </summary>
     private GlobalSystemMediaTransportControlsSession? PickSession()
     {
-        var current = _manager?.GetCurrentSession();
-        if (current is not null || _manager is null)
-            return current;
+        if (_manager is null)
+            return null;
+        var current = _manager.GetCurrentSession();
         try
         {
-            var sessions = _manager.GetSessions();
-            return sessions.FirstOrDefault(x => x.GetPlaybackInfo()?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
-                ?? sessions.FirstOrDefault();
+            // Přednost má relace, která HRAJE. „Aktuální“ relaci Windows při přepnutí okna (třeba otevření
+            // nastavení – WebView2 si může zaregistrovat vlastní, prázdnou relaci) krátce přehodí jinam.
+            if (current is not null && IsPlaying(current) && !IsOwn(current))
+                return current;
+            var sessions = _manager.GetSessions().Where(x => !IsOwn(x)).ToList();
+            return sessions.FirstOrDefault(IsPlaying)
+                ?? (current is not null && !IsOwn(current) ? current : sessions.FirstOrDefault());
         }
         catch (Exception ex)
         {
             Log.Warn($"Média: seznam relací nejde načíst ({ex.Message}).");
-            return null;
+            return current;
         }
+    }
+
+    private static bool IsPlaying(GlobalSystemMediaTransportControlsSession s) =>
+        s.GetPlaybackInfo()?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+
+    /// <summary>Relace našeho vlastního procesu (WebView2 okna) – nikdy ji neukazovat.</summary>
+    private static bool IsOwn(GlobalSystemMediaTransportControlsSession s)
+    {
+        var id = s.SourceAppUserModelId ?? "";
+        return id.Contains("BetterWindows", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("msedgewebview2", StringComparison.OrdinalIgnoreCase);
     }
 
     private void OnSessionChanged<T>(GlobalSystemMediaTransportControlsSession sender, T args) => OnUi(Refresh);

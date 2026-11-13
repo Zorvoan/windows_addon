@@ -6,7 +6,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { host } from '$lib/stores/host.svelte';
-  import { ready, send } from '$lib/bridge/bridge';
+  import { on, ready, send } from '$lib/bridge/bridge';
   import { requestIcons } from '$lib/stores/icons';
   import { magnify } from '$lib/magnify';
   import { follow, followTau, motionReduced } from '$lib/motion.svelte';
@@ -56,6 +56,9 @@
   let targetStrength = 0;
   let hovered = $state<string | null>(null);
   let launching = $state<Record<string, number>>({});
+  // Minimalizované okno právě zajelo do ikony (C# dock.absorb) -> ikona se zhoupne (čas = spouštěč).
+  let absorbed = $state<Record<string, number>>({});
+  on('dock.absorb', (p) => (absorbed = { ...absorbed, [p.appId]: performance.now() }));
   // Ikony, které právě poskakují (i dobíhající poslední skok po naběhnutí aplikace) -> rezerva v oblasti okna.
   let bouncing = $state<Record<string, true>>({});
   let frame = 0;
@@ -144,6 +147,7 @@
 
   // ---- Hlášení tvaru do C# ----
   let lastSent = '';
+  let lastIcons: { appId: string; rect: CssRect }[] = [];
   let reportQueued = false;
 
   function rectOf(el: Element): CssRect {
@@ -190,7 +194,12 @@
       hit.push({ x: left, y: top, width: right - left, height: bottom - top });
     }
 
-    const payload = { hit, band: items.length > 0 ? bandRect : null };
+    // Poloha ikon (klidová, ne zvětšená) – cíl animace minimalizace okna do docku.
+    const icons = strength === 0
+      ? [...band.querySelectorAll<HTMLElement>('[data-dock-icon][data-app-id]')].map((el) => ({ appId: el.dataset.appId!, rect: rectOf(el) }))
+      : lastIcons;
+    lastIcons = icons;
+    const payload = { hit, band: items.length > 0 ? bandRect : null, icons };
     const json = JSON.stringify(payload, (_, v) => (typeof v === 'number' ? Math.round(v) : v));
     if (json === lastSent) return;
     lastSent = json;
@@ -256,6 +265,7 @@
         icon={iconFor(item)}
         hovered={hovered === item.appId}
         launching={item.appId in launching}
+        absorbed={absorbed[item.appId] ?? 0}
         bounce={BOUNCE}
         onbouncing={(b) => setBouncing(item.appId, b)}
         onactivate={() => activate(item)}
