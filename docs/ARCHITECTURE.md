@@ -8,8 +8,8 @@ Jeden proces (`BetterWindows.exe`), víc oken. Každé okno = WPF okno s průhle
 |---|---|---|---|
 | **DesktopLayer** – pod všemi aplikacemi | jedno okno přes celý monitor: tapeta, widgety, vizualizér | CSS `backdrop-filter` nad tapetou ve stejné stránce | `DesktopWindow` |
 | Aplikace Windows | – | – | – |
-| **Nad aplikacemi** (topmost, bez fokusu, mimo Alt+Tab) | horní lišta (AppBar), dock + okno pozadí docku, později Dynamic Island | systémové (DWM) | `TopBarWindow`, `DockWindow`, `DockBackdropWindow` |
-| **Vyskakovací** | nabídka Start, náhledy oken, kontextové nabídky | dle potřeby | další fáze |
+| **Nad aplikacemi** (topmost, bez fokusu, mimo Alt+Tab) | horní lišta (AppBar), dock + okno pozadí docku, Dynamic Island | systémové (DWM) | `TopBarWindow`, `DockWindow`, `DockBackdropWindow`, `IslandWindow` |
+| **Vyskakovací** | nabídka Start (bere fokus), náhledy oken (DWM thumbnail), kontextové nabídky | systémové | `StartWindow`, `PreviewWindow` |
 
 Proč dva druhy rozmazání: CSS `backdrop-filter` vidí jen obsah vlastní stránky. Pro widgety je to v pořádku, protože tapetu kreslí stejná stránka. Lišta a dock leží nad cizími okny, ta umí rozmazat jen systém (DWM).
 
@@ -17,7 +17,8 @@ Proč dva druhy rozmazání: CSS `backdrop-filter` vidí jen obsah vlastní str�
 
 **BetterWindows.Logic** (net8.0, bez WPF, testy v `tests/`): model nastavení a jeho ukládání, typy zpráv,
 rozhodování docku (pořadí ikon, klik = spustit / přepnout / minimalizovat), FFT a pásma vizualizéru,
-parsování Open-Meteo a ConsentStore, stav změn systému a plán obnovy.
+parsování Open-Meteo a ConsentStore, stav změn systému a plán obnovy, kodek motivů (nedůvěryhodný vstup),
+stavový automat klávesy Windows, převod aplikací ze Startu na identitu, pravidla režimu výkonu.
 
 **BetterWindows** (WPF):
 
@@ -27,7 +28,7 @@ parsování Open-Meteo a ConsentStore, stav změn systému a plán obnovy.
 | `Bridge/` | MessageHub (ústředna zpráv, sticky stav), MessageBridge (jedno WebView2) |
 | `Native/` | obaly nad Win32: Dwm, AccentPolicy, WindowStyles, ExplorerWindows, DesktopEmbedder, AppBarNative, ShellItems, WindowInfo, ShellMessageWindow |
 | `Monitors/` | MonitorInfo (fyzické pixely + DPI), MonitorService |
-| `Services/` | Settings, Theme, Wallpaper, DesktopLayerHost, WindowTracker, AppIdentityResolver, IconService, AppLauncher, DockController, Battery, Weather, PrivacyIndicator, AudioVisualizer, Taskbar |
+| `Services/` | Settings, Theme, Wallpaper, DesktopLayerHost, WindowTracker, AppIdentityResolver, IconService, AppLauncher, DockController, WindowPreviewController, Battery, Weather, PrivacyIndicator, AudioVisualizer, Taskbar, Performance, Media, Volume, IslandController, StartApps, StartController |
 | `ShellWindows/` | ShellWindowBase, TopBarWindow, DesktopWindow, DockWindow, DockBackdropWindow, SettingsWindow |
 | `Themes/` | vzhled nativní kontextové nabídky (světlý/tmavý) |
 | `Tray/` | ikona v oznamovací oblasti |
@@ -39,6 +40,8 @@ Zásady:
 - **Změny systému se zapisují předem** (`SystemGuard.Record`) a vrací se při ukončení, pádu, zabití procesu (watchdog) i dalším startu.
 - **Chyba jedné funkce nesmí shodit shell**: služby se spouští přes `Safe.Run`, obsluhy zpráv a háčky mají vlastní try/catch.
 - **Cizí okna jen neblokujícími voláními** (`ShowWindowAsync`, `SendMessageTimeout`, `PostMessage`).
+- **Jeden zdroj pravdy pro animace**: `PerformanceService` → `performance.state` → `data-motion="reduced"` (všechny stránky) + pauza vizualizéru.
+- **Klávesa Windows**: háček ve vlastním vlákně, stisk nikdy nezahazuje, zahozené uvolnění vždy nahradí; výchozí vypnuto.
 
 ## Zprávy C# ↔ JS
 

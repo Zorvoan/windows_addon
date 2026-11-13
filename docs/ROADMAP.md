@@ -31,7 +31,35 @@ Systémové rozmazání (DWM) se vždy kreslí pod **celým obdélníkem okna**.
 
 Pokud by se pozadí při animaci šířky viditelně opožďovalo, dostane pevnou šířku. (Implementováno: DockBackdropWindow.)
 
-## Další fáze (po dokončení fáze 1)
+## Fáze 2
+
+Naprogramováno a sestaveno, **neotestováno na Windows** (testy 10–13 v [TESTING.md](TESTING.md)).
+
+- [ ] **Náhledy oken v docku** – DwmRegisterThumbnail v nativním okně nad ikonou *(čeká na test)*
+- [ ] **Start / Launchpad** – shell:AppsFolder, hledání; klávesa Windows volitelně (výchozí vypnuto) *(čeká na test)*
+- [ ] **Dynamic Island** – hudba (GSMTC) a hlasitost *(čeká na test)*; oznámení cizích aplikací **nejsou možná** bez identity balíčku (MSIX)
+- [ ] **Motivy se sdílením přes kód** – `BW1.…`, kontrolovaný import *(čeká na test)*
+- [ ] **Režim výkonu** – ztlumení animací na baterii / při celé obrazovce, pauza vizualizéru *(čeká na test)*
+- [ ] **Zamykací obrazovka** – zatím jen vysvětlení možností, čeká na rozhodnutí (viz níže)
+
+### Zamykací obrazovka – co reálně jde
+
+- **Nejde:** nahradit zamykací ani přihlašovací obrazovku Windows. Ta běží na zabezpečené ploše (Winlogon), kam se běžná aplikace nedostane;
+  od Windows Vista neexistuje podporovaný způsob, jak ji vyměnit. Vlastní přihlašovací obrazovka by znamenala Credential Provider (DLL v C++,
+  práva správce) – a i ten mění jen dlaždici přihlášení, ne celý vzhled.
+- **Jde (oficiálně):** obrázek zamykací obrazovky (API `LockScreen.SetImageFileAsync` – podle dokumentace jen pro aplikace s identitou balíčku, ověřit),
+  případně stav aplikací na zamykací obrazovce.
+- **Jde (vlastní):** celoobrazovkové okno Better Windows (hodiny, widgety, hudba), které se ukáže **před** systémovým zámkem:
+  - na vlastní zkratku nebo po nečinnosti; po odemčení „klikem“ zavolat `LockWorkStation` → teprve pak se objeví skutečný zámek Windows (heslo/PIN/Hello);
+  - nebo po odemčení Windows na chvíli (uvítací obrazovka).
+  - **Není to zabezpečení** – okno jde obejít (Alt+Tab, Ctrl+Alt+Del, Správce úloh). Chrání jen skutečný zámek Windows.
+  - Nezobrazí se na obrazovce po startu počítače ani při Win+L přímo (to je zabezpečená plocha).
+- **Editor:** rozvržení prvků (hodiny, datum, hudba, widgety) – stejné komponenty jako widgety na ploše.
+
+**Potřebuji rozhodnutí:** chceš vlastní celoobrazovkovou „předzámkovou“ obrazovku s editorem (s vědomím, že to není zabezpečení),
+a kdy se má ukazovat (zkratka / nečinnost / po odemčení)?
+
+## Původní seznam dalších fází
 
 1. **Náhledy oken v docku** při najetí myší (`DwmRegisterThumbnail`, nativní překryvné okno nad WebView).
 2. **Nabídka Start** na klávesu Windows s vyhledáváním aplikací (low-level keyboard hook).

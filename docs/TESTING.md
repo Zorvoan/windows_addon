@@ -145,3 +145,62 @@ Skryj ikony plochy (výchozí) a pro test i hlavní panel (7.1). Pak:
   (Zobrazit, Seřadit, Nový…). Vrátí se vypnutím „Skrýt ikony plochy“ nebo ukončením aplikace.
 - **Rozmazání pod dockem** dělá samostatné okno, které WPF „nezobrazuje“ běžnou cestou (aby po startu neproblikl čtverec).
   Kdyby se nevykreslilo správně, záloha je Rozmazání docku › Žádné (dock pak má jen poloprůhledné pozadí).
+
+---
+
+# Fáze 2
+
+> Fáze 2 stojí na fázi 1, která zatím také neběžela na Windows. U každé sekce je napsané, na kterých testech z fáze 1 závisí –
+> když selžou ty, nemá smysl zkoušet navazující.
+
+## 10. Režim výkonu a motivy *(závisí na 1, 2, 5)*
+
+| # | Udělej | Má se stát | Když ne, pošli |
+|---|---|---|---|
+| 10.1 | Nastavení › Motiv › předvolby (Sklo, Grafit, Oceán…) | Mění se widgety (sklo, zaoblení), tón lišty a docku, barva zvýraznění | – |
+| 10.2 | „Vytvořit kód“, zkopíruj, změň motiv, vlož kód do „Použít kód motivu“ | Vrátí se původní motiv | řádky `Motiv importován` |
+| 10.3 | Vlož nesmysl (např. `ahoj`) | Červená hláška, nic se nezmění | – |
+| 10.4 | Notebook: odpoj nabíječku | Nastavení › Výkon › Teď: „Ztlumené animace – Napájení z baterie“; dock se zvětšuje bez doběhu, vizualizér stojí | řádky `Výkon:` |
+| 10.5 | Pusť video přes celou obrazovku a vrať se | Animace se ztlumí a pak vrátí | totéž |
+
+## 11. Náhledy oken v docku *(závisí na 5.1–5.3)*
+
+| # | Udělej | Má se stát | Když ne, pošli |
+|---|---|---|---|
+| 11.1 | Otevři 2 okna Průzkumníka, najeď myší na jeho ikonu v docku a chvíli počkej | Nad ikonou se objeví panel se **živými** náhledy obou oken a jejich titulky | řádky `Náhledy`, `DWM` |
+| 11.2 | Přejeď myší z ikony na náhled | Náhled zůstane otevřený | – |
+| 11.3 | Klikni na náhled | Přepne se na to okno a náhled zmizí | – |
+| 11.4 | Křížek u náhledu | Okno se zavře (případně se zeptá na uložení) | – |
+| 11.5 | Minimalizované okno | Náhled může být prázdný s popiskem „Minimalizováno“ (Windows u minimalizovaných oken obraz často nedává) | – |
+
+## 12. Dynamic Island *(závisí na 1.1, 3.1 a stejném principu jako dock 5.4)*
+
+| # | Udělej | Má se stát | Když ne, pošli |
+|---|---|---|---|
+| 12.1 | Bez hudby | Nahoře uprostřed nic (lišta normálně klikatelná) | – |
+| 12.2 | Pusť hudbu (Spotify, YouTube v prohlížeči…) | Černá pilulka s obalem alba, názvem a proužky | řádky `Média` |
+| 12.3 | Najeď na pilulku | Rozbalí se: obal, interpret, průběh, ovládání, hlasitost | – |
+| 12.4 | Přehrát/pozastavit, další, předchozí | Funguje (u aplikací, které to podporují) | `Média: příkaz … odmítla` |
+| 12.5 | Změň hlasitost klávesami / posuvníkem | Na chvíli se ukáže ukazatel hlasitosti | řádky `Hlasitost` |
+| 12.6 | Je pilulka nad lištou (ne pod ní)? | Ano, i po změně měřítka / restartu Průzkumníka | – |
+
+## 13. Start *(závisí na 1.5, 5.2)*
+
+| # | Udělej | Má se stát | Když ne, pošli |
+|---|---|---|---|
+| 13.1 | Klikni na logo vlevo v liště | Uprostřed se otevře Start s rozmazaným pozadím a polem hledání s kurzorem | řádky `Start` |
+| 13.2 | Seznam aplikací | Všechny aplikace (i ze Storu) s ikonami, abecedně | `Start: načteno N aplikací` |
+| 13.3 | Napiš „kalk“ / „poznam“ / „vsc“ | Najde Kalkulačku, Poznámkový blok, Visual Studio Code (počáteční písmena) | – |
+| 13.4 | Šipky + Enter, Esc, klik mimo | Spustí vybranou aplikaci / zavře Start | – |
+| 13.5 | Pravé tlačítko na aplikaci › Připnout do docku | Objeví se v docku | – |
+| 13.6 | Nastavení › Start › „Otevírat klávesou Windows“ **zapnout** | – | – |
+| 13.7 | Stiskni a pusť klávesu Windows | Otevře se Start Better Windows (ne Start Windows); znovu = zavře | řádky `Háček klávesy Windows` |
+| 13.8 | Win+E, Win+D, Win+L, Win+šipky | Fungují jako dřív | – |
+| 13.9 | Po několika stiscích Win piš normálně | Žádné „zaseknuté“ zkratky (jako by byla Win držená) | řádek `Vložení uvolnění klávesy Win selhalo` |
+| 13.10 | Klávesu Win v okně spuštěném jako správce (např. Správce úloh) | Otevře se normální Start Windows (to je správně) | – |
+| 13.11 | Přepínač **vypnout** | Klávesa Windows otevírá Start Windows | – |
+
+**Kdyby se klávesnice chovala divně** (všechno jako zkratka s Win): stiskni a pusť jednou klávesu Win; pak vypni „Otevírat klávesou Windows“ a pošli log.
+
+**Popsaná obezlička:** Windows nedovolí oknu otevřenému z klávesového háčku převzít fokus. Start si ho bere přes `AttachThreadInput`
+(dočasné propojení vstupu s oknem v popředí). Když to Windows přesto odmítne, Start se zavře a otevře se Start Windows (log: `Start: nepodařilo se získat fokus`).

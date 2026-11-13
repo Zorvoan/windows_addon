@@ -3,7 +3,8 @@
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ready, send } from '$lib/bridge/bridge';
+  import { on, ready, send } from '$lib/bridge/bridge';
+  import { themePresets } from '$lib/themes';
   import { host } from '$lib/stores/host.svelte';
   import { requestIcons } from '$lib/stores/icons';
   import Surface from '$lib/components/Surface.svelte';
@@ -20,12 +21,25 @@
 
   let s = $derived(host.settings);
   let confirmTaskbar = $state(false);
+  let themeCode = $state('');
+  let importCode = $state('');
+  let importMessage = $state<{ ok: boolean; text: string } | null>(null);
+
+  on('theme.code', (p) => (themeCode = p.code));
+  on('theme.importResult', (p) => {
+    importMessage = p.ok ? { ok: true, text: 'Motiv byl použit.' } : { ok: false, text: p.error ?? 'Kód nejde použít.' };
+    if (p.ok) importCode = '';
+  });
 
   const sections = [
     { id: 'appearance', title: 'Vzhled' },
+    { id: 'theme', title: 'Motiv' },
+    { id: 'performance', title: 'Výkon' },
     { id: 'desktop', title: 'Plocha' },
     { id: 'visualizer', title: 'Vizualizér' },
     { id: 'dock', title: 'Dock' },
+    { id: 'start', title: 'Start' },
+    { id: 'island', title: 'Dynamic Island' },
     { id: 'weather', title: 'Počasí' },
     { id: 'taskbar', title: 'Hlavní panel' },
     { id: 'about', title: 'O aplikaci' },
@@ -101,6 +115,99 @@
               </SettingRow>
               <SettingRow label="Omezit animace" hint="Vypne zvětšování s doběhem a další plynulé přechody.">
                 <Toggle label="Omezit animace" checked={s.appearance.reduceMotion} onchange={(v) => update((x) => (x.appearance.reduceMotion = v))} />
+              </SettingRow>
+            </div>
+          </Section>
+        </Surface>
+      </section>
+
+      <section id="theme">
+        <Surface>
+          <Section title="Motiv" description="Barvy, průhlednost, rozmazání a zaoblení. Nemění tón systémového rozmazání (ten určuje Windows) ani nativní kontextovou nabídku.">
+            <div>
+              <div class="presets">
+                {#each themePresets as preset (preset.name)}
+                  <button
+                    type="button"
+                    class="preset"
+                    class:active={s.appearance.style.name === preset.name}
+                    onclick={() => update((x) => (x.appearance.style = { ...preset }))}
+                  >
+                    <span class="swatch" style:background={preset.accent}></span>
+                    {preset.name}
+                  </button>
+                {/each}
+              </div>
+              <SettingRow label="Barva zvýraznění">
+                <input
+                  type="color"
+                  class="color"
+                  aria-label="Barva zvýraznění"
+                  value={s.appearance.style.accent}
+                  onchange={(e) => update((x) => (x.appearance.style = { ...x.appearance.style, accent: e.currentTarget.value, name: 'Vlastní' }))}
+                />
+              </SettingRow>
+              <SettingRow label="Zaoblení karet">
+                <Slider label="Zaoblení karet" min={0} max={40} value={s.appearance.style.radiusCard} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, radiusCard: v, name: 'Vlastní' }))} />
+              </SettingRow>
+              <SettingRow label="Rozmazání widgetů">
+                <Slider label="Rozmazání widgetů" min={0} max={60} value={s.appearance.style.glassBlur} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, glassBlur: v, name: 'Vlastní' }))} />
+              </SettingRow>
+              <SettingRow label="Neprůhlednost widgetů">
+                <Slider label="Neprůhlednost widgetů" min={0} max={1} step={0.05} value={s.appearance.style.glassOpacity} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, glassOpacity: v, name: 'Vlastní' }))} />
+              </SettingRow>
+              <SettingRow label="Tón horní lišty" hint="Přidává barvu přes systémové rozmazání.">
+                <Slider label="Tón horní lišty" min={0} max={0.8} step={0.02} value={s.appearance.style.barTint} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, barTint: v, name: 'Vlastní' }))} />
+              </SettingRow>
+              <SettingRow label="Tón docku">
+                <Slider label="Tón docku" min={0} max={0.8} step={0.02} value={s.appearance.style.dockTint} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, dockTint: v, name: 'Vlastní' }))} />
+              </SettingRow>
+              <SettingRow label="Sdílet motiv" hint="Kód obsahuje motiv a velikost ikon docku. Pošli ho komukoli s Better Windows.">
+                <Button onclick={() => send('theme.export', {})}>Vytvořit kód</Button>
+              </SettingRow>
+              {#if themeCode}
+                <div class="code">
+                  <input type="text" readonly value={themeCode} aria-label="Kód motivu" onfocus={(e) => e.currentTarget.select()} />
+                  <Button onclick={() => navigator.clipboard?.writeText(themeCode)}>Kopírovat</Button>
+                </div>
+              {/if}
+              <SettingRow label="Použít kód motivu">
+                <input class="import" type="text" placeholder="BW1.…" aria-label="Kód motivu k importu" bind:value={importCode} />
+                <Button variant="primary" disabled={!importCode.trim()} onclick={() => send('theme.import', { code: importCode })}>Použít</Button>
+              </SettingRow>
+              {#if importMessage}
+                <p class="message" class:error={!importMessage.ok}>{importMessage.text}</p>
+              {/if}
+            </div>
+          </Section>
+        </Surface>
+      </section>
+
+      <section id="performance">
+        <Surface>
+          <Section title="Výkon" description="Ztlumí animace a pozastaví vizualizér, když na nich nezáleží nebo když šetříš baterii.">
+            <div>
+              <SettingRow label="Režim">
+                <Segmented
+                  label="Režim výkonu"
+                  value={s.performance.mode}
+                  options={[
+                    { value: 'auto', label: 'Automaticky' },
+                    { value: 'alwaysReduced', label: 'Vždy úsporně' },
+                    { value: 'neverReduced', label: 'Vždy plné animace' },
+                  ]}
+                  onchange={(v) => update((x) => (x.performance.mode = v))}
+                />
+              </SettingRow>
+              <SettingRow label="Ztlumit na baterii">
+                <Toggle label="Ztlumit na baterii" checked={s.performance.reduceOnBattery} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnBattery = v))} />
+              </SettingRow>
+              <SettingRow label="Ztlumit při aplikaci přes celou obrazovku" hint="Hry, videa, prezentace.">
+                <Toggle label="Ztlumit při celé obrazovce" checked={s.performance.reduceOnFullscreen} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnFullscreen = v))} />
+              </SettingRow>
+              <SettingRow label="Teď">
+                <span class="status">{host.performance.reduced ? 'Ztlumené animace' : 'Plné animace'}</span>
+                <span class="muted small">{host.performance.reason}</span>
               </SettingRow>
             </div>
           </Section>
@@ -189,6 +296,9 @@
               <SettingRow label="Zvětšování při najetí">
                 <Toggle label="Zvětšování" checked={s.dock.magnification} onchange={(v) => update((x) => (x.dock.magnification = v))} />
               </SettingRow>
+              <SettingRow label="Náhledy oken" hint="Po najetí na ikonu spuštěné aplikace.">
+                <Toggle label="Náhledy oken" checked={s.dock.previews} onchange={(v) => update((x) => (x.dock.previews = v))} />
+              </SettingRow>
               <SettingRow label="Největší zvětšení">
                 <Slider label="Největší zvětšení" min={1} max={2.5} step={0.1} value={s.dock.maxScale} format={(v) => `${v.toFixed(1)}×`} onchange={(v) => update((x) => (x.dock.maxScale = v))} />
               </SettingRow>
@@ -206,6 +316,45 @@
                   <li class="muted">Nic není připnuté.</li>
                 {/each}
               </ul>
+            </div>
+          </Section>
+        </Surface>
+      </section>
+
+      <section id="start">
+        <Surface>
+          <Section title="Start" description="Vyhledávání a všechny aplikace. Otevřeš ho kliknutím na logo v horní liště.">
+            <div>
+              <SettingRow label="Zapnuto">
+                <Toggle label="Start" checked={s.start.enabled} onchange={(v) => update((x) => (x.start.enabled = v))} />
+              </SettingRow>
+              <SettingRow
+                label="Otevírat klávesou Windows"
+                hint="Samotný stisk klávesy Windows otevře tento Start místo Startu Windows. Zkratky (Win+E, Win+L…) fungují dál. Když je v popředí aplikace spuštěná jako správce, otevře se Start Windows."
+              >
+                <Toggle label="Otevírat klávesou Windows" checked={s.start.replaceWinKey} disabled={!s.start.enabled} onchange={(v) => update((x) => (x.start.replaceWinKey = v))} />
+              </SettingRow>
+            </div>
+          </Section>
+        </Surface>
+      </section>
+
+      <section id="island">
+        <Surface>
+          <Section title="Dynamic Island" description="Právě hrající hudba a hlasitost nahoře uprostřed.">
+            <div>
+              <SettingRow label="Zapnuto">
+                <Toggle label="Dynamic Island" checked={s.island.enabled} onchange={(v) => update((x) => (x.island.enabled = v))} />
+              </SettingRow>
+              <SettingRow label="Ukazovat změnu hlasitosti">
+                <Toggle label="Ukazovat změnu hlasitosti" checked={s.island.showVolume} onchange={(v) => update((x) => (x.island.showVolume = v))} />
+              </SettingRow>
+              <SettingRow
+                label="Oznámení"
+                hint="Číst oznámení ostatních aplikací Windows dovolí jen aplikacím nainstalovaným jako balíček (MSIX). Better Windows zatím balíček není, proto oznámení v ostrůvku nejsou."
+              >
+                <span class="muted small">nedostupné</span>
+              </SettingRow>
             </div>
           </Section>
         </Surface>
@@ -398,5 +547,73 @@
   .buttons {
     display: flex;
     gap: var(--bw-space-2);
+  }
+  .small {
+    font-size: var(--bw-text-sm);
+  }
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--bw-space-2);
+    padding-bottom: var(--bw-space-3);
+  }
+  .preset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--bw-radius-pill);
+    border: 1px solid var(--bw-border);
+    background: var(--bw-surface);
+    font-size: var(--bw-text-sm);
+  }
+  .preset.active {
+    border-color: var(--bw-accent);
+    box-shadow: 0 0 0 1px var(--bw-accent);
+  }
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+  }
+  .color {
+    width: 44px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--bw-border);
+    border-radius: var(--bw-radius-sm);
+    background: none;
+  }
+  .code {
+    display: flex;
+    gap: var(--bw-space-2);
+    padding-bottom: var(--bw-space-3);
+  }
+  .code input,
+  .import {
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: var(--bw-radius-md);
+    border: 1px solid var(--bw-border);
+    background: var(--bw-surface);
+    color: inherit;
+    font-family: var(--bw-font-mono);
+    font-size: var(--bw-text-sm);
+    user-select: text;
+  }
+  .import {
+    width: 260px;
+    flex: none;
+  }
+  .message {
+    margin: 0;
+    color: #16a34a;
+    font-size: var(--bw-text-sm);
+  }
+  .message.error {
+    color: #ef4444;
   }
 </style>

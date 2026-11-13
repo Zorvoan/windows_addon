@@ -103,6 +103,18 @@ async function toggleSetting(page, report) {
   report.notes.push(`settings.update zpráv: ${updates.length}; showTestCard=${updates.at(-1)?.payload.settings.desktop.showTestCard}; taskbar.hide=${updates.at(-1)?.payload.settings.taskbar.hide}`);
   if (updates.length !== 1) report.errors.push('nastavení: čekal jsem právě 1 settings.update (hlavní panel se má nejdřív potvrdit)');
   if (!(await page.getByText('Opravdu skrýt?').isVisible())) report.errors.push('nastavení: chybí potvrzení skrytí hlavního panelu');
+  // Motiv: předvolba -> settings.update s novým motivem; import -> theme.import
+  await page.getByRole('button', { name: 'Oceán' }).click();
+  await page.getByLabel('Kód motivu k importu').fill('BW1.abc');
+  await page.getByRole('button', { name: 'Použít', exact: true }).click();
+  await page.waitForTimeout(150);
+  const after = await page.evaluate(() => window.__sent);
+  const style = after.filter((m) => m.type === 'settings.update').at(-1)?.payload.settings.appearance.style;
+  report.notes.push(`motiv po kliknutí: ${style?.name} ${style?.accent}; theme.import: ${after.some((m) => m.type === 'theme.import')}`);
+  if (style?.name !== 'Oceán') report.errors.push('nastavení: předvolba motivu se neposlala');
+  if (!after.some((m) => m.type === 'theme.import')) report.errors.push('nastavení: import motivu neposlal theme.import');
+  // Klávesa Win je ve výchozím stavu vypnutá
+  if (await page.getByRole('switch', { name: 'Otevírat klávesou Windows' }).getAttribute('aria-checked') !== 'false') report.errors.push('nastavení: klávesa Windows není ve výchozím stavu vypnutá');
 }
 
 (async () => {
