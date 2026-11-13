@@ -155,6 +155,7 @@ internal sealed class ShellController : IDisposable
         _topBar = new TopBarWindow(_context, _monitors.GetPrimary());
         _topBar.SetBackdrop(Effective(_settings.Current.Appearance.TopBarBackdrop));
         _topBar.FullscreenChanged += OnFullscreenChanged;
+        _topBar.KeepBelow = () => _island?.WindowHandle ?? default;
         _topBar.Placed += () => _island?.BringToTop();
         _topBar.Show();
     }

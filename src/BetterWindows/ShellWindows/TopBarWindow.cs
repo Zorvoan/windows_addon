@@ -22,6 +22,9 @@ internal sealed class TopBarWindow : ShellWindowBase
     /// <summary>Na monitoru se otevřela / zavřela aplikace přes celou obrazovku (hra, video).</summary>
     public event Action<bool>? FullscreenChanged;
 
+    /// <summary>Okno, pod které se lišta zařadí (ostrůvek). Null / skryté = úplně navrch.</summary>
+    public Func<HWND>? KeepBelow { get; set; }
+
     /// <summary>Lišta se přesunula navrch (SetWindowPos) – okna, která mají být nad ní, se mají přesunout znovu.</summary>
     public event Action? Placed;
 
@@ -55,7 +58,11 @@ internal sealed class TopBarWindow : ShellWindowBase
         var b = Monitor.Bounds;
         var monitorRect = new RECT { left = b.Left, top = b.Top, right = b.Right, bottom = b.Bottom };
         var rc = AppBarNative.RequestTop(Hwnd, monitorRect, Monitor.ToPixels(HeightDip));
-        PInvoke.SetWindowPos(Hwnd, HWND.HWND_TOPMOST, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top,
+        // Navrch mezi okny „vždy navrchu“, ale POD ostrůvek, který leží přímo nad lištou: kdyby se lišta
+        // dala úplně navrch (dřív), na okamžik by ostrůvek zakryla (bliknutí při každém přeskládání).
+        var below = KeepBelow?.Invoke() ?? HWND.Null;
+        var insertAfter = !below.IsNull && PInvoke.IsWindowVisible(below) ? below : HWND.HWND_TOPMOST;
+        PInvoke.SetWindowPos(Hwnd, insertAfter, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top,
             SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
         Log.Info($"Horní lišta (AppBar): {rc.right - rc.left}×{rc.bottom - rc.top} px na [{rc.left},{rc.top}] ({Monitor.Scale:P0})");
         Placed?.Invoke();

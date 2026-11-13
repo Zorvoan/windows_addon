@@ -84,7 +84,8 @@ internal sealed class StartController : IDisposable
             return;
         _pageReady = false;
         _window = new StartWindow(_context, _context.Monitors.GetPrimary());
-        _window.SetBackdrop(_context.Settings.Current.Appearance.DockBackdrop == BackdropMode.None ? BackdropMode.None : BackdropMode.SystemAcrylic);
+        // Vlastní tón (AccentAcrylic): systémové rozmazání Windows je v tmavém režimu skoro neprůhledná šedá.
+        _window.SetBackdrop(_context.Settings.Current.Appearance.DockBackdrop == BackdropMode.None ? BackdropMode.None : BackdropMode.AccentAcrylic);
         _window.Deactivated += (_, _) =>
         {
             // Klik mimo Start = zavřít (ale ne hned při otevírání, kdy se fokus teprve přenáší).

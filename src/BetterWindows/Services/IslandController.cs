@@ -93,6 +93,9 @@ internal sealed class IslandController : IDisposable
 
     public void BringToTop() => _window?.BringToTop();
 
+    /// <summary>Okno ostrůvku (lišta se řadí pod něj). Null, když ostrůvek není.</summary>
+    public HWND WindowHandle => _window?.Handle ?? HWND.Null;
+
     /// <summary>Ostrůvek má být vidět (není hra přes celou obrazovku) -> viditelný a navrchu.</summary>
     private void Guard()
     {
