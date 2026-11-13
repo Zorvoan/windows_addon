@@ -22,9 +22,15 @@ namespace BetterWindows.ShellWindows;
 /// </summary>
 internal sealed class IslandGhostWindow : ShellWindowBase
 {
-    private const double DurationMs = 380;
-    private const double FadeFrom = 0.6;   // od 60 % dráhy průhlední
-    private const double AbsorbAt = 0.75;  // v 75 % dráhy ostrůvek „polkne“ (nafoukne se)
+    /*
+     * Pohyb = kriticky tlumená pružina (response 0,42 s): plynulý rozjezd, dlouhé dojetí do ostrůvku.
+     * (První verze: 380 ms se zrychlením i zpomalením – uprostřed příliš rychlá, na videu skoky.)
+     * Průhlednost a pohlcení se řídí postupem DRÁHY, ne času: duch zmizí až těsně u ostrůvku.
+     */
+    private const double DurationMs = 560;
+    private const double Response = 0.42;  // s
+    private const double FadeFrom = 0.86;  // od 86 % dráhy průhlední
+    private const double AbsorbAt = 0.8;   // v 80 % dráhy ostrůvek „polkne“ (nafoukne se)
 
     private nint _thumb;
     private PixelRect _from, _to;
@@ -101,21 +107,30 @@ internal sealed class IslandGhostWindow : ShellWindowBase
 
     private void OnRendering(object? sender, EventArgs e)
     {
-        var p = Math.Min(1, _clock.Elapsed.TotalMilliseconds / DurationMs);
-        Safe.Run("Ostrůvek – let okna", () => Step(p));
-        if (!_absorbed && p >= AbsorbAt)
+        var t = Math.Min(1, _clock.Elapsed.TotalMilliseconds / DurationMs);
+        var x = Path(t);
+        Safe.Run("Ostrůvek – let okna", () => Step(x));
+        if (!_absorbed && x >= AbsorbAt)
         {
             _absorbed = true;
             Safe.Run("Ostrůvek – pohlcení", () => _onAbsorb?.Invoke());
         }
-        if (p >= 1)
+        if (t >= 1)
             Finish();
     }
 
+    /// <summary>Postup dráhy 0..1 v čase t (0..1 trvání): kriticky tlumená pružina, na konci přesně 1.</summary>
+    private static double Path(double t)
+    {
+        var omega = 2 * Math.PI / Response;
+        double Spring(double seconds) => 1 - (1 + omega * seconds) * Math.Exp(-omega * seconds);
+        return Math.Min(1, Spring(t * DurationMs / 1000) / Spring(DurationMs / 1000)); // v t = 1 přesně v cíli
+    }
+
+    /// <param name="p">Postup dráhy 0..1 (už po křivce pružiny).</param>
     private void Step(double p)
     {
-        // Dráha: zrychlí a před ostrůvkem zpomalí (ease-in-out, kubická).
-        var e = p < 0.5 ? 4 * p * p * p : 1 - Math.Pow(-2 * p + 2, 3) / 2;
+        var e = p;
         var ox = Monitor.Bounds.Left;
         var oy = Monitor.Bounds.Top;
         int Lerp(int a, int b) => (int)Math.Round(a + (b - a) * e);
