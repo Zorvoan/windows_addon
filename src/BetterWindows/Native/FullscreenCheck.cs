@@ -15,7 +15,16 @@ internal static class FullscreenCheck
     private static readonly HashSet<string> ShellClasses =
     [
         "Progman", "WorkerW", "SHELLDLL_DefView", "Shell_TrayWnd", "Shell_SecondaryTrayWnd",
+        // Neviditelná okna shellu přes celý monitor (vyskakovací panely, přepínač úloh, Start…).
+        "XamlWindow", "XamlExplorerHostIslandWindow", "Windows.UI.Core.CoreWindow",
     ];
+
+    /// <summary>Procesy shellu Windows – jejich okna nejsou „hra přes celou obrazovku“.</summary>
+    private static readonly HashSet<string> ShellProcesses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "explorer.exe", "ShellExperienceHost.exe", "StartMenuExperienceHost.exe", "SearchHost.exe",
+        "SearchApp.exe", "TextInputHost.exe", "ShellHost.exe", "LockApp.exe", "Widgets.exe",
+    };
 
     public static unsafe bool IsRealFullscreenApp(PixelRect monitor, out string reason)
     {
@@ -37,7 +46,13 @@ internal static class FullscreenCheck
         var cls = ExplorerWindows.GetClassName(fg);
         if (ShellClasses.Contains(cls))
         {
-            reason = $"v popředí je plocha / hlavní panel ({cls})";
+            reason = $"v popředí je okno shellu Windows ({cls})";
+            return false;
+        }
+        var exe = System.IO.Path.GetFileName(Services.AppIdentityResolver.GetProcessPath(pid) ?? "");
+        if (ShellProcesses.Contains(exe))
+        {
+            reason = $"v popředí je okno shellu Windows ({exe}, {cls})";
             return false;
         }
 

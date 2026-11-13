@@ -11,8 +11,11 @@ namespace BetterWindows.ShellWindows;
 
 /// <summary>
 /// „Duch“ okna hrající aplikace, který při minimalizaci vletí do ostrůvku (jako aplikace na telefonu
-/// při odchodu na plochu). Obsah kreslí DWM (živý náhled okna, DwmRegisterThumbnail); okno se každý
-/// snímek přesune a zmenší po dráze z původní polohy okna do ostrůvku a na konci zprůhlední.
+/// při odchodu na plochu). Obsah kreslí DWM (živý náhled okna, DwmRegisterThumbnail).
+///
+/// Okno samo se NEHÝBE: je průhledné přes celý monitor a každý snímek se mění jen obdélník náhledu
+/// (DwmUpdateThumbnailProperties – skládá ho přímo DWM). Přesouvat a zvětšovat celé okno každý snímek
+/// (první verze) se trhalo. Myš okno nebere a ukazuje se jen po dobu letu (~0,4 s).
 ///
 /// Pozn.: skutečnou animaci minimalizace kreslí Windows a nejde ji nahradit – se zapnutými animacemi
 /// Windows proto současně poletí i okno samo dolů. Duch je animace navíc.
@@ -24,7 +27,7 @@ internal sealed class IslandGhostWindow : ShellWindowBase
     private const double AbsorbAt = 0.75;  // v 75 % dráhy ostrůvek „polkne“ (nafoukne se)
 
     private nint _thumb;
-    private PixelRect _from, _to, _rect = new(0, 0, 1, 1);
+    private PixelRect _from, _to;
     private HWND _insertAfter;
     private readonly Stopwatch _clock = new();
     private bool _absorbed;
@@ -37,12 +40,18 @@ internal sealed class IslandGhostWindow : ShellWindowBase
     }
 
     protected override DWM_WINDOW_CORNER_PREFERENCE CornerPreference => DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
-    protected override PixelRect ComputeBounds(MonitorInfo monitor) => _rect;
+    protected override PixelRect ComputeBounds(MonitorInfo monitor) => monitor.Bounds;
 
     protected override void Place()
     {
-        // Poloha se řídí animací (Step).
+        // Celý monitor, v pořadí oken těsně pod ostrůvkem (letí „do něj“, ale nad vším ostatním).
+        var b = Monitor.Bounds;
+        PInvoke.SetWindowPos(Hwnd, _insertAfter.IsNull ? HWND.HWND_TOPMOST : _insertAfter, b.Left, b.Top, b.Width, b.Height,
+            SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
     }
+
+    /// <summary>Připravit okno předem (první let pak nečeká na vytvoření okna).</summary>
+    public void Prepare() => new System.Windows.Interop.WindowInteropHelper(this).EnsureHandle();
 
     /// <summary>Duch nebere myš – kliknutí jde do okna pod ním.</summary>
     protected override nint OnWindowMessage(int msg, nint wParam, nint lParam, ref bool handled)
@@ -55,6 +64,7 @@ internal sealed class IslandGhostWindow : ShellWindowBase
     }
 
     /// <summary>Velikost zdrojového okna (poměr stran pro cílový obdélník).</summary>
+    // (DWM_TNP_RECTDESTINATION je v souřadnicích klientské oblasti tohoto okna = obrazovka − levý horní roh monitoru.)
     public SIZE SourceSize { get; private set; } = new(16, 10);
 
     /// <summary>Připojí živý náhled okna. False = DWM náhled nejde (animace se neukáže).</summary>
@@ -82,6 +92,7 @@ internal sealed class IslandGhostWindow : ShellWindowBase
         _onAbsorb = onAbsorb;
         _onDone = onDone;
         _absorbed = false;
+        Place();
         Step(0);
         PInvoke.ShowWindow(Hwnd, SHOW_WINDOW_CMD.SW_SHOWNOACTIVATE);
         _clock.Restart();
@@ -105,19 +116,23 @@ internal sealed class IslandGhostWindow : ShellWindowBase
     {
         // Dráha: zrychlí a před ostrůvkem zpomalí (ease-in-out, kubická).
         var e = p < 0.5 ? 4 * p * p * p : 1 - Math.Pow(-2 * p + 2, 3) / 2;
-        static int Lerp(int a, int b, double t) => (int)Math.Round(a + (b - a) * t);
-        _rect = new PixelRect(Lerp(_from.Left, _to.Left, e), Lerp(_from.Top, _to.Top, e),
-            Lerp(_from.Right, _to.Right, e), Lerp(_from.Bottom, _to.Bottom, e));
+        var ox = Monitor.Bounds.Left;
+        var oy = Monitor.Bounds.Top;
+        int Lerp(int a, int b) => (int)Math.Round(a + (b - a) * e);
         var opacity = p <= FadeFrom ? 255 : (byte)Math.Round(255 * (1 - (p - FadeFrom) / (1 - FadeFrom)));
 
-        PInvoke.SetWindowPos(Hwnd, _insertAfter, _rect.Left, _rect.Top, Math.Max(1, _rect.Width), Math.Max(1, _rect.Height),
-            SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
         if (_thumb != 0)
         {
             var props = new DWM_THUMBNAIL_PROPERTIES
             {
                 dwFlags = PInvoke.DWM_TNP_RECTDESTINATION | PInvoke.DWM_TNP_VISIBLE | PInvoke.DWM_TNP_OPACITY | PInvoke.DWM_TNP_SOURCECLIENTAREAONLY,
-                rcDestination = new RECT { left = 0, top = 0, right = _rect.Width, bottom = _rect.Height },
+                rcDestination = new RECT
+                {
+                    left = Lerp(_from.Left, _to.Left) - ox,
+                    top = Lerp(_from.Top, _to.Top) - oy,
+                    right = Lerp(_from.Right, _to.Right) - ox,
+                    bottom = Lerp(_from.Bottom, _to.Bottom) - oy,
+                },
                 fVisible = true,
                 opacity = (byte)opacity,
                 fSourceClientAreaOnly = false,

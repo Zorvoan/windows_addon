@@ -23,8 +23,8 @@ internal sealed class SettingsWindow : Window
         _hub = hub;
         Title = $"{AppInfo.DisplayName} – Nastavení";
         Icon = AppIcons.WindowIcon;
-        Width = 900;
-        Height = 680;
+        Width = 1040;
+        Height = 760;
         MinWidth = 560;
         MinHeight = 420;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;

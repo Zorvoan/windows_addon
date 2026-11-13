@@ -47,9 +47,12 @@
 </div>
 
 <style>
+  /* Vyplní celou kartu a řádky se zmenší, když je kvůli zaoblení méně místa. */
   .calendar {
     display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: var(--bw-space-1);
+    height: 100%;
     font-size: 11px;
   }
   header {
@@ -83,6 +86,8 @@
   .grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(0, 1fr);
+    align-items: center;
     row-gap: 1px;
     text-align: center;
   }
@@ -92,8 +97,8 @@
   .day {
     display: grid;
     place-items: center;
-    height: 16px;
-    width: 16px;
+    height: min(16px, 100%);
+    aspect-ratio: 1;
     justify-self: center;
     border-radius: 50%;
     font-variant-numeric: tabular-nums;

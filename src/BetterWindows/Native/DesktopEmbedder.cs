@@ -127,7 +127,11 @@ internal static class DesktopEmbedder
         HWND parent, insertAfter;
         string mode, detail;
         var layered = snap.Layout == DesktopLayout.Raised;
-        if (snap.Layout == DesktopLayout.Raised && !snap.WorkerW.IsNull)
+        // 24H2+/25H2: WorkerW s tapetou bývá ZAKÁZANÉ okno (WS_DISABLED) – zakázaný rodič nepropustí
+        // myš ani klávesnici k podoknům (klik pak převezme plocha). Pak vložíme vrstvu přímo do Progman,
+        // těsně pod okno s ikonami (SHELLDLL_DefView) a nad tapetu.
+        var workerEnabled = !snap.WorkerW.IsNull && PInvoke.IsWindowEnabled(snap.WorkerW);
+        if (snap.Layout == DesktopLayout.Raised && workerEnabled)
         {
             parent = snap.WorkerW;
             insertAfter = HWND.Null; // HWND_TOP (= 0): navrch mezi sourozenci
@@ -137,9 +141,11 @@ internal static class DesktopEmbedder
         else if (snap.Layout == DesktopLayout.Raised)
         {
             parent = snap.Progman;
-            insertAfter = snap.DefView; // hned pod vrstvu s ikonami
+            insertAfter = snap.DefView; // hned pod vrstvu s ikonami (HWND.Null = navrch, když DefView chybí)
             mode = "embed-raised";
-            detail = "24H2+: podokno Progman pod SHELLDLL_DefView (WS_EX_LAYERED)";
+            detail = snap.WorkerW.IsNull
+                ? "24H2+: podokno Progman pod SHELLDLL_DefView (WS_EX_LAYERED)"
+                : "24H2+: podokno Progman pod SHELLDLL_DefView (WorkerW je zakázané – nepropouští myš)";
         }
         else
         {

@@ -20,13 +20,15 @@
 <style>
   .seg {
     display: inline-flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* segmenty vždy v jedné řadě */
+    white-space: nowrap;
     gap: 2px;
     padding: 2px;
     border-radius: var(--bw-radius-md);
     background: var(--bw-hover);
   }
   button {
+    flex: none;
     height: 28px;
     padding: 0 12px;
     border: 0;

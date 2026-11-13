@@ -73,6 +73,9 @@ internal sealed class IslandController : IDisposable
         _window = new IslandWindow(_context, _context.Monitors.GetPrimary());
         _window.SetBackdrop(BackdropMode.None);
         _window.Show();
+        // Duch pro vlétnutí aplikace: vytvořit hned, ať první let necuká na vytváření okna.
+        _ghost ??= CreateGhost();
+        _ghost.Prepare();
     }
 
     private void CloseWindow()

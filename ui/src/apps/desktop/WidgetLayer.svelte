@@ -69,6 +69,17 @@
   function up() {
     drag = null;
   }
+
+  /*
+   * Odsazení obsahu podle zaoblení karty: obsah u rohu musí zůstat uvnitř oblouku (soustředné rohy).
+   * Při malém zaoblení platí základní odsazení, při velkém (např. 38 px) roste – jinak kalendář
+   * a hodiny narážejí do rohů.
+   */
+  let radius = $derived(host.settings?.appearance.style?.radiusCard ?? 22);
+  function padFor(type: string): number {
+    const small = type === 'clock' || type === 'calendar';
+    return Math.round(Math.max(small ? 8 : 16, radius * (small ? 0.4 : 0.45)));
+  }
 </script>
 
 <div class="toolbar">
@@ -101,8 +112,8 @@
     onpointerup={up}
     onpointercancel={up}
   >
-    <Surface variant="glass" padding={w.type === 'clock' || w.type === 'calendar' ? 'sm' : 'md'}>
-      <div class="inner" style:height="{size.height - (w.type === 'clock' || w.type === 'calendar' ? 18 : 34)}px">
+    <Surface variant="glass" padPx={padFor(w.type)}>
+      <div class="inner" style:height="{size.height - 2 * padFor(w.type) - 2}px">
         {#if w.type === 'clock'}
           <ClockWidget />
         {:else if w.type === 'calendar'}

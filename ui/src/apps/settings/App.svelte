@@ -499,7 +499,7 @@
   }
   .layout {
     display: grid;
-    grid-template-columns: 200px 1fr;
+    grid-template-columns: 200px minmax(0, 1fr);
     min-height: 100vh;
   }
   nav {
@@ -538,7 +538,37 @@
     display: grid;
     gap: var(--bw-space-4);
     max-width: 820px;
+    min-width: 0;
     align-content: start;
+  }
+  /* Úzké okno: navigace jako vodorovný pruh nahoře, obsah přes celou šířku. */
+  @media (max-width: 760px) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    nav {
+      position: sticky;
+      z-index: 1;
+      height: auto;
+      flex-direction: row;
+      align-items: center;
+      overflow-x: auto;
+      padding: var(--bw-space-2) var(--bw-space-3);
+      border-right: 0;
+      border-bottom: 1px solid var(--bw-border);
+      background: var(--bw-page);
+    }
+    .brand {
+      padding: 0 var(--bw-space-3) 0 var(--bw-space-1);
+      flex: none;
+    }
+    nav a {
+      flex: none;
+      white-space: nowrap;
+    }
+    main {
+      padding: var(--bw-space-4);
+    }
   }
   section {
     scroll-margin-top: var(--bw-space-6);

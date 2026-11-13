@@ -63,6 +63,9 @@
     margin-top: auto;
     font-size: 11px;
     color: var(--bw-fg-subtle);
+    white-space: nowrap; /* jeden řádek – zalomení vytlačilo text z karty */
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .muted {
     margin: auto 0;

@@ -9,13 +9,15 @@
   interface Props {
     variant?: 'solid' | 'glass';
     padding?: 'none' | 'sm' | 'md' | 'lg';
+    /** Přesné odsazení v px (přebije `padding`) – widgety ho odvozují od zaoblení rohů. */
+    padPx?: number;
     children: Snippet;
   }
 
-  let { variant = 'solid', padding = 'md', children }: Props = $props();
+  let { variant = 'solid', padding = 'md', padPx, children }: Props = $props();
 </script>
 
-<div class="surface {variant} pad-{padding}">
+<div class="surface {variant} pad-{padding}" style:padding={padPx !== undefined ? `${padPx}px` : null}>
   {@render children()}
 </div>
 
