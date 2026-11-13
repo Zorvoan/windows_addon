@@ -47,8 +47,8 @@ The user interface is currently in Czech.
 |---|---|
 | **Top bar** | Active app name, mini player, search, battery, weather, microphone and camera indicators, keyboard language, user, clock. Reserves screen space (AppBar) and hides for full-screen games and videos. |
 | **Dock** | Pinned and running apps with their icons, magnification under the cursor, bounce on launch, window previews on hover, a context menu listing open windows, Launchpad and Trash. Real system blur behind the dock. |
-| **Dynamic island** | A black pill at the top center: now playing (any app, via the system media controls), playback controls and a volume indicator. The expand animation is measured frame by frame from a reference recording. |
-| **Desktop and widgets** | A custom desktop layer beneath all windows: wallpaper, clock, calendar, weather (Open-Meteo), reminders, battery. Optionally hides the desktop icons. |
+| **Dynamic island** | A black pill at the top center: now playing (any app, via the system media controls), playback controls and a volume indicator. Audio-reactive waveform tinted with the album art's colors, long titles scroll back and forth, and a playing app **flies into the island** when you minimize it. The expand animation is measured frame by frame from a reference recording. |
+| **Desktop and widgets** | A custom desktop layer beneath all windows: wallpaper, clock, calendar, weather (Open-Meteo), reminders, battery. Content insets follow the card corner radius. Optionally hides the desktop icons. |
 | **Audio visualizer** | Dot matrix, wave or ring driven by whatever is playing (WASAPI loopback + FFT). |
 | **Start / Launchpad** | All apps with search by name or initials, pin to dock, full keyboard control. Optionally opened with the Windows key. |
 | **Lock screen** | A custom screen with clock and music, with a layout editor, shown **before** the real Windows lock (Win+Shift+L, Start, or after inactivity). |
@@ -92,10 +92,15 @@ They turn off when reduced motion is enabled in Windows. The recordings below we
     <td width="50%" align="center"><img src="docs/screenshots/readme/start.gif" alt="Start opening and closing"><br><sub><b>Start</b> — content springs in; the system-blurred frame appears at once</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/screenshots/readme/dock.gif" alt="Dock icon magnification"><br><sub><b>Dock</b> — magnification under the cursor, labels</sub></td>
+    <td align="center"><img src="docs/screenshots/readme/dock.gif" alt="Dock icon magnification"><br><sub><b>Dock</b> — gentle magnification under the cursor, labels</sub></td>
     <td align="center"><img src="docs/screenshots/readme/poskakovani.gif" alt="Dock icon bouncing while an app launches"><br><sub><b>Launch</b> — gravity-shaped bounces; the last bounce always finishes</sub></td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/screenshots/readme/vlet-aplikace.gif" alt="A playing app flies into the island when minimized" width="80%"><br>
+  <sub><b>Into the island</b> — minimizing the app that's playing sends a live preview of its window into the island, which swallows it with a little swell. (Simulated here with a mock window; on Windows the preview is drawn by DWM.)</sub>
+</p>
 
 The island's motion is fitted to a reference recording (1–3 % deviation of the motion range, see the
 [curve comparison](docs/screenshots/animace/ostrovek-krivky.png)). Page work per frame stays under 1.5 ms in real time for 95 % of frames.
@@ -186,6 +191,8 @@ Some macOS features can't be done reliably on Windows — Better Windows doesn't
 | Animating other apps' windows (e.g. minimizing into the dock) | Windows draws those. |
 | Global app menus in the top bar (File, Edit…) | Most current apps (Chromium, Electron, UWP, WinUI) expose no readable menu. |
 | Controlling apps running as administrator | Windows protection (UIPI) — the dock may not be able to switch to or close them. |
+| Replacing the Windows minimize animation | Windows draws it; with animation effects on, it plays alongside the fly-into-the-island animation. |
+| Typing directly into the desktop layer | The desktop layer lives inside Explorer's desktop window, which keeps keyboard focus. Clicking a text field in a widget opens a real input field exactly over it instead. |
 
 Known risks are listed in [docs/TESTING.md](docs/TESTING.md#kde-jsou-známá-rizika-ať-víš-co-čekat) (in Czech).
 
