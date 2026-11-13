@@ -39,6 +39,7 @@ internal sealed class ShellController : IDisposable
     private readonly TaskbarService _taskbar;
     private readonly PerformanceService _performance;
     private readonly IslandController _island;
+    private readonly StartController _start;
     private readonly Logic.Storage.KeyValueStore _store = new(System.IO.Path.Combine(AppInfo.DataDir, "widgets-data.json"));
 
     private TopBarWindow? _topBar;
@@ -78,6 +79,7 @@ internal sealed class ShellController : IDisposable
         // Po skrytí/ukázání panelu Windows chvíli přepočítává pracovní plochu -> dock posunout s malým zpožděním.
         _taskbar.WorkAreaChanged += () => DelayOnUi(TimeSpan.FromMilliseconds(600), OnMonitorsChanged);
         _island = new IslandController(_context, _identity);
+        _start = new StartController(_context);
         _performance = new PerformanceService(_settings, _battery);
         _performance.Changed += OnPerformanceChanged;
         _hub.Publish(MessageTypes.PerformanceState, _performance.State);
@@ -104,6 +106,7 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Sledování oken", _tracker.Start);
         Safe.Run("Dock", _dock.Start);
         Safe.Run("Dynamic Island", _island.Start);
+        Safe.Run("Start", _start.Start);
         Safe.Run("Baterie", _battery.Start);
         Safe.Run("Počasí", _weather.Start);
         Safe.Run("Mikrofon a kamera", _privacy.Start);
@@ -165,6 +168,7 @@ internal sealed class ShellController : IDisposable
             _topBar?.Show();
         _dock.SetFullscreen(fullscreen);
         _island.SetFullscreen(fullscreen);
+        _start.SetFullscreen(fullscreen);
         _performance.SetFullscreen(fullscreen);
     }
 
@@ -309,6 +313,7 @@ internal sealed class ShellController : IDisposable
         _topBar?.SetDarkMode(dark);
         _dock.SetDarkMode(dark);
         _island.SetDarkMode(dark);
+        _start.SetDarkMode(dark);
         Themes.ThemeResources.Apply(dark);
     }
 
@@ -357,6 +362,7 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Zavření plochy", _desktop.Dispose);
         Safe.Run("Hlavní panel", _taskbar.Dispose);
         Safe.Run("Dynamic Island", _island.Dispose);
+        Safe.Run("Start", _start.Dispose);
         Safe.Run("Vizualizér", _visualizer.Dispose);
         Safe.Run("Dock", _dock.Dispose);
         Safe.Run("Ikony", _icons.Dispose);

@@ -21,6 +21,7 @@ const pages = [
   { name: 'topbar', width: 1600, height: 36, backdrop: true },
   { name: 'dock', width: 1200, height: 170, backdrop: true, interact: hoverDock },
   { name: 'desktop', width: 1600, height: 900, backdrop: false },
+  { name: 'start', width: 820, height: 600, backdrop: true, interact: useStart },
   { name: 'island', width: 480, height: 176, backdrop: true, interact: hoverIsland },
   { name: 'settings', width: 900, height: 900, backdrop: false, fullPage: true, interact: toggleSetting },
 ].filter((p) => fs.existsSync(path.join(root, `${p.name}.html`)));
@@ -60,6 +61,23 @@ async function hoverDock(page, report) {
   const hovers = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.hover');
   report.notes.push(`dock.hover: ${hovers.map((h) => h.payload.appId ?? 'null').join(' → ')}`);
   if (!hovers.some((h) => h.payload.appId && h.payload.rect)) report.errors.push('dock: nad spuštěnou aplikací nepřišel dock.hover s obdélníkem');
+}
+
+async function useStart(page, report) {
+  await page.keyboard.type('kalk');
+  await page.waitForTimeout(150);
+  const shown = await page.locator('.app .name').allTextContents();
+  report.notes.push(`hledání "kalk": ${shown.join(', ')}`);
+  if (shown[0] !== 'Kalkulačka') report.errors.push('Start: "kalk" nenašlo Kalkulačku jako první');
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Escape');
+  const sent = await page.evaluate(() => window.__sent);
+  const launch = sent.filter((m) => m.type === 'start.launch').at(-1);
+  if (!launch?.payload.appId.includes('WindowsCalculator')) report.errors.push('Start: Enter nespustil Kalkulačku');
+  if (!sent.some((m) => m.type === 'start.close')) report.errors.push('Start: Esc neposlal start.close');
+  await page.keyboard.press('Control+A');
+  await page.keyboard.type('vsc');
+  report.notes.push(`hledání "vsc" (počáteční písmena): ${(await page.locator('.app .name').allTextContents()).join(', ') || '–'}`);
 }
 
 async function hoverIsland(page, report) {

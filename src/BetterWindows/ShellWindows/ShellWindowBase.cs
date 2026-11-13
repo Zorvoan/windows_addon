@@ -142,6 +142,13 @@ internal abstract class ShellWindowBase : Window
             PInvoke.DeleteObject(new HGDIOBJ(region.Value));
     }
 
+    /// <summary>Zrušit tvar okna = celé okno zase viditelné a klikatelné.</summary>
+    public void ClearRegion()
+    {
+        if (!Hwnd.IsNull)
+            PInvoke.SetWindowRgn(Hwnd, HRGN.Null, true);
+    }
+
     // ---------- Veřejné ovládání ----------
 
     public void SetBackdrop(BackdropMode backdrop)

@@ -144,3 +144,33 @@ DWM_TNP_RECTDESTINATION
 DWM_TNP_VISIBLE
 DWM_TNP_OPACITY
 DWM_TNP_SOURCECLIENTAREAONLY
+
+// Start: seznam aplikací (shell:AppsFolder)
+SHGetKnownFolderItem
+SHGetKnownFolderPath
+FOLDERID_AppsFolder
+KNOWN_FOLDER_FLAG
+BHID_EnumItems
+IEnumShellItems
+
+// Start: klávesa Windows (low-level háček) a popředí
+SetWindowsHookEx
+UnhookWindowsHookEx
+CallNextHookEx
+HOOKPROC
+KBDLLHOOKSTRUCT
+WINDOWS_HOOK_ID
+GetModuleHandle
+GetMessage
+PostThreadMessage
+GetCurrentThreadId
+SendInput
+INPUT
+KEYBDINPUT
+VIRTUAL_KEY
+WM_KEYDOWN
+WM_SYSKEYDOWN
+WM_APP
+WM_QUIT
+AttachThreadInput
+BringWindowToTop

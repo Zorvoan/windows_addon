@@ -21,7 +21,7 @@
 
 <header class="bar">
   <div class="left">
-    <span class="logo"><Logo size={18} /></span>
+    <button type="button" class="logo" title="Start" aria-label="Start" onclick={() => send('start.toggle', {})}><Logo size={18} /></button>
     <span class="app-name" title={title}>{appName}</span>
   </div>
 
@@ -63,7 +63,17 @@
   }
   .logo {
     display: inline-grid;
-    margin-right: var(--bw-space-2);
+    place-items: center;
+    width: 28px;
+    height: 26px;
+    margin-right: var(--bw-space-1);
+    padding: 0;
+    border: 0;
+    border-radius: var(--bw-radius-sm);
+    background: none;
+  }
+  .logo:hover {
+    background: var(--bw-hover);
   }
   .app-name {
     font-weight: var(--bw-weight-bold);
