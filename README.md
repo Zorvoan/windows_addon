@@ -12,6 +12,7 @@ A top bar, dock, dynamic island, widgets and a custom lock screen — layered on
 ![WebView2](https://img.shields.io/badge/WebView2-1.0.4314-0F6CBD?logo=microsoftedge&logoColor=white)
 ![Svelte 5](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-alpha%20%C2%B7%20untested%20on%20Windows-orange)
 
 <img src="docs/screenshots/01-plocha-tmava.png" alt="Better Windows desktop in dark mode: top bar, island with music, widgets, dot-matrix visualizer and dock" width="100%">
@@ -38,6 +39,7 @@ The user interface is currently in Czech.
 - [Project structure](#project-structure)
 - [App data](#app-data)
 - [Credits and disclaimer](#credits-and-disclaimer)
+- [License](#license)
 
 ## Features
 
@@ -246,4 +248,7 @@ Built with [WebView2](https://learn.microsoft.com/microsoft-edge/webview2/), [Cs
 Better Windows is not affiliated with Apple or Microsoft. It is inspired by macOS, but all icons, graphics and visual design are original —
 it uses no Apple logos or images.
 
-No license has been chosen yet.
+## License
+
+Released under the [MIT License](LICENSE) © 2026 Zdeněk Patík.
+Third-party components keep their own licenses (the bundled Inter typeface is under the SIL Open Font License 1.1).
