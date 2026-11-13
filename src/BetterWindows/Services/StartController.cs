@@ -89,8 +89,16 @@ internal sealed class StartController : IDisposable
         _window.Deactivated += (_, _) =>
         {
             // Klik mimo Start = zavřít (ale ne hned při otevírání, kdy se fokus teprve přenáší).
-            if (_open && DateTime.UtcNow - _openedAt > TimeSpan.FromMilliseconds(400))
-                Close();
+            if (!_open || DateTime.UtcNow - _openedAt <= TimeSpan.FromMilliseconds(400))
+                return;
+            // Fokus si vzalo naše vlastní okno (ostrůvek, lišta, náhled…)? Pak Start nechat otevřený.
+            var fg = Windows.Win32.PInvoke.GetForegroundWindow();
+            uint pid = 0;
+            unsafe { Windows.Win32.PInvoke.GetWindowThreadProcessId(fg, &pid); }
+            if (pid == (uint)Environment.ProcessId)
+                return;
+            Log.Info($"Start: zavírám – fokus převzalo okno {ExplorerWindows.GetClassName(fg)}.");
+            Close();
         };
         _window.Show(); // neviditelné (prázdný tvar), jen kvůli načtení stránky
     }
@@ -122,11 +130,18 @@ internal sealed class StartController : IDisposable
 
         if (!focused)
         {
-            // Bez fokusu by nešlo psát – raději zavřít a otevřít Start Windows.
-            Log.Warn("Start: nepodařilo se získat fokus, otevírám Start Windows.");
-            Close(immediate: true);
             if (fromWinKey)
+            {
+                // Klávesa Win: bez fokusu by nešlo psát – raději zavřít a otevřít Start Windows.
+                Log.Warn("Start: nepodařilo se získat fokus, otevírám Start Windows.");
+                Close(immediate: true);
                 WinKeyHook.OpenWindowsStart();
+            }
+            else
+            {
+                // Klik na ikonu / logo: nechat otevřený (klik do hledání fokus dá), dřív se hned zavřel.
+                Log.Warn("Start: fokus se nepodařilo získat hned – Start zůstává otevřený.");
+            }
         }
     }
 
@@ -135,6 +150,7 @@ internal sealed class StartController : IDisposable
     {
         if (!_open)
             return;
+        Log.Info($"Start: zavřen ({(immediate ? "hned" : "s animací")}).");
         _open = false;
         _context.Hub.Publish(MessageTypes.StartVisibility, new StartVisibilityPayload(false), sticky: false, page: "start");
         if (immediate || _window is null)

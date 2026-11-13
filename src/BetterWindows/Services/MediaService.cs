@@ -68,7 +68,7 @@ internal sealed class MediaService : IDisposable
             _session.PlaybackInfoChanged -= OnSessionChanged;
             _session.TimelinePropertiesChanged -= OnSessionChanged;
         }
-        _session = _manager?.GetCurrentSession();
+        _session = PickSession();
         if (_session is not null)
         {
             _session.MediaPropertiesChanged += OnSessionChanged;
@@ -76,6 +76,28 @@ internal sealed class MediaService : IDisposable
             _session.TimelinePropertiesChanged += OnSessionChanged;
         }
         Refresh();
+    }
+
+    /// <summary>
+    /// „Aktuální“ relaci médií Windows při přepnutí aktivního okna (třeba otevření nastavení) krátce
+    /// ohlásí jako žádnou. Pak vzít relaci, která hraje (případně první), ať ostrůvek nezmizí.
+    /// </summary>
+    private GlobalSystemMediaTransportControlsSession? PickSession()
+    {
+        var current = _manager?.GetCurrentSession();
+        if (current is not null || _manager is null)
+            return current;
+        try
+        {
+            var sessions = _manager.GetSessions();
+            return sessions.FirstOrDefault(x => x.GetPlaybackInfo()?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing)
+                ?? sessions.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"Média: seznam relací nejde načíst ({ex.Message}).");
+            return null;
+        }
     }
 
     private void OnSessionChanged<T>(GlobalSystemMediaTransportControlsSession sender, T args) => OnUi(Refresh);
@@ -203,7 +225,39 @@ internal sealed class MediaService : IDisposable
         return source.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? source[..^4] : source;
     }
 
+    private System.Windows.Threading.DispatcherTimer? _emptyDelay;
+    private MediaStatePayload? _pendingEmpty;
+
+    /// <summary>
+    /// „Nic nehraje“ se pošle až po 1,5 s: krátké výpadky (přepnutí okna, změna relace) by jinak
+    /// ostrůvek schovaly a hned zase ukázaly (bliknutí). Cokoli, co hraje, se pošle hned.
+    /// </summary>
     private void Publish(MediaStatePayload state)
+    {
+        if (!state.Available && Current.Available)
+        {
+            _pendingEmpty = state;
+            _emptyDelay ??= new System.Windows.Threading.DispatcherTimer(TimeSpan.FromMilliseconds(1500),
+                System.Windows.Threading.DispatcherPriority.Background, (_, _) =>
+                {
+                    _emptyDelay!.Stop();
+                    if (_pendingEmpty is { } empty)
+                    {
+                        _pendingEmpty = null;
+                        Log.Info("Média: nic nehraje (po 1,5 s).");
+                        PublishNow(empty);
+                    }
+                }, _dispatcher);
+            if (!_emptyDelay.IsEnabled)
+                _emptyDelay.Start();
+            return;
+        }
+        _pendingEmpty = null;
+        _emptyDelay?.Stop();
+        PublishNow(state);
+    }
+
+    private void PublishNow(MediaStatePayload state)
     {
         if (state == Current)
             return;
