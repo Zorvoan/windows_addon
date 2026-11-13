@@ -18,8 +18,8 @@ internal sealed class IslandController : IDisposable
     {
         _context = context;
         _media = new MediaService(context.Dispatcher, identity);
-        // Obal alba (data URL) potřebuje jen ostrůvek – neposílat ho všem stránkám.
-        _media.Changed += m => _context.Hub.Publish(MessageTypes.MediaState, m, page: "island");
+        // Hudbu ukazuje ostrůvek, mini přehrávač v liště i zamykací obrazovka (obal je zmenšený na 160 px).
+        _media.Changed += m => _context.Hub.Publish(MessageTypes.MediaState, m);
         _volume = new VolumeService(context.Dispatcher);
         _volume.Changed += v =>
         {

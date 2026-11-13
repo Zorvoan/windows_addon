@@ -105,6 +105,19 @@
     {/each}
   </div>
 
+  <footer class="power">
+    {#if host.user}<span class="who">{host.user.name}</span>{/if}
+    <button type="button" class="power-btn" onclick={() => send('settings.open', {})}><Icon name="sliders" size={15} /> Nastavení</button>
+    <button
+      type="button"
+      class="power-btn"
+      onclick={() => {
+        send('start.close', {});
+        send('lock.open', { editing: false });
+      }}><Icon name="lock" size={15} /> Zamknout</button
+    >
+  </footer>
+
   {#if menu}
     <div class="menu" style:left="{menu.x}px" style:top="{menu.y}px" role="menu">
       <button type="button" role="menuitem" onclick={() => menu && launch(menu.app)}>Otevřít</button>
@@ -227,6 +240,32 @@
     text-align: center;
     color: var(--bw-fg-muted);
     margin-top: var(--bw-space-6);
+  }
+  .power {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--bw-space-2);
+    padding-top: var(--bw-space-3);
+    border-top: 1px solid var(--bw-glass-border);
+  }
+  .who {
+    margin-right: auto;
+    font-weight: var(--bw-weight-medium);
+  }
+  .power-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--bw-radius-md);
+    background: none;
+    color: inherit;
+  }
+  .power-btn:hover {
+    background: var(--bw-hover);
   }
   .menu {
     position: fixed;

@@ -162,16 +162,33 @@ internal sealed class MediaService : IDisposable
             await reader.LoadAsync((uint)stream.Size);
             var bytes = new byte[stream.Size];
             reader.ReadBytes(bytes);
-            var mime = string.IsNullOrEmpty(stream.ContentType) ? "image/jpeg" : stream.ContentType;
-            if (!mime.StartsWith("image/", StringComparison.Ordinal))
-                mime = "image/jpeg";
-            return $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+            return $"data:image/png;base64,{Convert.ToBase64String(Downscale(bytes, 160))}";
         }
         catch (Exception ex)
         {
             Log.Warn($"Média: obal alba nejde načíst ({ex.Message})");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Obal alba zmenšený na max. 160 px (PNG, desítky kB) – posílá se všem stránkám (lišta, ostrůvek,
+    /// zámek) při každé změně stavu, originál může mít i několik MB.
+    /// </summary>
+    private static byte[] Downscale(byte[] image, int max)
+    {
+        using var input = new System.IO.MemoryStream(image);
+        var frame = System.Windows.Media.Imaging.BitmapFrame.Create(input,
+            System.Windows.Media.Imaging.BitmapCreateOptions.None, System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+        var scale = Math.Min(1.0, (double)max / Math.Max(frame.PixelWidth, frame.PixelHeight));
+        System.Windows.Media.Imaging.BitmapSource source = frame;
+        if (scale < 1.0)
+            source = new System.Windows.Media.Imaging.TransformedBitmap(frame, new System.Windows.Media.ScaleTransform(scale, scale));
+        var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+        encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(source));
+        using var output = new System.IO.MemoryStream();
+        encoder.Save(output);
+        return output.ToArray();
     }
 
     private string SourceName(string? source)

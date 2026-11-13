@@ -11,6 +11,11 @@
   import { magnify } from '$lib/magnify';
   import type { CssRect, DockItem } from '$lib/bridge/messages';
   import DockIcon from './DockIcon.svelte';
+  import { launchpadIcon, trashEmptyIcon, trashFullIcon } from '$lib/dockIcons';
+
+  // Speciální položky jako v docku Familiar: Launchpad (Start) na začátku, Koš na konci.
+  const LAUNCHPAD: DockItem = { appId: 'bw:launchpad', name: 'Launchpad', pinned: true, running: false, active: false, windowCount: 0 };
+  const TRASH: DockItem = { appId: 'bw:trash', name: 'Koš', pinned: true, running: false, active: false, windowCount: 0 };
 
   const GAP = 6;
   const PAD = 6;
@@ -18,11 +23,25 @@
 
   let base = $derived(host.settings?.dock.iconSize ?? 48);
   let maxScale = $derived(host.settings?.dock.magnification === false ? 1 : (host.settings?.dock.maxScale ?? 1.7));
-  let items = $derived(host.dock);
-  let separatorAfter = $derived.by(() => {
-    const lastPinned = items.findLastIndex((i) => i.pinned);
-    return lastPinned >= 0 && lastPinned < items.length - 1 ? lastPinned : -1;
+  let showLaunchpad = $derived(host.settings?.dock.showLaunchpad !== false);
+  let showTrash = $derived(host.settings?.dock.showTrash !== false);
+  let items = $derived([...(showLaunchpad ? [LAUNCHPAD] : []), ...host.dock, ...(showTrash ? [TRASH] : [])]);
+  // Oddělovače: za připnutými (když jsou i nepřipnuté) a před košem.
+  let separators = $derived.by(() => {
+    const set = new Set<number>();
+    const apps = host.dock;
+    const offset = showLaunchpad ? 1 : 0;
+    const lastPinned = apps.findLastIndex((i) => i.pinned);
+    if (lastPinned >= 0 && lastPinned < apps.length - 1) set.add(lastPinned + offset);
+    if (showTrash && items.length > 1) set.add(items.length - 2);
+    return set;
   });
+
+  function iconFor(item: DockItem): string | undefined {
+    if (item.appId === LAUNCHPAD.appId) return launchpadIcon;
+    if (item.appId === TRASH.appId) return host.trashCount > 0 ? trashFullIcon : trashEmptyIcon;
+    return host.icons[item.appId];
+  }
 
   let band: HTMLDivElement | undefined = $state();
   let cursor = $state<number | null>(null); // px od levého okraje pásu v klidu
@@ -37,11 +56,11 @@
     let x = PAD;
     return items.map((_, i) => {
       const c = x + (base + GAP) / 2;
-      x += base + GAP + (i === separatorAfter ? SEPARATOR : 0);
+      x += base + GAP + (separators.has(i) ? SEPARATOR : 0);
       return c;
     });
   });
-  let restWidth = $derived(items.length * (base + GAP) + PAD * 2 + (separatorAfter >= 0 ? SEPARATOR : 0));
+  let restWidth = $derived(items.length * (base + GAP) + PAD * 2 + separators.size * SEPARATOR);
   let result = $derived(magnify({ centers, cursor, base, maxScale, strength }));
 
   function onMove(e: MouseEvent) {
@@ -98,7 +117,7 @@
   });
   setInterval(() => (launching = { ...launching }), 2000);
 
-  $effect(() => requestIcons(items.map((i) => i.appId)));
+  $effect(() => requestIcons(host.dock.map((i) => i.appId)));
 
   // ---- Hlášení tvaru do C# ----
   let lastSent = '';
@@ -155,7 +174,7 @@
   });
 </script>
 
-{#if items.length > 0}
+{#if host.settings && items.length > 0}
   <div
     class="band"
     bind:this={band}
@@ -171,14 +190,14 @@
       <DockIcon
         {item}
         size={result.sizes[i] ?? base}
-        icon={host.icons[item.appId]}
+        icon={iconFor(item)}
         hovered={hovered === item.appId}
         launching={item.appId in launching}
         onactivate={() => activate(item)}
         oncontext={() => send('dock.contextMenu', { appId: item.appId })}
         onhover={(h, el) => hover(item, h, el)}
       />
-      {#if i === separatorAfter}
+      {#if separators.has(i)}
         <span class="separator" aria-hidden="true"></span>
       {/if}
     {/each}
