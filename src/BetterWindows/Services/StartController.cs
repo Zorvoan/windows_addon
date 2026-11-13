@@ -23,6 +23,13 @@ internal sealed class StartController : IDisposable
     private bool _fullscreen;
     private DateTime _openedAt;
 
+    /// <summary>
+    /// Zavírací animace běží ve stránce (obsah zmizí za ~140 ms); okno se schová až po ní.
+    /// Časovač vlastní C# – na odpověď stránky se nečeká, takže se zavření nikdy nezasekne.
+    /// </summary>
+    private static readonly TimeSpan HideDelay = TimeSpan.FromMilliseconds(170);
+    private DispatcherTimer? _hideTimer;
+
     public StartController(ShellContext context)
     {
         _context = context;
@@ -102,6 +109,7 @@ internal sealed class StartController : IDisposable
         }
 
         _apps.RefreshIfStale();
+        _hideTimer?.Stop(); // otevření během zavírací animace: okno nechat, jen zrušit schování
         _open = true;
         _openedAt = DateTime.UtcNow;
         _window.RefreshMonitor();
@@ -115,25 +123,44 @@ internal sealed class StartController : IDisposable
         {
             // Bez fokusu by nešlo psát – raději zavřít a otevřít Start Windows.
             Log.Warn("Start: nepodařilo se získat fokus, otevírám Start Windows.");
-            Close();
+            Close(immediate: true);
             if (fromWinKey)
                 WinKeyHook.OpenWindowsStart();
         }
     }
 
-    public void Close()
+    /// <param name="immediate">Schovat hned, bez animace (celá obrazovka, vypnutí, ukončení).</param>
+    public void Close(bool immediate = false)
     {
         if (!_open)
             return;
         _open = false;
-        _window?.Hide();
         _context.Hub.Publish(MessageTypes.StartVisibility, new StartVisibilityPayload(false), sticky: false, page: "start");
+        if (immediate || _window is null)
+        {
+            HideNow();
+            return;
+        }
+        if (_hideTimer is null)
+        {
+            _hideTimer = new DispatcherTimer(DispatcherPriority.Normal, _context.Dispatcher) { Interval = HideDelay };
+            _hideTimer.Tick += (_, _) => Safe.Run("Start – schování", HideNow);
+        }
+        _hideTimer.Stop();
+        _hideTimer.Start();
+    }
+
+    private void HideNow()
+    {
+        _hideTimer?.Stop();
+        if (!_open) // mezitím znovu otevřený -> neschovávat
+            _window?.Hide();
     }
 
     public void SetFullscreen(bool fullscreen)
     {
         _fullscreen = fullscreen;
-        if (fullscreen) Close();
+        if (fullscreen) Close(immediate: true);
         UpdateHook();
     }
 
@@ -166,7 +193,7 @@ internal sealed class StartController : IDisposable
             if (now.Start.Enabled) Start();
             else
             {
-                Close();
+                Close(immediate: true);
                 Safe.Run("Zavření Startu", () => _window?.Close());
                 _window = null;
                 _pageReady = false;
@@ -178,6 +205,7 @@ internal sealed class StartController : IDisposable
     public void Dispose()
     {
         _context.Settings.Changed -= OnSettingsChanged;
+        _hideTimer?.Stop();
         _hook?.Dispose();
         Safe.Run("Zavření Startu", () => _window?.Close());
     }

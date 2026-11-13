@@ -73,7 +73,22 @@ Font Inter je přibalený lokálně (`@fontsource-variable/inter`), nic se nesta
 
 Pravidla: jedna grafitová škála (`tokens.css`), tři role textu, jeden akcent (výběr, hlavní akce, dnešek, vteřinová ručička),
 významové barvy jen s významem, žádné barevné přechody ani záře, váhy písma 400–600, 4px mřížka, vnořené zaoblení,
-jedna křivka pohybu `cubic-bezier(0.22, 1, 0.36, 1)`, žádné pružiny ani smyčky bez důvodu.
+jedna křivka pohybu `cubic-bezier(0.22, 1, 0.36, 1)` pro drobné přechody, žádné smyčky bez důvodu.
+
+### Pohyb
+
+- **Pružina** jen tam, kde se mění tvar nebo něco přilétá: ostrůvek (`SpringBox` v `src/lib/motion.svelte.ts`,
+  response 0,42 s, tlumení 0,8 → překmit ~1 %) a otevření Startu (stejná křivka jako CSS `--bw-spring` = `linear()`).
+  Zavírání je krátké, bez pružení (`--bw-ease-in`).
+- **Nezávislé na obnovovací frekvenci:** pružina se počítá v pevných krocích 1/240 s, zvětšování docku exponenciálním
+  doběhem podle skutečného času (`follow`, τ 67 ms). `Spring` ze `svelte/motion` se nepoužívá – na 144 Hz běží rychleji.
+- **Ostrůvek a oblast okna:** během animace se do C# pošle jen obálka (větší z obou velikostí + rezerva na překmit),
+  po dosednutí přesný tvar → 2 zprávy na změnu, `SetWindowRgn` nikdy neořízne rostoucí okraj.
+- **Start:** animuje se jen obsah (97 % → 100 %, průhlednost). Systémové rozmazání a rám kreslí Windows pro celé okno,
+  ty se objeví naráz. Okno schová C# až po zavírací animaci (170 ms, vlastní časovač; při celé obrazovce/vypnutí hned).
+- **Poskakování v docku:** stejně vysoké skoky s gravitačním průběhem, po naběhnutí aplikace doběhne rozběhnutý skok.
+- **Omezení pohybu** (Windows „Efekty animace“, režim výkonu): CSS délky → 0, pružiny `instant`, poskakování vypnuté.
+- **Nejde:** animace cizích oken (minimalizace do docku apod.) kreslí Windows, shell je nemůže nahradit.
 
 ## Kontroly bez Windows
 

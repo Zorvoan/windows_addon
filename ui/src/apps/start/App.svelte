@@ -71,7 +71,7 @@
 
 <svelte:window onkeydown={keydown} onclick={() => (menu = null)} />
 
-<div class="start">
+<div class="start" class:open={host.startOpen}>
   <div class="search">
     <Icon name="search" size={18} />
     <input bind:this={input} bind:value={query} type="text" placeholder="Hledat" aria-label="Hledat aplikace" spellcheck="false" />
@@ -134,6 +134,12 @@
 </div>
 
 <style>
+  /*
+   * Otevření: obsah se z 97 % zvětší pružinou (--bw-spring) a zprůhlední se do plné viditelnosti.
+   * Zavření: krátce a bez pružení zpět (C# okno schová, až to doběhne).
+   * Pozn.: systémové rozmazání a zaoblený rám kreslí Windows pro celé okno – ty se objeví/zmizí
+   * naráz, animuje se jen obsah (proto jen malé zmenšení, aby rozdíl nebyl vidět).
+   */
   .start {
     position: fixed;
     inset: 0;
@@ -143,6 +149,20 @@
     padding: var(--bw-space-6);
     background: var(--bw-glass-bg);
     color: var(--bw-fg);
+    opacity: 0;
+    transform: scale(0.97);
+    pointer-events: none;
+    transition:
+      opacity var(--bw-duration-fast) var(--bw-ease-in),
+      transform var(--bw-duration-fast) var(--bw-ease-in);
+  }
+  .start.open {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition:
+      opacity var(--bw-duration) var(--bw-ease),
+      transform var(--bw-duration-spring) var(--bw-spring);
   }
   .search {
     display: flex;

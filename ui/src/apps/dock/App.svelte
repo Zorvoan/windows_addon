@@ -9,6 +9,7 @@
   import { ready, send } from '$lib/bridge/bridge';
   import { requestIcons } from '$lib/stores/icons';
   import { magnify } from '$lib/magnify';
+  import { follow, followTau, motionReduced } from '$lib/motion.svelte';
   import type { CssRect, DockItem } from '$lib/bridge/messages';
   import DockIcon from './DockIcon.svelte';
   import { launchpadIcon, trashEmptyIcon, trashFullIcon } from '$lib/dockIcons';
@@ -19,7 +20,8 @@
 
   const GAP = 8;
   const PAD = 8;
-  const SEPARATOR = 8; // oddělovač: 1px čára + okraje (plus mezera GAP)
+  const SEPARATOR = 8;
+  const BOUNCE = 0.5; // výška skoku při spouštění jako podíl velikosti ikony // oddělovač: 1px čára + okraje (plus mezera GAP)
 
   let base = $derived(host.settings?.dock.iconSize ?? 48);
   let maxScale = $derived(host.settings?.dock.magnification === false ? 1 : (host.settings?.dock.maxScale ?? 1.7));
@@ -49,7 +51,10 @@
   let targetStrength = 0;
   let hovered = $state<string | null>(null);
   let launching = $state<Record<string, number>>({});
+  // Ikony, které právě poskakují (i dobíhající poslední skok po naběhnutí aplikace) -> rezerva v oblasti okna.
+  let bouncing = $state<Record<string, true>>({});
   let frame = 0;
+  let lastFrame = 0;
 
   // Středy ikon v klidovém rozložení.
   let centers = $derived.by(() => {
@@ -84,12 +89,14 @@
     else if (!h) send('dock.hover', { appId: null, rect: null });
   }
 
-  // Plynulý náběh / doznění efektu.
+  // Plynulý náběh / doznění efektu – podle skutečného času, takže stejně rychle na 60 i 144 Hz.
   function animate() {
     if (frame) return;
-    const step = () => {
-      const reduce = host.performance.reduced; // režim výkonu (zahrnuje i ruční „Omezit animace“)
-      strength = reduce ? targetStrength : strength + (targetStrength - strength) * 0.22;
+    lastFrame = performance.now();
+    const step = (now: number) => {
+      const dt = now - lastFrame;
+      lastFrame = now;
+      strength = motionReduced() ? targetStrength : follow(strength, targetStrength, dt, followTau.dock);
       if (Math.abs(targetStrength - strength) < 0.01) {
         strength = targetStrength;
         if (strength === 0) cursor = null;
@@ -101,6 +108,14 @@
       frame = requestAnimationFrame(step);
     };
     frame = requestAnimationFrame(step);
+  }
+
+  function setBouncing(appId: string, b: boolean) {
+    if (b === appId in bouncing) return;
+    const next = { ...bouncing };
+    if (b) next[appId] = true;
+    else delete next[appId];
+    bouncing = next;
   }
 
   function activate(item: DockItem) {
@@ -140,6 +155,12 @@
     if (items.length > 0) hit.push(inflate(bandRect, 1));
     // Zvětšené ikony a popisek přesahují pás nahoru -> také musí být "uvnitř okna".
     const parts = [...band.querySelectorAll('[data-dock-icon], [data-dock-label]')].map(rectOf);
+    // Poskakující ikona: celá dráha skoku nad klidovou polohou (slot se nehýbe, ikona ano).
+    for (const el of band.querySelectorAll<HTMLElement>('[data-dock-bouncing]')) {
+      const slot = el.parentElement ? rectOf(el.parentElement) : rectOf(el);
+      const lift = el.offsetHeight * BOUNCE;
+      parts.push({ x: slot.x, y: slot.y - lift - 2, width: slot.width, height: lift + 2 });
+    }
     const above = parts.filter((r) => r.y < bandRect.y);
     if (above.length > 0) {
       const top = Math.min(...above.map((r) => r.y));
@@ -165,6 +186,7 @@
     void base;
     void hovered;
     void result;
+    void Object.keys(bouncing).length;
     report();
   });
 
@@ -193,6 +215,8 @@
         icon={iconFor(item)}
         hovered={hovered === item.appId}
         launching={item.appId in launching}
+        bounce={BOUNCE}
+        onbouncing={(b) => setBouncing(item.appId, b)}
         onactivate={() => activate(item)}
         oncontext={() => send('dock.contextMenu', { appId: item.appId })}
         onhover={(h, el) => hover(item, h, el)}

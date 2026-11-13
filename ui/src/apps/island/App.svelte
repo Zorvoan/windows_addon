@@ -5,9 +5,16 @@
    - rozbalená (najetí myší): obal, název, interpret, průběh, ovládání, hlasitost,
    - hlasitost: na chvíli po změně hlasitosti.
   Tvar se hlásí do C# (island.layout -> SetWindowRgn), stejně jako u docku.
+
+  Pohyb: rozměry pilulky řídí pružina (lib/motion), obsah se mezi stavy prolíná.
+  Oblast okna se během animace NEhoní po snímcích (zpoždění zprávy by ořízlo rostoucí okraj):
+  na začátku se pošle obálka (větší z výchozí a cílové velikosti + rezerva na překmit),
+  po dosednutí přesný tvar.
 -->
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, untrack } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import { SpringBox, springs, motionReduced } from '$lib/motion.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import { host } from '$lib/stores/host.svelte';
   import { ready, send } from '$lib/bridge/bridge';
@@ -63,14 +70,50 @@
     leaveTimer = window.setTimeout(() => (hovering = false), 300);
   }
 
-  // ---- Tvar okna do C# (během animace každý snímek) ----
+  // ---- Rozměry pilulky (pružina) ----
+  const TOP = 4;
+  type Size = { w: number; h: number; r: number };
+
+  /** Šířka kompaktní pilulky je token (horní lišta podle něj nechává místo uprostřed). */
+  function compactWidth(): number {
+    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bw-island-width')) || 260;
+  }
+
+  function sizeFor(m: typeof mode): Size {
+    if (m === 'expanded') return { w: 400, h: 156, r: 28 };
+    if (m === 'hidden') return { w: 120, h: 28, r: 14 };
+    return { w: compactWidth(), h: 28, r: 14 };
+  }
+
+  const box = new SpringBox<'w' | 'h' | 'r'>(sizeFor('hidden'), springs.island);
+  let envelope: { w: number; h: number } | null = null;
+
+  $effect(() => {
+    const target = sizeFor(mode);
+    const from = untrack(() => box.value);
+    // Obálka po dobu animace: větší z obou velikostí + rezerva na překmit, omezená oknem.
+    envelope = {
+      w: Math.min(Math.max(from.w, target.w) * 1.04 + 8, window.innerWidth - 4),
+      h: Math.min(Math.max(from.h, target.h) * 1.04 + 8, window.innerHeight - TOP - 2),
+    };
+    report();
+    box.set(target, { instant: motionReduced() }).then((settled) => {
+      if (!settled) return; // přerušeno další změnou – obálku pošle ta
+      envelope = null;
+      report();
+    });
+  });
+
+  // ---- Tvar okna do C# ----
   let lastSent = '';
-  let animUntil = 0;
 
   async function report() {
     await tick();
     const hit: CssRect[] = [];
-    if (pill && mode !== 'hidden') {
+    if (envelope) {
+      const { w, h } = envelope;
+      hit.push({ x: Math.floor((window.innerWidth - w) / 2), y: TOP - 2, width: Math.ceil(w), height: Math.ceil(h) });
+    } else if (pill && mode !== 'hidden') {
       const r = pill.getBoundingClientRect();
       hit.push({ x: Math.floor(r.left) - 2, y: Math.floor(r.top) - 2, width: Math.ceil(r.width) + 4, height: Math.ceil(r.height) + 4 });
     }
@@ -81,19 +124,9 @@
     }
   }
 
-  function animateReport() {
-    animUntil = performance.now() + 700;
-    const step = () => {
-      report();
-      if (performance.now() < animUntil) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-
-  $effect(() => {
-    void mode;
-    animateReport();
-  });
+  // Prolnutí obsahu: nový naběhne s malým zpožděním, starý rychle zmizí (při omezení pohybu hned).
+  const fadeIn = () => ({ duration: motionReduced() ? 0 : 160, delay: motionReduced() ? 0 : 70 });
+  const fadeOut = () => ({ duration: motionReduced() ? 0 : 90 });
 
   onMount(() => {
     ready('island');
@@ -106,19 +139,22 @@
 <div
   class="pill {mode}"
   bind:this={pill}
+  style:width="{Math.max(0, box.value.w)}px"
+  style:height="{Math.max(0, box.value.h)}px"
+  style:border-radius="{Math.max(0, box.value.r)}px"
   role="region"
   aria-label="Dynamic Island"
   onmouseenter={enter}
   onmouseleave={leave}
 >
   {#if mode === 'compact' && media}
-    <div class="row-compact">
+    <div class="layer row-compact" in:fade={fadeIn()} out:fade={fadeOut()}>
       {#if media.thumbnail}<img class="art small" src={media.thumbnail} alt="" />{:else}<span class="art small ph"><Icon name="volume" size={12} /></span>{/if}
       <span class="title">{media.title}</span>
       <span class="dots" class:playing={media.playing} aria-hidden="true">{#each [0, 1, 2, 3] as c (c)}<span class="col">{#each [0, 1, 2] as r (r)}<i></i>{/each}</span>{/each}</span>
     </div>
   {:else if mode === 'expanded' && media}
-    <div class="body-expanded">
+    <div class="layer body-expanded" in:fade={fadeIn()} out:fade={fadeOut()}>
       <div class="top">
         {#if media.thumbnail}<img class="art big" src={media.thumbnail} alt="" />{:else}<span class="art big ph"><Icon name="volume" size={24} /></span>{/if}
         <div class="meta">
@@ -158,7 +194,7 @@
       </div>
     </div>
   {:else if mode === 'volume'}
-    <div class="row-volume">
+    <div class="layer row-volume" in:fade={fadeIn()} out:fade={fadeOut()}>
       <Icon name={host.volume?.muted ? 'mute' : 'volume'} size={16} />
       <div class="track"><div class="fill" style:width="{host.volume?.muted ? 0 : (host.volume?.level ?? 0) * 100}%"></div></div>
       <span class="pct">{host.volume?.muted ? 'Ztlumeno' : `${Math.round((host.volume?.level ?? 0) * 100)} %`}</span>
@@ -178,18 +214,20 @@
     box-shadow:
       0 0 0 1px light-dark(transparent, rgb(237 237 237 / 0.12)),
       0 4px 16px rgb(0 0 0 / 0.3);
-    transition:
-      width var(--bw-duration-slow) var(--bw-ease),
-      height var(--bw-duration-slow) var(--bw-ease),
-      border-radius var(--bw-duration-slow) var(--bw-ease),
-      opacity var(--bw-duration) var(--bw-ease);
+    /* Rozměry a zaoblení řídí pružina (style:...), CSS přechod jen pro průhlednost. */
+    transition: opacity var(--bw-duration) var(--bw-ease);
   }
   .hidden {
-    width: 120px;
-    height: 28px;
-    border-radius: 14px;
     opacity: 0;
     pointer-events: none;
+  }
+  /* Obsah má pevnou velikost cílového stavu a je ukotvený nahoře uprostřed; pilulka ho při
+     změně tvaru jen ořezává (obsah se během animace nepřeskládává). */
+  .layer {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
   }
   .row-compact,
   .row-volume {
@@ -201,19 +239,19 @@
     font-size: var(--bw-text-sm);
     font-weight: var(--bw-weight-medium);
   }
-  .pill.compact,
-  .pill.volume {
+  .row-compact,
+  .row-volume {
     width: var(--bw-island-width);
     height: 28px;
-    border-radius: 14px;
+    box-sizing: border-box;
   }
   .row-volume {
     padding: 0 14px;
   }
-  .pill.expanded {
+  .body-expanded {
     width: 400px;
     height: 156px;
-    border-radius: 28px;
+    box-sizing: border-box;
   }
   .title {
     flex: 1;

@@ -46,7 +46,7 @@ function serve() {
   });
 }
 
-async function hoverDock(page, report) {
+async function hoverDock(page, report, fixtures) {
   const icons = await page.locator('[data-dock-icon]').all();
   if (icons.length === 0) {
     report.errors.push('dock: žádné ikony');
@@ -64,6 +64,26 @@ async function hoverDock(page, report) {
   const hovers = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.hover');
   report.notes.push(`dock.hover: ${hovers.map((h) => h.payload.appId ?? 'null').join(' → ')}`);
   if (!hovers.some((h) => h.payload.appId && h.payload.rect)) report.errors.push('dock: nad spuštěnou aplikací nepřišel dock.hover s obdélníkem');
+
+  // Spouštění: ikona poskakuje, oblast okna má rezervu na celý skok, po naběhnutí aplikace skok doběhne.
+  const icon = page.getByRole('button', { name: 'Nastavení', exact: true });
+  await icon.click();
+  await page.mouse.move(5, 5);
+  await page.waitForTimeout(500);
+  if ((await icon.getAttribute('data-dock-bouncing')) === null) report.errors.push('dock: po kliknutí na nespuštěnou aplikaci ikona neposkakuje');
+  const slot = await icon.evaluate((el) => el.parentElement.getBoundingClientRect().toJSON());
+  const size = await icon.evaluate((el) => el.offsetHeight);
+  const hit = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.layout').at(-1)?.payload.hit ?? [];
+  const top = Math.min(...hit.map((r) => r.y));
+  report.notes.push(`poskakování: horní okraj oblasti ${top}, klidová ikona ${Math.round(slot.y)}, skok ${size / 2}`);
+  if (top > slot.y - size / 2) report.errors.push('dock: oblast okna nepokrývá dráhu skoku (ikona by se ořízla)');
+  const state = fixtures.find((m) => m.type === 'dock.state');
+  const running = JSON.parse(JSON.stringify(state));
+  running.payload.items.find((i) => i.name === 'Nastavení').running = true;
+  await page.evaluate((m) => window.__deliver(m), running);
+  await page.waitForTimeout(900);
+  const after = await icon.evaluate((el) => [el.hasAttribute('data-dock-bouncing'), getComputedStyle(el).transform]);
+  if (after[0] || (after[1] !== 'none' && after[1] !== 'matrix(1, 0, 0, 1, 0, 0)')) report.errors.push(`dock: poskakování po naběhnutí neskončilo (${after[1]})`);
 }
 
 async function useLock(page, report) {
@@ -95,6 +115,11 @@ async function useLock(page, report) {
 }
 
 async function useStart(page, report) {
+  // C# po zobrazení okna pošle start.visibility – teprve pak obsah naběhne (animace otevření).
+  await page.evaluate(() => window.__deliver({ type: 'start.visibility', payload: { open: true } }));
+  await page.waitForTimeout(700);
+  const opacity = await page.evaluate(() => getComputedStyle(document.querySelector('.start')).opacity);
+  if (opacity !== '1') report.errors.push(`Start: po otevření není obsah vidět (opacity ${opacity})`);
   await page.keyboard.type('kalk');
   await page.waitForTimeout(150);
   const shown = await page.locator('.app .name').allTextContents();
@@ -112,6 +137,7 @@ async function useStart(page, report) {
 }
 
 async function hoverIsland(page, report) {
+  await page.waitForTimeout(800); // náběh kompaktní pilulky (pružina) a přesný tvar po dosednutí
   const sentBefore = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.layout');
   const compact = sentBefore.at(-1)?.payload.hit[0];
   await page.mouse.move(240, 18, { steps: 5 });
@@ -121,9 +147,20 @@ async function hoverIsland(page, report) {
   const expanded = after.at(-1)?.payload.hit[0];
   report.notes.push(`island.layout kompaktní ${JSON.stringify(compact)} -> rozbalený ${JSON.stringify(expanded)}`);
   if (!compact || !expanded || expanded.height <= compact.height) report.errors.push('ostrůvek: tvar se po najetí nezvětšil');
+  const pillAfter = await page.evaluate(() => document.querySelector('.pill').getBoundingClientRect().toJSON());
+  if (Math.round(pillAfter.width) !== 400 || Math.round(pillAfter.height) !== 156) report.errors.push(`ostrůvek: po dosednutí má ${pillAfter.width}×${pillAfter.height}, čekal jsem 400×156`);
+  if (expanded && expanded.width > 410) report.errors.push('ostrůvek: po dosednutí zůstala v oblasti okna obálka místo přesného tvaru');
   await page.getByRole('button', { name: 'Další' }).click();
   const cmd = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'media.command');
   if (cmd.at(-1)?.payload.command !== 'next') report.errors.push('ostrůvek: tlačítko Další neposlalo media.command');
+
+  // Omezené animace: tvar se změní hned (bez pružiny).
+  await page.evaluate(() => window.__deliver({ type: 'performance.state', payload: { reduced: true, reason: 'test' } }));
+  await page.mouse.move(240, 170, { steps: 2 });
+  await page.waitForTimeout(450); // zpoždění odjetí myší (300 ms) + snímek
+  const reducedSize = await page.evaluate(() => document.querySelector('.pill').getBoundingClientRect().height);
+  report.notes.push(`omezené animace: výška pilulky po odjetí myší ${reducedSize}`);
+  if (Math.round(reducedSize) !== 28) report.errors.push(`ostrůvek: s omezenými animacemi se nezmenšil hned (výška ${reducedSize})`);
 }
 
 async function toggleSetting(page, report) {
@@ -220,7 +257,7 @@ async function toggleSetting(page, report) {
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         if (overflow > 0) report.errors.push(`lišta přetéká o ${overflow}px při šířce ${def.width}`);
       }
-      if (def.interact) await def.interact(page, report);
+      if (def.interact) await def.interact(page, report, fixtures);
 
       const sent = await page.evaluate(() => window.__sent);
       for (const m of sent) if (m.type === 'ui.log' && m.payload.level === 'error') report.errors.push(`ui.log: ${m.payload.message}`);

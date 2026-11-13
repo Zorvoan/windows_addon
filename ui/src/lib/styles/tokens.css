@@ -98,6 +98,12 @@
   --bw-duration-fast: 140ms;
   --bw-duration: 200ms;
   --bw-duration-slow: 360ms;
+  /* Pružina (response 0,42 s, tlumení 0,8 – jako ostrůvek v lib/motion.ts) pro CSS přechody.
+     Lehce překmitne (~1,5 %) a dosedne. Použití: transform var(--bw-duration-spring) var(--bw-spring). */
+  --bw-spring: linear(0, 0.038, 0.13, 0.248, 0.374, 0.497, 0.608, 0.705, 0.786, 0.851, 0.902, 0.94, 0.968, 0.988, 1.001, 1.009, 1.013, 1.015, 1.015, 1.014, 1.012, 1.01, 1.009, 1.007, 1.005, 1.004, 1.003, 1.002, 1.001, 1.001, 1);
+  --bw-duration-spring: 600ms;
+  /* Krátký odchod bez pružení (zavírání). */
+  --bw-ease-in: cubic-bezier(0.4, 0, 1, 1);
 }
 
 /*
@@ -141,10 +147,12 @@
     --bw-duration-fast: 0ms;
     --bw-duration: 0ms;
     --bw-duration-slow: 0ms;
+    --bw-duration-spring: 0ms;
   }
 }
 :root[data-motion='reduced'] {
   --bw-duration-fast: 0ms;
   --bw-duration: 0ms;
   --bw-duration-slow: 0ms;
+  --bw-duration-spring: 0ms;
 }

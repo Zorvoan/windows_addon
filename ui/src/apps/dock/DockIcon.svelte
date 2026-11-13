@@ -1,6 +1,8 @@
 <!-- Jedna ikona v docku: obrázek (nebo písmeno), tečka spuštěné aplikace, popisek po najetí. -->
 <script lang="ts">
   import type { DockItem } from '$lib/bridge/messages';
+  import { untrack } from 'svelte';
+  import { motionReduced } from '$lib/motion.svelte';
 
   interface Props {
     item: DockItem;
@@ -8,13 +10,42 @@
     icon: string | undefined;
     hovered: boolean;
     launching: boolean;
+    /** Výška skoku jako podíl velikosti ikony. */
+    bounce: number;
+    onbouncing: (bouncing: boolean) => void;
     onactivate: () => void;
     oncontext: () => void;
     onhover: (hover: boolean, element: HTMLElement) => void;
   }
 
-  let { item, size, icon, hovered, launching, onactivate, oncontext, onhover }: Props = $props();
+  let { item, size, icon, hovered, launching, bounce, onbouncing, onactivate, oncontext, onhover }: Props = $props();
   let letter = $derived(item.name.trim().charAt(0).toUpperCase() || '?');
+
+  // Poskakování při spouštění: stejně vysoké skoky, dokud aplikace nenaběhne. Pak se dokončí
+  // rozběhnutý skok (konec cyklu = ikona na zemi), takže ikona nikdy neskočí dolů naráz.
+  let bouncing = $state(false);
+  let stopTimer = 0;
+  $effect(() => {
+    if (launching) {
+      clearTimeout(stopTimer);
+      stopTimer = 0;
+      if (!bouncing && !motionReduced()) bouncing = true;
+    } else if (bouncing && !stopTimer) {
+      stopTimer = window.setTimeout(() => (bouncing = false), 1000); // pojistka, kdyby cyklus neskončil
+    }
+  });
+  $effect(() => {
+    const b = bouncing;
+    untrack(() => onbouncing(b)); // jen při změně bouncing (ne při změně stavu rodiče)
+  });
+
+  function cycleEnd() {
+    if (!launching) {
+      clearTimeout(stopTimer);
+      stopTimer = 0;
+      bouncing = false;
+    }
+  }
 </script>
 
 <div class="slot" style:width="{size}px">
@@ -24,8 +55,11 @@
   <button
     type="button"
     class="icon"
-    class:launching
+    class:bouncing
     data-dock-icon
+    data-dock-bouncing={bouncing ? '' : undefined}
+    style:--lift="{-size * bounce}px"
+    onanimationiteration={cycleEnd}
     style:width="{size}px"
     style:height="{size}px"
     aria-label={item.name}
@@ -85,17 +119,34 @@
     color: var(--bw-fg-muted);
     font-weight: var(--bw-weight-medium);
   }
-  .launching {
-    animation: bounce 0.9s var(--bw-ease) infinite;
+  /*
+   * Skok jako pod gravitací: nahoru zpomaluje, dolů zrychluje (průběh paraboly), krátká pauza
+   * na zemi. Výška je stejná při každém skoku (tak to dělá i dock v macOS při spouštění).
+   */
+  .bouncing {
+    animation: bounce 0.72s linear infinite;
   }
   @keyframes bounce {
-    0%,
+    0% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0.33, 0.67, 0.67, 1); /* nahoru: zpomalení */
+    }
+    42% {
+      transform: translateY(var(--lift));
+      animation-timing-function: cubic-bezier(0.33, 0, 0.67, 0.33); /* dolů: zrychlení */
+    }
+    84%,
     100% {
       transform: translateY(0);
     }
-    40% {
-      transform: translateY(-14px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bouncing {
+      animation: none;
     }
+  }
+  :global(:root[data-motion='reduced']) .bouncing {
+    animation: none;
   }
   .dot {
     width: 4px;
