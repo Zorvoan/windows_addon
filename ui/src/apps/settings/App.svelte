@@ -382,9 +382,9 @@
               <SettingRow label="Ukázat po nečinnosti" hint="Ne během hudby, videa a her přes celou obrazovku.">
                 <Slider label="Ukázat po nečinnosti" min={0} max={60} step={1} value={s.lock.idleMinutes} format={(v) => (v === 0 ? 'nikdy' : `${v} min`)} onchange={(v) => update((x) => (x.lock.idleMinutes = v))} />
               </SettingRow>
-              <SettingRow label="Vzhled" hint="Styl hodin, umístění, co se ukazuje, rozmazání tapety – s živým náhledem.">
+              <SettingRow label="Vzhled" hint="Styl hodin, umístění, co se ukazuje, rozmazání tapety – s živým náhledem. Náhled Windows nezamkne.">
                 <Button onclick={() => send('lock.open', { editing: true })}><Icon name="pencil" size={14} /> Upravit</Button>
-                <Button onclick={() => send('lock.open', { editing: false })}><Icon name="lock" size={14} /> Ukázat</Button>
+                <Button onclick={() => send('lock.open', { editing: false, preview: true })}><Icon name="lock" size={14} /> Náhled</Button>
               </SettingRow>
             </div>
           </Section>

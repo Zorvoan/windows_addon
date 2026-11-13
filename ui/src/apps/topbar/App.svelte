@@ -101,6 +101,9 @@
   .right {
     justify-content: flex-end;
   }
+  .right > :global(*) {
+    flex: none; /* položky vpravo se nesmršťují ani nezalamují */
+  }
   .item:not(:empty) {
     padding: 0 var(--bw-space-2);
   }
@@ -215,6 +218,20 @@
     padding: 0 var(--bw-space-2);
     font-size: var(--bw-text-sm);
     white-space: nowrap;
+  }
+  /* Užší obrazovky: méně důležité položky postupně schovat. */
+  @media (max-width: 1400px) {
+    .np-artist,
+    .user span {
+      display: none;
+    }
+  }
+  @media (max-width: 1200px) {
+    .now-playing,
+    .lang,
+    .exit {
+      display: none;
+    }
   }
   .user img {
     width: 20px;

@@ -57,7 +57,7 @@ Naprogramováno a sestaveno, **neotestováno na Windows** (testy 10–13 v [TEST
   - Nezobrazí se na obrazovce po startu počítače ani při Win+L přímo (to je zabezpečená plocha).
 - **Editor:** rozvržení prvků (hodiny, datum, hudba, widgety) – stejné komponenty jako widgety na ploše.
 
-**Rozhodnuto (podle Familiar):** vlastní obrazovka před zámkem Windows – otevře ji Win+Shift+L, tlačítko Zamknout ve Startu
+**Rozhodnuto (vlastní návrh podle zadání – chování zámku Familiar jsem neviděl, web Familiar je z vývojového prostředí blokovaný a screenshoty zámek neukazují):** vlastní obrazovka před zámkem Windows – otevře ji Win+Shift+L, tlačítko Zamknout ve Startu
 nebo volitelně nečinnost; „odemknutí“ zavolá zámek Windows (vypnutelné). Editor: styl a umístění hodin, prvky, rozmazání a ztmavení tapety.
 
 **Záměrně ne:** globální nabídky aplikací v liště (Soubor, Zobrazit…) – většina dnešních aplikací ve Windows žádnou čitelnou

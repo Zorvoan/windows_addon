@@ -19,6 +19,8 @@ const fixturesPath = path.join(__dirname, 'fixtures.json');
 
 const pages = [
   { name: 'topbar', width: 1600, height: 36, backdrop: true },
+  { name: 'topbar', width: 1280, height: 36, backdrop: true, suffix: '-1280' },
+  { name: 'topbar', width: 1100, height: 36, backdrop: true, suffix: '-1100' },
   { name: 'dock', width: 1200, height: 170, backdrop: true, interact: hoverDock },
   { name: 'desktop', width: 1600, height: 900, backdrop: false },
   { name: 'lock', width: 1600, height: 900, backdrop: false, interact: useLock },
@@ -80,7 +82,12 @@ async function useLock(page, report) {
   if (sent.some((m) => m.type === 'lock.dismiss')) report.errors.push('zámek: v editoru se nesmí odemykat');
   // Běžný režim: klávesa = odemknout
   await page.evaluate(() => window.__deliver({ type: 'lock.visibility', payload: { open: true, editing: false } }));
+  await page.keyboard.press('Space'); // hned po otevření: ignorovat
+  await page.waitForTimeout(800);
+  await page.keyboard.press('AudioVolumeUp'); // hlasitost: ignorovat
+  await page.keyboard.press('Shift'); // modifikátor: ignorovat
   await page.waitForTimeout(100);
+  if ((await page.evaluate(() => window.__sent)).some((m) => m.type === 'lock.dismiss')) report.errors.push('zámek: odemkl se klávesou, která měla být ignorována');
   await page.keyboard.press('Space');
   await page.waitForTimeout(500);
   sent = await page.evaluate(() => window.__sent);
@@ -196,7 +203,12 @@ async function toggleSetting(page, report) {
         });
       }
       await page.waitForTimeout(500);
-      await page.screenshot({ path: path.join(outDir, `${def.name}-${scheme}.png`), fullPage: !!def.fullPage });
+      await page.screenshot({ path: path.join(outDir, `${def.name}${def.suffix ?? ''}-${scheme}.png`), fullPage: !!def.fullPage });
+      if (def.name === 'topbar') {
+        // Nic nesmí přetékat přes okraj lišty.
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        if (overflow > 0) report.errors.push(`lišta přetéká o ${overflow}px při šířce ${def.width}`);
+      }
       if (def.interact) await def.interact(page, report);
 
       const sent = await page.evaluate(() => window.__sent);
@@ -204,7 +216,7 @@ async function toggleSetting(page, report) {
       const types = [...new Set(sent.map((m) => m.type))].join(', ');
 
       const status = report.errors.length ? 'CHYBA' : 'ok';
-      console.log(`[${status}] ${def.name} (${scheme}) – odeslané zprávy: ${types}`);
+      console.log(`[${status}] ${def.name}${def.suffix ?? ''} (${scheme}) – odeslané zprávy: ${types}`);
       report.notes.forEach((n) => console.log('       ' + n));
       report.errors.forEach((e) => console.log('       ! ' + e));
       if (report.errors.length) failed = true;

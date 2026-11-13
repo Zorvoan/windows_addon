@@ -104,7 +104,7 @@
   }
 
   function activate(item: DockItem) {
-    if (!item.running) launching = { ...launching, [item.appId]: Date.now() };
+    if (!item.running && !item.appId.startsWith('bw:')) launching = { ...launching, [item.appId]: Date.now() };
     send('dock.activate', { appId: item.appId });
   }
 

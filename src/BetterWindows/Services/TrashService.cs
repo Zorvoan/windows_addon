@@ -12,12 +12,17 @@ namespace BetterWindows.Services;
 internal sealed class TrashService : IDisposable
 {
     private readonly DispatcherTimer _timer;
+    private readonly Dispatcher _dispatcher;
+    private bool _querying;
 
     public long Count { get; private set; } = -1;
     public event Action? Changed;
 
-    public TrashService(Dispatcher dispatcher) =>
-        _timer = new DispatcherTimer(TimeSpan.FromSeconds(10), DispatcherPriority.Background, (_, _) => Safe.Run("Koš", Refresh), dispatcher);
+    public TrashService(Dispatcher dispatcher)
+    {
+        _dispatcher = dispatcher;
+        _timer = new DispatcherTimer(TimeSpan.FromSeconds(10), DispatcherPriority.Background, (_, _) => Refresh(), dispatcher);
+    }
 
     public void Start()
     {
@@ -25,15 +30,30 @@ internal sealed class TrashService : IDisposable
         _timer.Start();
     }
 
+    /// <summary>Zjištění obsahu koše může u plného koše trvat – mimo UI vlákno.</summary>
     public void Refresh()
     {
-        var info = new SHQUERYRBINFO { cbSize = (uint)Marshal.SizeOf<SHQUERYRBINFO>() };
-        // null = koše všech disků dohromady
-        var count = PInvoke.SHQueryRecycleBin(null, ref info).Succeeded ? info.i64NumItems : -1;
-        if (count == Count)
+        if (_querying)
             return;
-        Count = count;
-        Changed?.Invoke();
+        _querying = true;
+        Task.Run(() =>
+        {
+            var info = new SHQUERYRBINFO { cbSize = (uint)Marshal.SizeOf<SHQUERYRBINFO>() };
+            // null = koše všech disků dohromady
+            return PInvoke.SHQueryRecycleBin(null, ref info).Succeeded ? info.i64NumItems : -1;
+        }).ContinueWith(t => _dispatcher.InvokeAsync(() =>
+        {
+            _querying = false;
+            if (t.IsFaulted)
+            {
+                Log.Warn($"Koš: {t.Exception?.GetBaseException().Message}");
+                return;
+            }
+            if (t.Result == Count)
+                return;
+            Count = t.Result;
+            Changed?.Invoke();
+        }));
     }
 
     public static void Open() =>

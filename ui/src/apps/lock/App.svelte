@@ -17,6 +17,19 @@
 
   let draft = $state<LockSettings | null>(null);
   let leaving = $state(false);
+  let openedAt = 0;
+
+  // Klávesy, které NEodemykají: hlasitost, média, samotné modifikátory (a Win+Shift+L, kterým se zámek otevřel).
+  const ignoredKeys = new Set([
+    'Shift', 'Control', 'Alt', 'Meta', 'OS', 'AltGraph', 'CapsLock', 'NumLock', 'Tab', 'Fn',
+    'AudioVolumeUp', 'AudioVolumeDown', 'AudioVolumeMute', 'MediaPlayPause', 'MediaTrackNext',
+    'MediaTrackPrevious', 'MediaStop', 'MediaPlay', 'MediaPause',
+  ]);
+
+  function onKey(e: KeyboardEvent) {
+    if (host.lock.editing || e.repeat || ignoredKeys.has(e.key) || e.metaKey) return;
+    unlock();
+  }
   let cfg = $derived(host.lock.editing && draft ? draft : host.settings?.lock);
 
   const dateFormat = new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -30,12 +43,14 @@
   $effect(() => {
     if (host.lock.open) {
       leaving = false;
+      openedAt = performance.now();
       draft = host.lock.editing && host.settings ? ($state.snapshot(host.settings.lock) as LockSettings) : null;
     }
   });
 
   function unlock() {
-    if (!host.lock.open || host.lock.editing || leaving) return;
+    // Prvních 700 ms po otevření nic (dojezd zkratky, omylem klik).
+    if (!host.lock.open || host.lock.editing || leaving || performance.now() - openedAt < 700) return;
     leaving = true; // animace "odjetí nahoru", pak C# zamkne Windows
     setTimeout(() => send('lock.dismiss', {}), host.performance.reduced ? 0 : 320);
   }
@@ -52,7 +67,7 @@
   onMount(() => ready('lock'));
 </script>
 
-<svelte:window onkeydown={(e) => !host.lock.editing && e.key !== 'Tab' && unlock()} />
+<svelte:window onkeydown={onKey} />
 
 <!-- Klik kamkoli = odemknout (klávesy obsluhuje svelte:window výše). -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->

@@ -34,7 +34,11 @@ internal sealed class LockScreenController : IDisposable
     private bool _ready;
     private bool _open;
     private bool _editing;
+    private bool _preview;
     private bool _hotKey;
+    private bool _sessionLocked;
+    private DateTime _unlockedAt = DateTime.MinValue;
+    private bool _closingWindow;
 
     public LockScreenController(ShellContext context, ShellMessageWindow messages, Func<bool> mediaPlaying, Func<bool> fullscreen)
     {
@@ -53,13 +57,19 @@ internal sealed class LockScreenController : IDisposable
             _window?.Hide();
             _window?.ClearRegion();
         });
-        hub.On<LockOpenPayload>(MessageTypes.LockOpen, (_, p) => Open(p?.Editing ?? false));
+        hub.On<LockOpenPayload>(MessageTypes.LockOpen, (_, p) => Open(p?.Editing ?? false, p?.Preview ?? false));
         hub.On<object>(MessageTypes.LockDismiss, (_, _) => Dismiss());
         hub.On<object>(MessageTypes.LockEditDone, (_, _) => Close());
         _messages.HotKey += id =>
         {
-            if (id == HotKeyId)
-                Safe.Run("Zámek – zkratka", () => Open(editing: false));
+            if (id != HotKeyId)
+                return;
+            // Druhé Win+Shift+L zavře zámek i bez stránky (záchrana, kdyby stránka nereagovala).
+            Safe.Run("Zámek – zkratka", () =>
+            {
+                if (_open) Dismiss();
+                else Open(editing: false);
+            });
         };
         SystemEvents.SessionSwitch += OnSessionSwitch;
         _context.Settings.Changed += OnSettingsChanged;
@@ -78,12 +88,15 @@ internal sealed class LockScreenController : IDisposable
             _ready = false;
             _window = new LockScreenWindow(_context, _context.Monitors.GetPrimary());
             _window.SetBackdrop(BackdropMode.None);
+            _window.Closed += OnWindowClosed;
             _window.Show(); // neviditelně (prázdný tvar), jen kvůli načtení stránky
         }
         else if (!s.Enabled && _window is not null)
         {
             Close();
+            _closingWindow = true;
             Safe.Run("Zavření zámku", _window.Close);
+            _closingWindow = false;
             _window = null;
             _ready = false;
         }
@@ -100,12 +113,26 @@ internal sealed class LockScreenController : IDisposable
         }
     }
 
-    public void Open(bool editing)
+    /// <summary>Okno zaniklo (Alt+F4, chyba) – nepovažovat zámek za otevřený a připravit nové.</summary>
+    private void OnWindowClosed(object? sender, EventArgs e)
+    {
+        if (_closingWindow || sender != _window)
+            return;
+        Log.Warn("Zámek: okno bylo zavřeno, připravuji nové.");
+        _window = null;
+        _ready = false;
+        _open = false;
+        _editing = false;
+        _context.Dispatcher.InvokeAsync(() => Safe.Run("Zámek – nové okno", () => Apply(_context.Settings.Current.Lock)), DispatcherPriority.Background);
+    }
+
+    public void Open(bool editing, bool preview = false)
     {
         if (_window is null || !_ready || (_open && _editing == editing))
             return;
         _open = true;
         _editing = editing;
+        _preview = preview;
         _window.RefreshMonitor();
         _window.ClearRegion();
         _window.Show();
@@ -119,7 +146,7 @@ internal sealed class LockScreenController : IDisposable
     /// <summary>Uživatel "odemkl" naši obrazovku -> případně zámek Windows.</summary>
     private void Dismiss()
     {
-        var lockWindows = !_editing && _context.Settings.Current.Lock.RequireWindowsLock;
+        var lockWindows = !_editing && !_preview && _context.Settings.Current.Lock.RequireWindowsLock;
         if (lockWindows && !PInvoke.LockWorkStation())
             Log.Warn($"LockWorkStation selhalo (chyba {Marshal.GetLastWin32Error()}).");
         Close();
@@ -131,6 +158,7 @@ internal sealed class LockScreenController : IDisposable
             return;
         _open = false;
         _editing = false;
+        _preview = false;
         _window?.Hide();
         _context.Hub.Publish(MessageTypes.LockVisibility, new LockVisibilityPayload(false, false), sticky: false, page: "lock");
     }
@@ -139,6 +167,9 @@ internal sealed class LockScreenController : IDisposable
     {
         var s = _context.Settings.Current.Lock;
         if (!s.Enabled || s.IdleMinutes <= 0)
+            return;
+        // Ne když jsou Windows zamčené, ani hned po odemknutí (nečinnost se počítá i během zámku).
+        if (_sessionLocked || DateTime.UtcNow - _unlockedAt < TimeSpan.FromMinutes(1))
             return;
         if (IdlePolicy.ShouldShow(s.IdleMinutes, IdleTime(), _open, _mediaPlaying(), _fullscreen(), DisplayRequired()))
             Open(editing: false);
@@ -164,9 +195,20 @@ internal sealed class LockScreenController : IDisposable
 
     private void OnSessionSwitch(object sender, SessionSwitchEventArgs e)
     {
-        // Po odemknutí Windows už naše obrazovka nemá co dělat.
-        if (e.Reason == SessionSwitchReason.SessionUnlock)
-            _context.Dispatcher.InvokeAsync(() => { if (!_editing) Close(); });
+        _context.Dispatcher.InvokeAsync(() =>
+        {
+            if (e.Reason == SessionSwitchReason.SessionLock)
+            {
+                _sessionLocked = true;
+            }
+            else if (e.Reason == SessionSwitchReason.SessionUnlock)
+            {
+                _sessionLocked = false;
+                _unlockedAt = DateTime.UtcNow;
+                // Po odemknutí Windows už naše obrazovka nemá co dělat.
+                if (!_editing) Close();
+            }
+        });
     }
 
     private void OnSettingsChanged(AppSettings old, AppSettings now)
@@ -184,6 +226,7 @@ internal sealed class LockScreenController : IDisposable
         _context.Settings.Changed -= OnSettingsChanged;
         if (_hotKey)
             _messages.UnregisterHotKey(HotKeyId);
+        _closingWindow = true;
         Safe.Run("Zavření zámku", () => _window?.Close());
     }
 }

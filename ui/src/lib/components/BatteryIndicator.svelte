@@ -35,6 +35,7 @@
   }
   .pct {
     font-size: var(--bw-text-sm);
+    white-space: nowrap;
   }
   .low .level {
     fill: #ef4444;

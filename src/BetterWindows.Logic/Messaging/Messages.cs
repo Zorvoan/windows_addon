@@ -128,4 +128,5 @@ public sealed record StartPinPayload(string AppId);
 
 public sealed record ThemeImportPayload(string Code);
 
-public sealed record LockOpenPayload(bool Editing);
+/// <param name="Preview">Jen náhled (z nastavení) – po odemknutí NEzamykat Windows.</param>
+public sealed record LockOpenPayload(bool Editing, bool Preview = false);

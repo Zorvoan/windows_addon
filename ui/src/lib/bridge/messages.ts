@@ -256,7 +256,7 @@ export type UiMessage =
   | { type: 'start.pin'; payload: { appId: string } }
   | { type: 'theme.export'; payload: Record<string, never> }
   | { type: 'theme.import'; payload: { code: string } }
-  | { type: 'lock.open'; payload: { editing: boolean } }
+  | { type: 'lock.open'; payload: { editing: boolean; preview?: boolean } }
   | { type: 'lock.dismiss'; payload: Record<string, never> }
   | { type: 'lock.editDone'; payload: Record<string, never> }
   | { type: 'app.exit'; payload: Record<string, never> }

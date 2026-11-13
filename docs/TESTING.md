@@ -211,15 +211,19 @@ Skryj ikony plochy (výchozí) a pro test i hlavní panel (7.1). Pak:
 
 ## 14. Zamykací obrazovka *(závisí na 1.5 a 2.8 – tapeta)*
 
+**Záchrana, kdyby zámek nešel zavřít:** stiskni znovu **Win+Shift+L**, nebo **Win+L** a odemkni Windows (zámek se po odemknutí sám zavře).
+
 | # | Udělej | Má se stát | Když ne, pošli |
 |---|---|---|---|
-| 14.1 | Win+Shift+L | Přes celou obrazovku: tapeta, datum, velké hodiny, počasí, baterie, hudba (když hraje), tvoje jméno a obrázek účtu | řádky `Zámek:` (i `zkratku Win+Shift+L už používá jiný program`) |
-| 14.2 | Klikni nebo stiskni klávesu | Obrazovka odjede nahoru a **zamkne se Windows** (heslo / PIN / Hello) | `LockWorkStation selhalo` |
+| 14.1 | Win+Shift+L (kdyby nereagovala: Start › Zamknout) | Přes celou obrazovku: tapeta, datum, velké hodiny, počasí, baterie, hudba (když hraje), tvoje jméno a obrázek účtu | řádky `Zámek:` (i `zkratku Win+Shift+L už používá jiný program`) |
+| 14.2 | Klikni nebo stiskni klávesu (ne hlasitost/média) | Obrazovka zmizí (s animací, pokud nejsou ztlumené animace) a **zamkne se Windows** (heslo / PIN / Hello) | `LockWorkStation selhalo` |
 | 14.3 | Odemkni Windows | Jsi zpátky na ploše, naše obrazovka už nesvítí | – |
 | 14.4 | Start › Zamknout | Totéž jako 14.1 | – |
-| 14.5 | Na zamykací obrazovce pozastav / přeskoč hudbu | Funguje a obrazovka se tím neodemkne | – |
+| 14.5 | Na zamykací obrazovce pozastav / přeskoč hudbu (tlačítky i klávesami médií) a změň hlasitost | Funguje a obrazovka se tím neodemkne | – |
+| 14.5b | Na zamykací obrazovce stiskni znovu Win+Shift+L | Zavře se (jako odemknutí) | – |
 | 14.6 | Nastavení › Zamykací obrazovka › Upravit | Zámek s panelem editoru vpravo; změny stylu hodin, umístění, rozmazání se hned ukazují; Hotovo uloží, Zrušit ne; v editoru klik neodemyká | – |
 | 14.7 | „Po odemknutí zamknout Windows“ vypnout, Win+Shift+L, klik | Jen zmizí (bez zámku Windows) | – |
+| 14.7b | Nastavení › Zamykací obrazovka › Náhled, klik | Zmizí, Windows se **nezamkne** | – |
 | 14.8 | „Ukázat po nečinnosti“ = 1 min, nech počítač být | Po ~1 min se ukáže; **ne** když hraje hudba nebo video | – |
 
 **Není to zabezpečení:** naši obrazovku jde obejít (Ctrl+Alt+Del, Alt+Tab). Chrání až zámek Windows, proto je „Po odemknutí zamknout Windows“ ve výchozím stavu zapnuté.
