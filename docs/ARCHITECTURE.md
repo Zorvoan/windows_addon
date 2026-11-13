@@ -10,6 +10,7 @@ Jeden proces (`BetterWindows.exe`), víc oken. Každé okno = WPF okno s průhle
 | Aplikace Windows | – | – | – |
 | **Nad aplikacemi** (topmost, bez fokusu, mimo Alt+Tab) | horní lišta (AppBar), dock + okno pozadí docku, Dynamic Island | systémové (DWM) | `TopBarWindow`, `DockWindow`, `DockBackdropWindow`, `IslandWindow` |
 | **Vyskakovací** | nabídka Start (bere fokus), náhledy oken (DWM thumbnail), kontextové nabídky | systémové | `StartWindow`, `PreviewWindow` |
+| **Nad vším** | zamykací obrazovka Better Windows (před zámkem Windows) | CSS nad tapetou | `LockScreenWindow` |
 
 Proč dva druhy rozmazání: CSS `backdrop-filter` vidí jen obsah vlastní stránky. Pro widgety je to v pořádku, protože tapetu kreslí stejná stránka. Lišta a dock leží nad cizími okny, ta umí rozmazat jen systém (DWM).
 
@@ -28,7 +29,7 @@ stavový automat klávesy Windows, převod aplikací ze Startu na identitu, prav
 | `Bridge/` | MessageHub (ústředna zpráv, sticky stav), MessageBridge (jedno WebView2) |
 | `Native/` | obaly nad Win32: Dwm, AccentPolicy, WindowStyles, ExplorerWindows, DesktopEmbedder, AppBarNative, ShellItems, WindowInfo, ShellMessageWindow |
 | `Monitors/` | MonitorInfo (fyzické pixely + DPI), MonitorService |
-| `Services/` | Settings, Theme, Wallpaper, DesktopLayerHost, WindowTracker, AppIdentityResolver, IconService, AppLauncher, DockController, WindowPreviewController, Battery, Weather, PrivacyIndicator, AudioVisualizer, Taskbar, Performance, Media, Volume, IslandController, StartApps, StartController |
+| `Services/` | Settings, Theme, Wallpaper, DesktopLayerHost, WindowTracker, AppIdentityResolver, IconService, AppLauncher, DockController, WindowPreviewController, Battery, Weather, PrivacyIndicator, AudioVisualizer, Taskbar, Performance, Media, Volume, IslandController, StartApps, StartController, LockScreenController, User, KeyboardLayout, Trash |
 | `ShellWindows/` | ShellWindowBase, TopBarWindow, DesktopWindow, DockWindow, DockBackdropWindow, SettingsWindow |
 | `Themes/` | vzhled nativní kontextové nabídky (světlý/tmavý) |
 | `Tray/` | ikona v oznamovací oblasti |

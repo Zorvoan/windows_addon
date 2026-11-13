@@ -40,6 +40,8 @@
     { id: 'dock', title: 'Dock' },
     { id: 'start', title: 'Start' },
     { id: 'island', title: 'Dynamic Island' },
+    { id: 'lock', title: 'Zamykací obrazovka' },
+    { id: 'topbar', title: 'Horní lišta' },
     { id: 'weather', title: 'Počasí' },
     { id: 'taskbar', title: 'Hlavní panel' },
     { id: 'about', title: 'O aplikaci' },
@@ -299,6 +301,10 @@
               <SettingRow label="Náhledy oken" hint="Po najetí na ikonu spuštěné aplikace.">
                 <Toggle label="Náhledy oken" checked={s.dock.previews} onchange={(v) => update((x) => (x.dock.previews = v))} />
               </SettingRow>
+              <SettingRow label="Launchpad a Koš" hint="Ikona Startu na začátku docku a koš na konci.">
+                <Toggle label="Launchpad" checked={s.dock.showLaunchpad} onchange={(v) => update((x) => (x.dock.showLaunchpad = v))} />
+                <Toggle label="Koš" checked={s.dock.showTrash} onchange={(v) => update((x) => (x.dock.showTrash = v))} />
+              </SettingRow>
               <SettingRow label="Největší zvětšení">
                 <Slider label="Největší zvětšení" min={1} max={2.5} step={0.1} value={s.dock.maxScale} format={(v) => `${v.toFixed(1)}×`} onchange={(v) => update((x) => (x.dock.maxScale = v))} />
               </SettingRow>
@@ -354,6 +360,52 @@
                 hint="Číst oznámení ostatních aplikací Windows dovolí jen aplikacím nainstalovaným jako balíček (MSIX). Better Windows zatím balíček není, proto oznámení v ostrůvku nejsou."
               >
                 <span class="muted small">nedostupné</span>
+              </SettingRow>
+            </div>
+          </Section>
+        </Surface>
+      </section>
+
+      <section id="lock">
+        <Surface>
+          <Section
+            title="Zamykací obrazovka"
+            description="Vlastní obrazovka s hodinami, hudbou a počasím, která se ukáže PŘED zámkem Windows. Otevřeš ji zkratkou Win+Shift+L nebo tlačítkem Zamknout ve Startu."
+          >
+            <div>
+              <SettingRow label="Zapnuto">
+                <Toggle label="Zamykací obrazovka" checked={s.lock.enabled} onchange={(v) => update((x) => (x.lock.enabled = v))} />
+              </SettingRow>
+              <SettingRow label="Po odemknutí zamknout Windows" hint="Doporučeno. Naše obrazovka nic nechrání (jde obejít Ctrl+Alt+Del); heslo, PIN nebo Windows Hello chce až zámek Windows.">
+                <Toggle label="Po odemknutí zamknout Windows" checked={s.lock.requireWindowsLock} onchange={(v) => update((x) => (x.lock.requireWindowsLock = v))} />
+              </SettingRow>
+              <SettingRow label="Ukázat po nečinnosti" hint="Ne během hudby, videa a her přes celou obrazovku.">
+                <Slider label="Ukázat po nečinnosti" min={0} max={60} step={1} value={s.lock.idleMinutes} format={(v) => (v === 0 ? 'nikdy' : `${v} min`)} onchange={(v) => update((x) => (x.lock.idleMinutes = v))} />
+              </SettingRow>
+              <SettingRow label="Vzhled" hint="Styl hodin, umístění, co se ukazuje, rozmazání tapety – s živým náhledem.">
+                <Button onclick={() => send('lock.open', { editing: true })}><Icon name="pencil" size={14} /> Upravit</Button>
+                <Button onclick={() => send('lock.open', { editing: false })}><Icon name="lock" size={14} /> Ukázat</Button>
+              </SettingRow>
+            </div>
+          </Section>
+        </Surface>
+      </section>
+
+      <section id="topbar">
+        <Surface>
+          <Section title="Horní lišta">
+            <div>
+              <SettingRow label="Právě hraje" hint="Mini přehrávač vedle názvu aplikace.">
+                <Toggle label="Právě hraje" checked={s.topBar.showNowPlaying} onchange={(v) => update((x) => (x.topBar.showNowPlaying = v))} />
+              </SettingRow>
+              <SettingRow label="Jazyk klávesnice">
+                <Toggle label="Jazyk klávesnice" checked={s.topBar.showLanguage} onchange={(v) => update((x) => (x.topBar.showLanguage = v))} />
+              </SettingRow>
+              <SettingRow label="Uživatel">
+                <Toggle label="Uživatel" checked={s.topBar.showUser} onchange={(v) => update((x) => (x.topBar.showUser = v))} />
+              </SettingRow>
+              <SettingRow label="Tlačítko Ukončit">
+                <Toggle label="Tlačítko Ukončit" checked={s.topBar.showExit} onchange={(v) => update((x) => (x.topBar.showExit = v))} />
               </SettingRow>
             </div>
           </Section>

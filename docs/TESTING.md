@@ -204,3 +204,41 @@ Skryj ikony plochy (výchozí) a pro test i hlavní panel (7.1). Pak:
 
 **Popsaná obezlička:** Windows nedovolí oknu otevřenému z klávesového háčku převzít fokus. Start si ho bere přes `AttachThreadInput`
 (dočasné propojení vstupu s oknem v popředí). Když to Windows přesto odmítne, Start se zavře a otevře se Start Windows (log: `Start: nepodařilo se získat fokus`).
+
+---
+
+# Familiar: zamykací obrazovka, lišta, dock
+
+## 14. Zamykací obrazovka *(závisí na 1.5 a 2.8 – tapeta)*
+
+| # | Udělej | Má se stát | Když ne, pošli |
+|---|---|---|---|
+| 14.1 | Win+Shift+L | Přes celou obrazovku: tapeta, datum, velké hodiny, počasí, baterie, hudba (když hraje), tvoje jméno a obrázek účtu | řádky `Zámek:` (i `zkratku Win+Shift+L už používá jiný program`) |
+| 14.2 | Klikni nebo stiskni klávesu | Obrazovka odjede nahoru a **zamkne se Windows** (heslo / PIN / Hello) | `LockWorkStation selhalo` |
+| 14.3 | Odemkni Windows | Jsi zpátky na ploše, naše obrazovka už nesvítí | – |
+| 14.4 | Start › Zamknout | Totéž jako 14.1 | – |
+| 14.5 | Na zamykací obrazovce pozastav / přeskoč hudbu | Funguje a obrazovka se tím neodemkne | – |
+| 14.6 | Nastavení › Zamykací obrazovka › Upravit | Zámek s panelem editoru vpravo; změny stylu hodin, umístění, rozmazání se hned ukazují; Hotovo uloží, Zrušit ne; v editoru klik neodemyká | – |
+| 14.7 | „Po odemknutí zamknout Windows“ vypnout, Win+Shift+L, klik | Jen zmizí (bez zámku Windows) | – |
+| 14.8 | „Ukázat po nečinnosti“ = 1 min, nech počítač být | Po ~1 min se ukáže; **ne** když hraje hudba nebo video | – |
+
+**Není to zabezpečení:** naši obrazovku jde obejít (Ctrl+Alt+Del, Alt+Tab). Chrání až zámek Windows, proto je „Po odemknutí zamknout Windows“ ve výchozím stavu zapnuté.
+Win+L si Windows vyhrazuje (zamkne hned, naše obrazovka se neukáže) – proto Win+Shift+L. Na dalších monitorech je zatím vidět plocha.
+
+## 15. Lišta jako Familiar *(závisí na 1.1, 12.2)*
+
+| # | Udělej | Má se stát |
+|---|---|---|
+| 15.1 | Pusť hudbu | Vedle názvu aplikace mini přehrávač (obal, název, interpret, ⏸, ⏭) – tlačítka fungují |
+| 15.2 | Přepni jazyk klávesnice (Win+mezerník / Alt+Shift) v nějaké aplikaci | V liště se změní kód (CES ↔ ENG) do ~1 s |
+| 15.3 | Uživatel | Tvoje jméno (u účtu Microsoft celé jméno) a obrázek účtu |
+| 15.4 | Lupa | Otevře Start |
+| 15.5 | „Ukončit“ | Napoprvé „Opravdu ukončit?“ (červeně), napodruhé se aplikace ukončí a vše se vrátí (ikony, hlavní panel) |
+
+## 16. Dock jako Familiar *(závisí na 5.1)*
+
+| # | Udělej | Má se stát |
+|---|---|---|
+| 16.1 | První ikona (barevná mřížka) | Otevře Start (Launchpad) |
+| 16.2 | Poslední ikona – Koš | Prázdný / s papíry podle obsahu (do ~10 s po smazání souboru); klik otevře Koš |
+| 16.3 | Pravé tlačítko na Koš › Vysypat koš… | Windows se zeptá a koš vysype |

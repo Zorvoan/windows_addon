@@ -40,7 +40,8 @@ Naprogramováno a sestaveno, **neotestováno na Windows** (testy 10–13 v [TEST
 - [ ] **Dynamic Island** – hudba (GSMTC) a hlasitost *(čeká na test)*; oznámení cizích aplikací **nejsou možná** bez identity balíčku (MSIX)
 - [ ] **Motivy se sdílením přes kód** – `BW1.…`, kontrolovaný import *(čeká na test)*
 - [ ] **Režim výkonu** – ztlumení animací na baterii / při celé obrazovce, pauza vizualizéru *(čeká na test)*
-- [ ] **Zamykací obrazovka** – zatím jen vysvětlení možností, čeká na rozhodnutí (viz níže)
+- [ ] **Zamykací obrazovka s editorem** – vlastní obrazovka před zámkem Windows (Win+Shift+L, Start, volitelně nečinnost), po odemknutí zámek Windows *(čeká na test)*
+- [ ] **Vzhled jako Familiar** – mini přehrávač, jazyk klávesnice, uživatel a Ukončit v liště; Launchpad a Koš v docku *(čeká na test)*
 
 ### Zamykací obrazovka – co reálně jde
 
@@ -56,8 +57,11 @@ Naprogramováno a sestaveno, **neotestováno na Windows** (testy 10–13 v [TEST
   - Nezobrazí se na obrazovce po startu počítače ani při Win+L přímo (to je zabezpečená plocha).
 - **Editor:** rozvržení prvků (hodiny, datum, hudba, widgety) – stejné komponenty jako widgety na ploše.
 
-**Potřebuji rozhodnutí:** chceš vlastní celoobrazovkovou „předzámkovou“ obrazovku s editorem (s vědomím, že to není zabezpečení),
-a kdy se má ukazovat (zkratka / nečinnost / po odemčení)?
+**Rozhodnuto (podle Familiar):** vlastní obrazovka před zámkem Windows – otevře ji Win+Shift+L, tlačítko Zamknout ve Startu
+nebo volitelně nečinnost; „odemknutí“ zavolá zámek Windows (vypnutelné). Editor: styl a umístění hodin, prvky, rozmazání a ztmavení tapety.
+
+**Záměrně ne:** globální nabídky aplikací v liště (Soubor, Zobrazit…) – většina dnešních aplikací ve Windows žádnou čitelnou
+nabídku nemá (Chromium, Electron, UWP, WinUI), takže by to fungovalo jen u pár starších programů.
 
 ## Původní seznam dalších fází
 

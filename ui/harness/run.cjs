@@ -137,6 +137,10 @@ async function toggleSetting(page, report) {
   report.notes.push(`motiv po kliknutí: ${style?.name} ${style?.accent}; theme.import: ${after.some((m) => m.type === 'theme.import')}`);
   if (style?.name !== 'Oceán') report.errors.push('nastavení: předvolba motivu se neposlala');
   if (!after.some((m) => m.type === 'theme.import')) report.errors.push('nastavení: import motivu neposlal theme.import');
+  // Zámek: tlačítko Upravit otevře editor
+  await page.getByRole('button', { name: 'Upravit', exact: true }).click();
+  const lockOpen = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'lock.open').at(-1);
+  if (lockOpen?.payload.editing !== true) report.errors.push('nastavení: Upravit zamykací obrazovku neposlalo lock.open {editing:true}');
   // Klávesa Win je ve výchozím stavu vypnutá
   if (await page.getByRole('switch', { name: 'Otevírat klávesou Windows' }).getAttribute('aria-checked') !== 'false') report.errors.push('nastavení: klávesa Windows není ve výchozím stavu vypnutá');
 }
