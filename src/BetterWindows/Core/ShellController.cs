@@ -101,6 +101,8 @@ internal sealed class ShellController : IDisposable
 
         _settings.Changed += (old, now) => Safe.Run("Použití nastavení", () => ApplySettings(old, now));
         _theme.Changed += dark => Safe.Run("Změna motivu", () => OnThemeChanged(dark));
+        _theme.SystemAppearanceChanged += () => Safe.Run("Vzhled Windows", OnSystemAppearanceChanged);
+        PublishSystemAppearance();
         _monitors.Changed += () => Safe.Run("Změna monitorů", OnMonitorsChanged);
         _shellMessages.ExplorerRestarted += () => Safe.Run("Restart Průzkumníka", OnExplorerRestarted);
     }
@@ -145,7 +147,7 @@ internal sealed class ShellController : IDisposable
     private void StartTopBar()
     {
         _topBar = new TopBarWindow(_context, _monitors.GetPrimary());
-        _topBar.SetBackdrop(_settings.Current.Appearance.TopBarBackdrop);
+        _topBar.SetBackdrop(Effective(_settings.Current.Appearance.TopBarBackdrop));
         _topBar.FullscreenChanged += OnFullscreenChanged;
         _topBar.Placed += () => _island?.BringToTop();
         _topBar.Show();
@@ -313,8 +315,30 @@ internal sealed class ShellController : IDisposable
         PublishSettings();
         if (old.Appearance.Theme != now.Appearance.Theme)
             _theme.SetMode(now.Appearance.Theme);
-        if (old.Appearance.TopBarBackdrop != now.Appearance.TopBarBackdrop)
-            _topBar?.SetBackdrop(now.Appearance.TopBarBackdrop);
+        if (old.Appearance.TopBarBackdrop != now.Appearance.TopBarBackdrop || old.Appearance.DockBackdrop != now.Appearance.DockBackdrop)
+            ApplyBackdrops();
+    }
+
+    private void PublishSystemAppearance() =>
+        _hub.Publish(MessageTypes.SystemAppearance, new SystemAppearancePayload(_theme.ReduceTransparency, _theme.HighContrast, _theme.Accent));
+
+    /// <summary>
+    /// Snížená průhlednost / vysoký kontrast: místo rozmazání neprůhledné plochy (UI dostane
+    /// system.appearance a přepne tokeny; tady se vypne systémové rozmazání oken).
+    /// </summary>
+    private void OnSystemAppearanceChanged()
+    {
+        PublishSystemAppearance();
+        ApplyBackdrops();
+    }
+
+    private Logic.Settings.BackdropMode Effective(Logic.Settings.BackdropMode wanted) =>
+        _theme.ReduceTransparency || _theme.HighContrast ? Logic.Settings.BackdropMode.None : wanted;
+
+    private void ApplyBackdrops()
+    {
+        _topBar?.SetBackdrop(Effective(_settings.Current.Appearance.TopBarBackdrop));
+        _dock.SetBackdrop(Effective(_settings.Current.Appearance.DockBackdrop));
     }
 
     private void OnPerformanceChanged()

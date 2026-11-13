@@ -61,7 +61,8 @@ public static partial class ThemeCodec
             if (doc.RootElement.ValueKind != JsonValueKind.Object)
                 throw new FormatException();
 
-            var style = new ThemeStyle();
+            // Sdílený motiv nese vlastní barvu zvýraznění -> barvu z Windows nepoužívat.
+            var style = new ThemeStyle { UseSystemAccent = false };
             int? icon = null;
             foreach (var prop in doc.RootElement.EnumerateObject())
             {
@@ -97,6 +98,7 @@ public static partial class ThemeCodec
         return new ThemeStyle
         {
             Name = CleanName(style.Name) is { Length: > 0 } n ? n : def.Name,
+            UseSystemAccent = style.UseSystemAccent,
             Accent = HexColor().IsMatch(style.Accent ?? "") ? style.Accent!.ToLowerInvariant() : def.Accent,
             RadiusCard = Clamp(style.RadiusCard, 0, 40, def.RadiusCard),
             GlassBlur = Clamp(style.GlassBlur, 0, 60, def.GlassBlur),

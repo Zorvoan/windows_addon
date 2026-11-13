@@ -95,20 +95,8 @@
     {:else}
       <section id="appearance">
         <Surface>
-          <Section title="Vzhled" description="Světlý nebo tmavý režim a rozmazání lišty a docku">
+          <Section title="Vzhled" description="Světlý a tmavý režim se řídí nastavením Windows">
             <div>
-              <SettingRow label="Motiv">
-                <Segmented
-                  label="Motiv"
-                  value={s.appearance.theme}
-                  options={[
-                    { value: 'system', label: 'Podle Windows' },
-                    { value: 'light', label: 'Světlý' },
-                    { value: 'dark', label: 'Tmavý' },
-                  ]}
-                  onchange={(v) => update((x) => (x.appearance.theme = v))}
-                />
-              </SettingRow>
               <SettingRow label="Rozmazání horní lišty" hint="Systémové je rozmazání Windows 11, vlastní tón je průhlednější">
                 <Segmented label="Rozmazání horní lišty" value={s.appearance.topBarBackdrop} options={backdropOptions} onchange={(v) => update((x) => (x.appearance.topBarBackdrop = v))} />
               </SettingRow>
@@ -135,18 +123,26 @@
                     class:active={s.appearance.style.name === preset.name}
                     onclick={() => update((x) => (x.appearance.style = { ...preset }))}
                   >
-                    <span class="swatch" style:background={preset.accent}></span>
+                    <span class="swatch" style:background={preset.useSystemAccent ? host.system.accent : preset.accent}></span>
                     {preset.name}
                   </button>
                 {/each}
               </div>
-              <SettingRow label="Barva zvýraznění">
+              <SettingRow label="Barva zvýraznění podle Windows" hint="Přizpůsobení › Barvy › Barva zvýraznění">
+                <Toggle
+                  label="Barva zvýraznění podle Windows"
+                  checked={s.appearance.style.useSystemAccent}
+                  onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, useSystemAccent: v }))}
+                />
+              </SettingRow>
+              <SettingRow label="Vlastní barva zvýraznění">
                 <input
+                  disabled={s.appearance.style.useSystemAccent}
                   type="color"
                   class="color"
                   aria-label="Barva zvýraznění"
                   value={s.appearance.style.accent}
-                  onchange={(e) => update((x) => (x.appearance.style = { ...x.appearance.style, accent: e.currentTarget.value, name: 'Vlastní' }))}
+                  onchange={(e) => update((x) => (x.appearance.style = { ...x.appearance.style, accent: e.currentTarget.value, useSystemAccent: false, name: 'Vlastní' }))}
                 />
               </SettingRow>
               <SettingRow label="Zaoblení karet">

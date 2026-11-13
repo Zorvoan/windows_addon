@@ -72,7 +72,8 @@ internal sealed class DockController : IDisposable
             return;
         var monitor = _context.Monitors.GetPrimary();
         _backdrop = new DockBackdropWindow(_context, monitor);
-        _backdrop.SetBackdrop(_context.Settings.Current.Appearance.DockBackdrop);
+        _backdrop.SetBackdrop(_context.Theme.ReduceTransparency || _context.Theme.HighContrast
+            ? BackdropMode.None : _context.Settings.Current.Appearance.DockBackdrop);
         _backdrop.Create(); // ukáže se až pod pásem docku (MoveUnder)
         _window = new DockWindow(_context, monitor);
         _window.Show();
@@ -97,6 +98,8 @@ internal sealed class DockController : IDisposable
             _window?.Show();
         _backdrop?.SetVisible(!fullscreen);
     }
+
+    public void SetBackdrop(BackdropMode mode) => _backdrop?.SetBackdrop(mode);
 
     public void SetDarkMode(bool dark)
     {
@@ -129,8 +132,7 @@ internal sealed class DockController : IDisposable
         }
         if (o.IconSize != n.IconSize || o.MaxScale != n.MaxScale || o.Magnification != n.Magnification)
             _window?.RefreshMonitor(); // jiná výška okna
-        if (old.Appearance.DockBackdrop != now.Appearance.DockBackdrop)
-            _backdrop?.SetBackdrop(now.Appearance.DockBackdrop);
+
         if (!o.Pinned.Select(p => p.AppId).SequenceEqual(n.Pinned.Select(p => p.AppId)))
             Publish();
     }
@@ -218,6 +220,16 @@ internal sealed class DockController : IDisposable
 
         menu.Items.Add(Item(name, null, enabled: false));
         menu.Items.Add(new Separator { Style = sepStyle });
+        // Apple: Dock menu může vypsat otevřená okna – rychlý skok na konkrétní okno.
+        foreach (var w in windows.OrderBy(w => w.FirstSeen).Take(8))
+        {
+            var title = string.IsNullOrWhiteSpace(w.Title) ? w.AppName : w.Title;
+            if (title.Length > 60) title = title[..59] + "…";
+            var hwnd = w.Hwnd;
+            menu.Items.Add(Item(w.IsMinimized ? $"{title} (minimalizováno)" : title, () => AppLauncher.Activate(hwnd)));
+        }
+        if (windows.Count > 0)
+            menu.Items.Add(new Separator { Style = sepStyle });
         if (windows.Count > 0 && canLaunch)
             menu.Items.Add(Item("Nové okno", () => AppLauncher.Launch(appId)));
         menu.Items.Add(pinned

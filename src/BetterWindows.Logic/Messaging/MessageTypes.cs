@@ -29,6 +29,7 @@ public static class MessageTypes
     public const string LockVisibility = "lock.visibility";
     public const string UserState = "user.state";
     public const string InputLanguage = "input.language";
+    public const string SystemAppearance = "system.appearance";
 
     // ---- UI -> C# ----
     public const string UiReady = "ui.ready";

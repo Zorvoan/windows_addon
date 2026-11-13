@@ -200,7 +200,7 @@
     color: var(--bw-fg);
   }
   .exit.confirm {
-    background: var(--bw-negative);
+    background: var(--bw-negative-fill);
     border-color: transparent;
     color: #fff;
   }

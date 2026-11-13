@@ -51,6 +51,7 @@ public class ContractTests
         yield return (MessageTypes.LockVisibility, new LockVisibilityPayload(true, false));
         yield return (MessageTypes.UserState, new UserStatePayload("Jan Novák", null));
         yield return (MessageTypes.InputLanguage, new InputLanguagePayload("CES", "čeština"));
+        yield return (MessageTypes.SystemAppearance, new SystemAppearancePayload(false, false, "#0078d4"));
         yield return (MessageTypes.Diagnostics, new DiagnosticsPayload("0.1.0", "10.0.26200", "C:\\logs", "C:\\data", "embed-raised", "Progman (24H2+)"));
     }
 

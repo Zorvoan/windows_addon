@@ -246,3 +246,21 @@ Win+L si Windows vyhrazuje (zamkne hned, naše obrazovka se neukáže) – proto
 | 16.1 | První ikona (barevná mřížka) | Otevře Start (Launchpad) |
 | 16.2 | Poslední ikona – Koš | Prázdný / s papíry podle obsahu (do ~10 s po smazání souboru); klik otevře Koš |
 | 16.3 | Pravé tlačítko na Koš › Vysypat koš… | Windows se zeptá a koš vysype |
+
+---
+
+# Přístupnost a soulad s Apple HIG
+
+## 17. Nastavení Windows, která musí shell respektovat *(závisí na 1, 2, 5)*
+
+| # | Udělej | Má se stát |
+|---|---|---|
+| 17.1 | Nastavení Windows › Přizpůsobení › Barvy › **Efekty průhlednosti vypnout** | Lišta, dock a widgety bez rozmazání, s neprůhledným pozadím; text dobře čitelný |
+| 17.2 | Totéž zapnout zpět | Rozmazání se vrátí |
+| 17.3 | Usnadnění › **Kontrastní motivy** zapnout | Bez rozmazání, silnější okraje; nic nezmizí |
+| 17.4 | Přizpůsobení › Barvy › **Barva zvýraznění** změnit (např. na červenou) | Do pár sekund se změní zvýraznění v Better Windows (dnešek v kalendáři, přepínače, vteřinová ručička) – pokud je v Nastavení › Motiv zapnuté „Barva zvýraznění podle Windows“ (výchozí) |
+| 17.5 | Usnadnění › Vizuální efekty › **Efekty animace vypnout** | Animace se ztlumí (zvětšování docku bez doběhu, ostrůvek bez přechodů) |
+| 17.6 | Tečky mikrofonu / kamery | Kamera je zaoblený čtvereček, mikrofon kolečko (liší se tvarem, ne jen barvou) |
+| 17.7 | Pravé tlačítko na ikonu běžící aplikace v docku | Nabídka začíná seznamem otevřených oken; klik přepne na okno |
+
+Světlý / tmavý režim už nejde přepnout v Better Windows – řídí se Windows (Apple: aplikace nemá mít vlastní přepínač vzhledu).

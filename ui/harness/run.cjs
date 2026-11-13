@@ -189,6 +189,17 @@ async function toggleSetting(page, report) {
         await page.addStyleTag({ content: `html{background:${scheme === 'dark' ? 'linear-gradient(90deg,#2d3b55,#11151d)' : 'linear-gradient(90deg,#c9d6e8,#f1e9e0)'}}` });
       }
       for (const msg of fixtures) await page.evaluate((m) => window.__deliver(m), msg);
+      if (def.name === 'desktop' && scheme === 'dark') {
+        // Snížená průhlednost z Windows -> sklo se vypne (neprůhledné plochy)
+        const before = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bw-glass-blur').trim());
+        await page.evaluate(() => window.__deliver({ type: 'system.appearance', payload: { reduceTransparency: true, highContrast: false, accent: '#c42b1c' } }));
+        await page.waitForTimeout(100);
+        const after = await page.evaluate(() => [getComputedStyle(document.documentElement).getPropertyValue('--bw-glass-blur').trim(), getComputedStyle(document.documentElement).getPropertyValue('--bw-accent').trim()]);
+        report.notes.push(`snížená průhlednost: blur ${before} -> ${after[0]}, zvýraznění Windows -> ${after[1]}`);
+        if (after[0] !== '0px') report.errors.push('plocha: snížená průhlednost nevypnula sklo');
+        if (after[1] !== '#c42b1c') report.errors.push('plocha: nepoužila se barva zvýraznění Windows');
+        await page.evaluate(() => window.__deliver({ type: 'system.appearance', payload: { reduceTransparency: false, highContrast: false, accent: '#0078d4' } }));
+      }
       if (def.name === 'desktop') {
         // Barevná "tapeta" (vygenerovaná v prohlížeči), ať je vidět rozmazání skleněných karet.
         await page.evaluate(() => {

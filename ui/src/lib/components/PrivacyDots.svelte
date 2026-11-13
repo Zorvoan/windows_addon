@@ -12,10 +12,10 @@
 {#if state.micInUse || state.camInUse}
   <span class="dots">
     {#if state.camInUse}
-      <span class="dot cam" title={`Kameru používá: ${state.camApps.join(', ') || 'neznámá aplikace'}`}></span>
+      <span class="dot cam" role="img" aria-label={`Kameru používá: ${state.camApps.join(', ') || 'neznámá aplikace'}`} title={`Kameru používá: ${state.camApps.join(', ') || 'neznámá aplikace'}`}></span>
     {/if}
     {#if state.micInUse}
-      <span class="dot mic" title={`Mikrofon používá: ${state.micApps.join(', ') || 'neznámá aplikace'}`}></span>
+      <span class="dot mic" role="img" aria-label={`Mikrofon používá: ${state.micApps.join(', ') || 'neznámá aplikace'}`} title={`Mikrofon používá: ${state.micApps.join(', ') || 'neznámá aplikace'}`}></span>
     {/if}
   </span>
 {/if}
@@ -34,7 +34,9 @@
   .mic {
     background: var(--bw-privacy-mic);
   }
+  /* Kamera má jiný TVAR než mikrofon (zaoblený čtverec vs. kruh) – nerozlišuje se jen barvou. */
   .cam {
     background: var(--bw-privacy-cam);
+    border-radius: 2px;
   }
 </style>

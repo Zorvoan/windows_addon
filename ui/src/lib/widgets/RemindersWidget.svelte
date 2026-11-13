@@ -96,19 +96,33 @@
     align-items: center;
     gap: var(--bw-space-2);
   }
+  /* Klikací plocha 20×20 (Apple: minimum na desktopu), viditelný kroužek 12 px uvnitř. */
   .check {
     flex: none;
     display: grid;
     place-items: center;
-    width: 12px;
-    height: 12px;
+    width: 20px;
+    height: 20px;
+    margin: -4px;
     padding: 0;
-    border-radius: 50%;
-    border: 1.5px solid var(--bw-fg-subtle);
+    border: 0;
     background: none;
     color: var(--bw-accent-fg);
   }
-  .done .check {
+  .check::before {
+    content: '';
+    grid-area: 1 / 1;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--bw-fg-subtle);
+    box-sizing: border-box;
+  }
+  .check :global(svg) {
+    grid-area: 1 / 1;
+    position: relative;
+  }
+  .done .check::before {
     background: var(--bw-accent);
     border-color: var(--bw-accent);
   }
@@ -123,14 +137,21 @@
     white-space: nowrap;
   }
   .del {
-    display: none;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin: -4px 0;
     border: 0;
+    border-radius: var(--bw-radius-sm);
     background: none;
     color: var(--bw-fg-muted);
     padding: 0;
+    opacity: 0;
   }
-  li:hover .del {
-    display: grid;
+  li:hover .del,
+  .del:focus-visible {
+    opacity: 1;
   }
   .empty {
     color: var(--bw-fg-muted);

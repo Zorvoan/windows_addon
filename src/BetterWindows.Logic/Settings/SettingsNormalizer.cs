@@ -15,6 +15,9 @@ public static class SettingsNormalizer
         s.Island ??= new();
         s.Performance ??= new();
         s.Lock ??= new();
+        // Apple (dark-mode.md › Best practices): "Avoid offering an app-specific appearance setting."
+        // Světlý/tmavý režim se řídí jen systémem; starší ruční volba se ruší.
+        s.Appearance.Theme = ThemeMode.System;
         s.TopBar ??= new();
         s.Lock.IdleMinutes = Math.Clamp(s.Lock.IdleMinutes, 0, 240);
         s.Lock.WallpaperBlur = double.IsFinite(s.Lock.WallpaperBlur) ? Math.Clamp(s.Lock.WallpaperBlur, 0, 40) : 0;

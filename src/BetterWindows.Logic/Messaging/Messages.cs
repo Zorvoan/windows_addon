@@ -85,6 +85,12 @@ public sealed record UserStatePayload(string Name, string? Avatar);
 /// <param name="Code">Krátký kód jazyka klávesnice (CES, ENG, …).</param>
 public sealed record InputLanguagePayload(string Code, string Name);
 
+/// <summary>Nastavení vzhledu z Windows, na která má rozhraní reagovat.</summary>
+/// <param name="ReduceTransparency">Efekty průhlednosti vypnuté -> neprůhledné plochy místo skla.</param>
+/// <param name="HighContrast">Režim vysokého kontrastu.</param>
+/// <param name="Accent">Barva zvýraznění Windows #rrggbb.</param>
+public sealed record SystemAppearancePayload(bool ReduceTransparency, bool HighContrast, string Accent);
+
 // ===== UI -> C# =====
 
 public sealed record UiReadyPayload(string? Page);

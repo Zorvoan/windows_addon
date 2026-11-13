@@ -15,8 +15,20 @@ public sealed class ThemeService : IDisposable
     private ThemeMode _mode = ThemeMode.System;
     private bool _systemIsDark;
 
-    /// <summary>Výsledný režim (systém nebo ruční volba z nastavení).</summary>
+    /// <summary>Výsledný režim (podle systému).</summary>
     public bool IsDark { get; private set; }
+
+    /// <summary>Windows: Přizpůsobení › Barvy › Efekty průhlednosti vypnuté.</summary>
+    public bool ReduceTransparency { get; private set; }
+
+    /// <summary>Windows: Usnadnění › Kontrastní motivy.</summary>
+    public bool HighContrast { get; private set; }
+
+    /// <summary>Barva zvýraznění Windows (#rrggbb).</summary>
+    public string Accent { get; private set; } = "#0078d4";
+
+    /// <summary>Změnila se průhlednost, kontrast nebo barva zvýraznění. Volá se v UI vlákně.</summary>
+    public event Action? SystemAppearanceChanged;
 
     /// <summary>Režim se změnil. Volá se v UI vlákně.</summary>
     public event Action<bool>? Changed;
@@ -26,6 +38,7 @@ public sealed class ThemeService : IDisposable
         _dispatcher = dispatcher;
         _systemIsDark = ReadIsDark();
         IsDark = _systemIsDark;
+        ReadSystemAppearance();
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         Log.Info($"Motiv Windows: {(IsDark ? "tmavý" : "světlý")}");
     }
@@ -39,15 +52,43 @@ public sealed class ThemeService : IDisposable
 
     private void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
     {
-        // Přepnutí motivu Windows hlásí jako kategorii General (zpráva "ImmersiveColorSet").
-        if (e.Category != UserPreferenceCategory.General)
+        // Přepnutí motivu / barvy / průhlednosti Windows hlásí jako General ("ImmersiveColorSet"),
+        // kontrastní motivy jako Accessibility.
+        if (e.Category is not (UserPreferenceCategory.General or UserPreferenceCategory.Accessibility or UserPreferenceCategory.Color))
             return;
 
         _dispatcher.InvokeAsync(() =>
         {
             _systemIsDark = ReadIsDark();
             Recompute();
+            if (ReadSystemAppearance())
+                SystemAppearanceChanged?.Invoke();
         });
+    }
+
+    /// <summary>Načte průhlednost, kontrast a barvu zvýraznění. Vrací true, když se něco změnilo.</summary>
+    private bool ReadSystemAppearance()
+    {
+        using var personalize = Registry.CurrentUser.OpenSubKey(PersonalizeKey);
+        var reduce = personalize?.GetValue("EnableTransparency") is int t && t == 0;
+        var contrast = System.Windows.SystemParameters.HighContrast;
+        var accent = Accent;
+        using (var dwm = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\DWM"))
+        {
+            // AccentColor je DWORD ve tvaru 0xAABBGGRR.
+            if (dwm?.GetValue("AccentColor") is int abgr)
+            {
+                var v = unchecked((uint)abgr);
+                accent = $"#{v & 0xFF:x2}{(v >> 8) & 0xFF:x2}{(v >> 16) & 0xFF:x2}";
+            }
+        }
+        if (reduce == ReduceTransparency && contrast == HighContrast && accent == Accent)
+            return false;
+        ReduceTransparency = reduce;
+        HighContrast = contrast;
+        Accent = accent;
+        Log.Info($"Vzhled Windows: průhlednost {(reduce ? "vypnutá" : "zapnutá")}, vysoký kontrast {(contrast ? "ano" : "ne")}, zvýraznění {accent}");
+        return true;
     }
 
     /// <summary>Ruční volba z nastavení: podle systému / vždy světlý / vždy tmavý.</summary>

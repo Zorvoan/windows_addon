@@ -65,6 +65,7 @@
   /* --- Významové barvy (jen s významem) --- */
   --bw-positive: light-dark(#16a34a, #4cc38a);
   --bw-negative: light-dark(#dc2626, #e5484d);
+  --bw-negative-fill: light-dark(#dc2626, #c62828); /* plocha s bílým textem: 4,8:1 / 5,6:1 */
   --bw-privacy-mic: #f59e0b;  /* mikrofon – oranžová jako ve Windows/macOS */
   --bw-privacy-cam: #22c55e;  /* kamera – zelená */
 
@@ -97,6 +98,34 @@
   --bw-duration-fast: 140ms;
   --bw-duration: 200ms;
   --bw-duration-slow: 360ms;
+}
+
+/*
+ * Přístupnost (Apple accessibility.md, liquid-glass.md › Review checklist):
+ *  - snížená průhlednost (Windows: Efekty průhlednosti vypnuté) -> neprůhledné plochy místo skla,
+ *  - vyšší kontrast -> silnější okraje a sekundární text blíž primárnímu.
+ */
+/* !important: přístupnost má přednost i před motivem, který tokeny zapisuje přímo do stylu stránky. */
+:root[data-transparency='reduced'] {
+  --bw-bar-tint: var(--bw-page) !important;
+  --bw-dock-tint: var(--bw-surface) !important;
+  --bw-dock-border: var(--bw-border-strong) !important;
+  --bw-glass-bg: var(--bw-surface) !important;
+  --bw-glass-border: var(--bw-border-strong) !important;
+  --bw-glass-highlight: transparent !important;
+  --bw-glass-blur: 0px !important;
+}
+:root[data-contrast='more'] {
+  --bw-border: light-dark(rgb(23 23 23 / 0.35), rgb(237 237 237 / 0.35)) !important;
+  --bw-border-strong: light-dark(rgb(23 23 23 / 0.6), rgb(237 237 237 / 0.6)) !important;
+  --bw-fg-muted: var(--bw-fg) !important;
+  --bw-fg-subtle: light-dark(#404040, #c4c4c8) !important;
+}
+@media (prefers-contrast: more) {
+  :root {
+    --bw-border: light-dark(rgb(23 23 23 / 0.35), rgb(237 237 237 / 0.35));
+    --bw-fg-subtle: light-dark(#404040, #c4c4c8);
+  }
 }
 
 :root[data-theme='light'] {

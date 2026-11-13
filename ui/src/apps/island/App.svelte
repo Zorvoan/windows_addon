@@ -175,7 +175,9 @@
     background: var(--bw-island-bg);
     color: var(--bw-island-fg);
     overflow: hidden;
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.3);
+    box-shadow:
+      0 0 0 1px light-dark(transparent, rgb(237 237 237 / 0.12)),
+      0 4px 16px rgb(0 0 0 / 0.3);
     transition:
       width var(--bw-duration-slow) var(--bw-ease),
       height var(--bw-duration-slow) var(--bw-ease),

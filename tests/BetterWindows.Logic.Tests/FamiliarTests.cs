@@ -27,6 +27,20 @@ public class FamiliarTests
     }
 
     [Fact]
+    public void Appearance_follows_system_and_imported_theme_keeps_its_accent()
+    {
+        var s = new AppSettings();
+        Assert.True(s.Appearance.Style.UseSystemAccent);
+        s.Appearance.Theme = ThemeMode.Dark;
+        SettingsNormalizer.Normalize(s);
+        Assert.Equal(ThemeMode.System, s.Appearance.Theme); // žádná vlastní volba světlý/tmavý
+
+        var code = Themes.ThemeCodec.Encode(new ThemeStyle { Accent = "#00b2ca" }, null);
+        Assert.True(Themes.ThemeCodec.TryDecode(code, out var d, out _));
+        Assert.False(d!.Style.UseSystemAccent);
+    }
+
+    [Fact]
     public void Lock_defaults_and_clamping()
     {
         var s = new AppSettings();

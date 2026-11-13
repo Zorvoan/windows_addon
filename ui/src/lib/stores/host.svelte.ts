@@ -37,6 +37,8 @@ export const host = $state({
   lock: { open: false, editing: false },
   user: null as { name: string; avatar: string | null } | null,
   inputLanguage: null as { code: string; name: string } | null,
+  /** Nastavení vzhledu z Windows (průhlednost, vysoký kontrast, barva zvýraznění). */
+  system: { reduceTransparency: false, highContrast: false, accent: '#0078d4' },
 });
 
 on('settings.state', (p) => (host.settings = p.settings));
@@ -61,3 +63,4 @@ on('start.visibility', (p) => (host.startOpen = p.open));
 on('lock.visibility', (p) => (host.lock = p));
 on('user.state', (p) => (host.user = p));
 on('input.language', (p) => (host.inputLanguage = p));
+on('system.appearance', (p) => (host.system = p));

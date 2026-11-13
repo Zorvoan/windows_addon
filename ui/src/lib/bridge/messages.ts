@@ -52,6 +52,7 @@ export interface LockSettings {
 
 export interface ThemeStyle {
   name: string;
+  useSystemAccent: boolean;
   accent: string;
   radiusCard: number;
   glassBlur: number;
@@ -222,7 +223,8 @@ export type HostMessage =
   | { type: 'theme.importResult'; payload: { ok: boolean; error: string | null } }
   | { type: 'lock.visibility'; payload: { open: boolean; editing: boolean } }
   | { type: 'user.state'; payload: { name: string; avatar: string | null } }
-  | { type: 'input.language'; payload: { code: string; name: string } };
+  | { type: 'input.language'; payload: { code: string; name: string } }
+  | { type: 'system.appearance'; payload: { reduceTransparency: boolean; highContrast: boolean; accent: string } };
 
 // ---------- UI -> C# ----------
 export type SettingsAction =

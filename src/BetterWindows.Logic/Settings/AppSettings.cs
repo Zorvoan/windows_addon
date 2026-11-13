@@ -69,7 +69,12 @@ public sealed class AppearanceSettings
 public sealed class ThemeStyle
 {
     public string Name { get; set; } = "Výchozí";
-    /// <summary>Barva zvýraznění #rrggbb.</summary>
+    /// <summary>
+    /// Barva zvýraznění podle Windows (Nastavení › Přizpůsobení › Barvy). Apple: když si člověk zvolí
+    /// barvu zvýraznění v systému, aplikace ji má použít (color.md › App accent colors).
+    /// </summary>
+    public bool UseSystemAccent { get; set; } = true;
+    /// <summary>Vlastní barva zvýraznění #rrggbb (když UseSystemAccent = false).</summary>
     public string Accent { get; set; } = "#3a6df0";
     /// <summary>Zaoblení karet a widgetů (px).</summary>
     public double RadiusCard { get; set; } = 22;
@@ -228,8 +233,8 @@ public sealed class LockSettings
     public bool ShowUser { get; set; } = true;
     /// <summary>Rozmazání tapety (px).</summary>
     public double WallpaperBlur { get; set; } = 0;
-    /// <summary>Ztmavení tapety 0..0.7.</summary>
-    public double Dim { get; set; } = 0.15;
+    /// <summary>Ztmavení tapety 0..0.7 (kvůli čitelnosti bílého textu na libovolné tapetě).</summary>
+    public double Dim { get; set; } = 0.25;
 }
 
 public sealed class TopBarSettings
