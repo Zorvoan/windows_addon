@@ -21,6 +21,7 @@ const pages = [
   { name: 'topbar', width: 1600, height: 36, backdrop: true },
   { name: 'dock', width: 1200, height: 170, backdrop: true, interact: hoverDock },
   { name: 'desktop', width: 1600, height: 900, backdrop: false },
+  { name: 'lock', width: 1600, height: 900, backdrop: false, interact: useLock },
   { name: 'start', width: 820, height: 600, backdrop: true, interact: useStart },
   { name: 'island', width: 480, height: 176, backdrop: true, interact: hoverIsland },
   { name: 'settings', width: 900, height: 900, backdrop: false, fullPage: true, interact: toggleSetting },
@@ -61,6 +62,29 @@ async function hoverDock(page, report) {
   const hovers = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'dock.hover');
   report.notes.push(`dock.hover: ${hovers.map((h) => h.payload.appId ?? 'null').join(' → ')}`);
   if (!hovers.some((h) => h.payload.appId && h.payload.rect)) report.errors.push('dock: nad spuštěnou aplikací nepřišel dock.hover s obdélníkem');
+}
+
+async function useLock(page, report) {
+  const time = await page.locator('.time').textContent();
+  report.notes.push(`zámek: čas "${time}", uživatel "${await page.locator('.user > span:not(.avatar)').textContent()}"`);
+  // Editor: otevřít, změnit styl, uložit
+  await page.evaluate(() => window.__deliver({ type: 'lock.visibility', payload: { open: true, editing: true } }));
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: path.join(outDir, `lock-${report.scheme}-editor.png`) });
+  await page.getByRole('radio', { name: 'Tenké' }).click();
+  await page.getByRole('button', { name: 'Hotovo' }).click();
+  let sent = await page.evaluate(() => window.__sent);
+  const style = sent.filter((m) => m.type === 'settings.update').at(-1)?.payload.settings.lock.clockStyle;
+  if (style !== 'thin') report.errors.push(`zámek: editor neuložil styl hodin (${style})`);
+  if (!sent.some((m) => m.type === 'lock.editDone')) report.errors.push('zámek: Hotovo neposlalo lock.editDone');
+  if (sent.some((m) => m.type === 'lock.dismiss')) report.errors.push('zámek: v editoru se nesmí odemykat');
+  // Běžný režim: klávesa = odemknout
+  await page.evaluate(() => window.__deliver({ type: 'lock.visibility', payload: { open: true, editing: false } }));
+  await page.waitForTimeout(100);
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(500);
+  sent = await page.evaluate(() => window.__sent);
+  if (!sent.some((m) => m.type === 'lock.dismiss')) report.errors.push('zámek: klávesa neodemkla (lock.dismiss)');
 }
 
 async function useStart(page, report) {

@@ -11,7 +11,8 @@ public sealed record ForegroundChangedPayload(string? AppId, string AppName, str
 
 public sealed record DockItem(string AppId, string Name, bool Pinned, bool Running, bool Active, int WindowCount);
 
-public sealed record DockStatePayload(IReadOnlyList<DockItem> Items);
+/// <param name="TrashCount">Počet položek v koši (-1 = nevíme).</param>
+public sealed record DockStatePayload(IReadOnlyList<DockItem> Items, long TrashCount = -1);
 
 /// <summary>Ikony jako data URL (data:image/png;base64,...), klíč = appId.</summary>
 public sealed record IconsResultPayload(IReadOnlyDictionary<string, string> Icons);
@@ -76,6 +77,14 @@ public sealed record ThemeCodePayload(string Code);
 
 public sealed record ThemeImportResultPayload(bool Ok, string? Error);
 
+public sealed record LockVisibilityPayload(bool Open, bool Editing);
+
+/// <param name="Avatar">Obrázek účtu Windows jako data URL, nebo null.</param>
+public sealed record UserStatePayload(string Name, string? Avatar);
+
+/// <param name="Code">Krátký kód jazyka klávesnice (CES, ENG, …).</param>
+public sealed record InputLanguagePayload(string Code, string Name);
+
 // ===== UI -> C# =====
 
 public sealed record UiReadyPayload(string? Page);
@@ -118,3 +127,5 @@ public sealed record StartLaunchPayload(string AppId);
 public sealed record StartPinPayload(string AppId);
 
 public sealed record ThemeImportPayload(string Code);
+
+public sealed record LockOpenPayload(bool Editing);

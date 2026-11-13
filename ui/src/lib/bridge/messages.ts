@@ -32,6 +32,23 @@ export interface WidgetPlacement {
 }
 
 export type PerformanceMode = 'auto' | 'alwaysReduced' | 'neverReduced';
+export type LockClockStyle = 'large' | 'thin' | 'bold' | 'analog';
+export type LockClockPosition = 'top' | 'center';
+
+export interface LockSettings {
+  enabled: boolean;
+  idleMinutes: number;
+  requireWindowsLock: boolean;
+  clockStyle: LockClockStyle;
+  clockPosition: LockClockPosition;
+  showSeconds: boolean;
+  showMedia: boolean;
+  showWeather: boolean;
+  showBattery: boolean;
+  showUser: boolean;
+  wallpaperBlur: number;
+  dim: number;
+}
 
 export interface ThemeStyle {
   name: string;
@@ -63,6 +80,8 @@ export interface AppSettings {
     iconSize: number;
     magnification: boolean;
     previews: boolean;
+    showLaunchpad: boolean;
+    showTrash: boolean;
     maxScale: number;
   };
   desktop: {
@@ -94,6 +113,13 @@ export interface AppSettings {
     mode: PerformanceMode;
     reduceOnBattery: boolean;
     reduceOnFullscreen: boolean;
+  };
+  lock: LockSettings;
+  topBar: {
+    showNowPlaying: boolean;
+    showLanguage: boolean;
+    showUser: boolean;
+    showExit: boolean;
   };
 }
 
@@ -177,7 +203,7 @@ export interface CssRect {
 export type HostMessage =
   | { type: 'settings.state'; payload: { settings: AppSettings } }
   | { type: 'foreground.changed'; payload: { appId: string | null; appName: string; title: string } }
-  | { type: 'dock.state'; payload: { items: DockItem[] } }
+  | { type: 'dock.state'; payload: { items: DockItem[]; trashCount: number } }
   | { type: 'icons.result'; payload: { icons: Record<string, string> } }
   | { type: 'battery.state'; payload: BatteryState }
   | { type: 'weather.state'; payload: WeatherState }
@@ -193,7 +219,10 @@ export type HostMessage =
   | { type: 'start.apps'; payload: { apps: StartApp[] } }
   | { type: 'start.visibility'; payload: { open: boolean } }
   | { type: 'theme.code'; payload: { code: string } }
-  | { type: 'theme.importResult'; payload: { ok: boolean; error: string | null } };
+  | { type: 'theme.importResult'; payload: { ok: boolean; error: string | null } }
+  | { type: 'lock.visibility'; payload: { open: boolean; editing: boolean } }
+  | { type: 'user.state'; payload: { name: string; avatar: string | null } }
+  | { type: 'input.language'; payload: { code: string; name: string } };
 
 // ---------- UI -> C# ----------
 export type SettingsAction =
@@ -226,7 +255,12 @@ export type UiMessage =
   | { type: 'start.toggle'; payload: Record<string, never> }
   | { type: 'start.pin'; payload: { appId: string } }
   | { type: 'theme.export'; payload: Record<string, never> }
-  | { type: 'theme.import'; payload: { code: string } };
+  | { type: 'theme.import'; payload: { code: string } }
+  | { type: 'lock.open'; payload: { editing: boolean } }
+  | { type: 'lock.dismiss'; payload: Record<string, never> }
+  | { type: 'lock.editDone'; payload: Record<string, never> }
+  | { type: 'app.exit'; payload: Record<string, never> }
+  | { type: 'trash.empty'; payload: Record<string, never> };
 
 export type HostType = HostMessage['type'];
 export type HostPayload<T extends HostType> = Extract<HostMessage, { type: T }>['payload'];

@@ -18,6 +18,17 @@ internal sealed class ShellMessageWindow : IDisposable
     /// <summary>Průzkumník byl znovu spuštěn. Volá se v UI vlákně.</summary>
     public event Action? ExplorerRestarted;
 
+    /// <summary>Byla stisknuta globální klávesová zkratka (id z RegisterHotKey).</summary>
+    public event Action<int>? HotKey;
+
+    /// <summary>Globální zkratka (funguje v kterékoli aplikaci). Vrací false, když ji už používá jiný program.</summary>
+    public bool RegisterHotKey(int id, Windows.Win32.UI.Input.KeyboardAndMouse.HOT_KEY_MODIFIERS modifiers, uint vk) =>
+        PInvoke.RegisterHotKey(new Windows.Win32.Foundation.HWND(_source.Handle), id,
+            modifiers | Windows.Win32.UI.Input.KeyboardAndMouse.HOT_KEY_MODIFIERS.MOD_NOREPEAT, vk);
+
+    public void UnregisterHotKey(int id) =>
+        PInvoke.UnregisterHotKey(new Windows.Win32.Foundation.HWND(_source.Handle), id);
+
     public ShellMessageWindow()
     {
         _taskbarCreated = PInvoke.RegisterWindowMessage("TaskbarCreated");
@@ -35,6 +46,12 @@ internal sealed class ShellMessageWindow : IDisposable
 
     private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
+        if (msg == (int)PInvoke.WM_HOTKEY)
+        {
+            HotKey?.Invoke((int)wParam);
+            handled = true;
+            return 0;
+        }
         if (msg == _taskbarCreated)
         {
             Log.Warn("Průzkumník byl restartován (TaskbarCreated).");

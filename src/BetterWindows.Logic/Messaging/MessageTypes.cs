@@ -26,6 +26,9 @@ public static class MessageTypes
     public const string StartVisibility = "start.visibility";
     public const string ThemeCode = "theme.code";
     public const string ThemeImportResult = "theme.importResult";
+    public const string LockVisibility = "lock.visibility";
+    public const string UserState = "user.state";
+    public const string InputLanguage = "input.language";
 
     // ---- UI -> C# ----
     public const string UiReady = "ui.ready";
@@ -49,4 +52,9 @@ public static class MessageTypes
     public const string StartPin = "start.pin";
     public const string ThemeExport = "theme.export";
     public const string ThemeImport = "theme.import";
+    public const string LockOpen = "lock.open";
+    public const string LockDismiss = "lock.dismiss";
+    public const string LockEditDone = "lock.editDone";
+    public const string AppExit = "app.exit";
+    public const string TrashEmpty = "trash.empty";
 }

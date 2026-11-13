@@ -23,7 +23,7 @@ public class ContractTests
             new DockItem("aumid:windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel", "Nastavení", true, false, false, 0),
             new DockItem("exe:c:\\windows\\notepad.exe", "Poznámkový blok", false, true, true, 1),
             new DockItem("exe:c:\\program files\\app\\app.exe", "Aplikace s dlouhým názvem", false, true, false, 1),
-        ]));
+        ], TrashCount: 3));
         yield return (MessageTypes.IconsResult, new IconsResultPayload(new Dictionary<string, string>
         {
             ["exe:c:\\windows\\notepad.exe"] = TinyPngDataUrl,
@@ -48,6 +48,9 @@ public class ContractTests
             new StartAppItem("aumid:Microsoft.WindowsTerminal_8wekyb3d8bbwe!App", "Terminál"),
         ]));
         yield return (MessageTypes.StartVisibility, new StartVisibilityPayload(true));
+        yield return (MessageTypes.LockVisibility, new LockVisibilityPayload(true, false));
+        yield return (MessageTypes.UserState, new UserStatePayload("Jan Novák", null));
+        yield return (MessageTypes.InputLanguage, new InputLanguagePayload("CES", "čeština"));
         yield return (MessageTypes.Diagnostics, new DiagnosticsPayload("0.1.0", "10.0.26200", "C:\\logs", "C:\\data", "embed-raised", "Progman (24H2+)"));
     }
 

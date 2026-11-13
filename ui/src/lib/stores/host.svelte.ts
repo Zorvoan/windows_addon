@@ -33,11 +33,18 @@ export const host = $state({
   volume: null as VolumeState | null,
   startApps: [] as StartApp[],
   startOpen: false,
+  trashCount: -1,
+  lock: { open: false, editing: false },
+  user: null as { name: string; avatar: string | null } | null,
+  inputLanguage: null as { code: string; name: string } | null,
 });
 
 on('settings.state', (p) => (host.settings = p.settings));
 on('foreground.changed', (p) => (host.foreground = p));
-on('dock.state', (p) => (host.dock = p.items));
+on('dock.state', (p) => {
+  host.dock = p.items;
+  host.trashCount = p.trashCount ?? -1;
+});
 on('icons.result', (p) => Object.assign(host.icons, p.icons));
 on('battery.state', (p) => (host.battery = p));
 on('weather.state', (p) => (host.weather = p));
@@ -51,3 +58,6 @@ on('media.state', (p) => (host.media = p));
 on('volume.state', (p) => (host.volume = p));
 on('start.apps', (p) => (host.startApps = p.apps));
 on('start.visibility', (p) => (host.startOpen = p.open));
+on('lock.visibility', (p) => (host.lock = p));
+on('user.state', (p) => (host.user = p));
+on('input.language', (p) => (host.inputLanguage = p));

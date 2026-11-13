@@ -174,3 +174,20 @@ WM_APP
 WM_QUIT
 AttachThreadInput
 BringWindowToTop
+
+// Zamykací obrazovka, uživatel, jazyk klávesnice, koš
+LockWorkStation
+RegisterHotKey
+UnregisterHotKey
+HOT_KEY_MODIFIERS
+WM_HOTKEY
+GetLastInputInfo
+LASTINPUTINFO
+CallNtPowerInformation
+POWER_INFORMATION_LEVEL
+GetUserNameEx
+EXTENDED_NAME_FORMAT
+GetKeyboardLayout
+SHQueryRecycleBin
+SHQUERYRBINFO
+SHEmptyRecycleBin

@@ -28,9 +28,20 @@ internal sealed class DockController : IDisposable
     private bool _hiddenForFullscreen;
     private readonly WindowPreviewController _previews;
 
-    public DockController(ShellContext context, WindowTracker tracker, AppIdentityResolver identity, IconService icons)
+    /// <summary>Speciální položky docku (jako v docku Familiar): Launchpad na začátku, Koš na konci.</summary>
+    public const string LaunchpadId = "bw:launchpad";
+    public const string TrashId = "bw:trash";
+
+    private readonly TrashService _trash;
+    private readonly Action _openLaunchpad;
+
+    public DockController(ShellContext context, WindowTracker tracker, AppIdentityResolver identity, IconService icons,
+        TrashService trash, Action openLaunchpad)
     {
         _context = context;
+        _trash = trash;
+        _openLaunchpad = openLaunchpad;
+        _trash.Changed += () => Publish();
         _tracker = tracker;
         _identity = identity;
         _icons = icons;
@@ -104,7 +115,7 @@ internal sealed class DockController : IDisposable
     private void Publish()
     {
         var items = DockModel.BuildItems(_context.Settings.Current.Dock.Pinned, _tracker.Windows, _tracker.ForegroundAppId);
-        _context.Hub.Publish(MessageTypes.DockState, new DockStatePayload(items));
+        _context.Hub.Publish(MessageTypes.DockState, new DockStatePayload(items, _trash.Count));
     }
 
     private void OnSettingsChanged(AppSettings old, AppSettings now)
@@ -129,6 +140,16 @@ internal sealed class DockController : IDisposable
     private void Activate(string appId)
     {
         _previews.Hide();
+        if (appId == LaunchpadId)
+        {
+            _openLaunchpad();
+            return;
+        }
+        if (appId == TrashId)
+        {
+            Safe.Run("Otevření koše", TrashService.Open);
+            return;
+        }
         var action = DockModel.DecideClick(appId, _tracker.Windows, _tracker.ForegroundAppId);
         Log.Info($"Dock: {appId} -> {action}");
         switch (action)
@@ -168,6 +189,14 @@ internal sealed class DockController : IDisposable
         _previews.Hide();
         if (_window is null)
             return;
+
+        if (appId == LaunchpadId)
+            return;
+        if (appId == TrashId)
+        {
+            ShowTrashMenu();
+            return;
+        }
 
         var pinned = _context.Settings.Current.Dock.Pinned.Any(p => AppId.Equal(p.AppId, appId));
         var windows = _tracker.Windows.Where(w => AppId.Equal(w.AppId, appId)).ToList();
@@ -215,10 +244,34 @@ internal sealed class DockController : IDisposable
         menu.IsOpen = true;
     }
 
+    private void ShowTrashMenu()
+    {
+        if (_window is null)
+            return;
+        var menu = new ContextMenu { Style = (Style)Application.Current.Resources["Bw.ContextMenu"] };
+        var itemStyle = (Style)Application.Current.Resources["Bw.MenuItem"];
+        var open = new MenuItem { Header = "Otevřít koš", Style = itemStyle };
+        open.Click += (_, _) => Safe.Run("Otevření koše", TrashService.Open);
+        var empty = new MenuItem { Header = "Vysypat koš…", Style = itemStyle, IsEnabled = _trash.Count != 0 };
+        empty.Click += (_, _) => Safe.Run("Vysypání koše", _trash.Empty);
+        menu.Items.Add(open);
+        menu.Items.Add(empty);
+        var previous = _tracker.ForegroundHwnd;
+        menu.Placement = PlacementMode.MousePoint;
+        menu.PlacementTarget = _window;
+        menu.Closed += (_, _) =>
+        {
+            if (PInvoke.GetForegroundWindow() == _window?.Handle && previous != 0)
+                PInvoke.SetForegroundWindow(new HWND(previous));
+        };
+        PInvoke.SetForegroundWindow(_window.Handle);
+        menu.IsOpen = true;
+    }
+
     private void SendIcons(MessageBridge bridge, IReadOnlyList<string> appIds)
     {
         var ready = new Dictionary<string, string>();
-        foreach (var id in appIds.Distinct())
+        foreach (var id in appIds.Distinct().Where(i => !i.StartsWith("bw:", StringComparison.Ordinal)))
         {
             if (_icons.TryGet(id, out var url) && url is not null)
                 ready[id] = url;

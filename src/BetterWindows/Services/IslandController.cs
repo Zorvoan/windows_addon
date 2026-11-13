@@ -64,6 +64,9 @@ internal sealed class IslandController : IDisposable
 
     public void BringToTop() => _window?.BringToTop();
 
+    /// <summary>Hraje teď hudba/video? (Zámek po nečinnosti se pak neukáže.)</summary>
+    public bool MediaPlaying => _media.Current.Playing;
+
     public void SetFullscreen(bool fullscreen)
     {
         _fullscreen = fullscreen;

@@ -29,6 +29,10 @@ public enum DesktopMode
 
 public enum VisualizerScene { Dots, Wave, Ring }
 
+public enum LockClockStyle { Large, Thin, Bold, Analog }
+
+public enum LockClockPosition { Top, Center }
+
 /// <summary>Režim výkonu: Auto = ztlumit animace podle situace (baterie, celá obrazovka).</summary>
 public enum PerformanceMode { Auto, AlwaysReduced, NeverReduced }
 
@@ -43,6 +47,8 @@ public sealed class AppSettings
     public StartSettings Start { get; set; } = new();
     public IslandSettings Island { get; set; } = new();
     public PerformanceSettings Performance { get; set; } = new();
+    public LockSettings Lock { get; set; } = new();
+    public TopBarSettings TopBar { get; set; } = new();
 }
 
 public sealed class AppearanceSettings
@@ -103,6 +109,10 @@ public sealed class DockSettings
     public bool Magnification { get; set; } = true;
     /// <summary>Náhledy oken při najetí na ikonu.</summary>
     public bool Previews { get; set; } = true;
+    /// <summary>Ikona Launchpadu (Start) na začátku docku.</summary>
+    public bool ShowLaunchpad { get; set; } = true;
+    /// <summary>Koš na konci docku.</summary>
+    public bool ShowTrash { get; set; } = true;
     /// <summary>Největší zvětšení ikony pod kurzorem (1.0 = žádné).</summary>
     public double MaxScale { get; set; } = 1.7;
 
@@ -197,6 +207,37 @@ public sealed class PerformanceSettings
     public PerformanceMode Mode { get; set; } = PerformanceMode.Auto;
     public bool ReduceOnBattery { get; set; } = true;
     public bool ReduceOnFullscreen { get; set; } = true;
+}
+
+/// <summary>
+/// Vlastní zamykací obrazovka – ukáže se PŘED zámkem Windows (není to zabezpečení, to dělá až zámek Windows).
+/// </summary>
+public sealed class LockSettings
+{
+    public bool Enabled { get; set; } = true;
+    /// <summary>Ukázat po N minutách nečinnosti (0 = nikdy). Ne při videu / celé obrazovce.</summary>
+    public int IdleMinutes { get; set; }
+    /// <summary>Po odemknutí naší obrazovky zamknout Windows (heslo / PIN / Hello).</summary>
+    public bool RequireWindowsLock { get; set; } = true;
+    public LockClockStyle ClockStyle { get; set; } = LockClockStyle.Large;
+    public LockClockPosition ClockPosition { get; set; } = LockClockPosition.Top;
+    public bool ShowSeconds { get; set; }
+    public bool ShowMedia { get; set; } = true;
+    public bool ShowWeather { get; set; } = true;
+    public bool ShowBattery { get; set; } = true;
+    public bool ShowUser { get; set; } = true;
+    /// <summary>Rozmazání tapety (px).</summary>
+    public double WallpaperBlur { get; set; } = 0;
+    /// <summary>Ztmavení tapety 0..0.7.</summary>
+    public double Dim { get; set; } = 0.15;
+}
+
+public sealed class TopBarSettings
+{
+    public bool ShowNowPlaying { get; set; } = true;
+    public bool ShowLanguage { get; set; } = true;
+    public bool ShowUser { get; set; } = true;
+    public bool ShowExit { get; set; } = true;
 }
 
 public sealed class TaskbarSettings

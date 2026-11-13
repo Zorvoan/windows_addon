@@ -40,6 +40,9 @@ internal sealed class ShellController : IDisposable
     private readonly PerformanceService _performance;
     private readonly IslandController _island;
     private readonly StartController _start;
+    private readonly TrashService _trash;
+    private readonly KeyboardLayoutService _keyboard;
+    private readonly LockScreenController _lock;
     private readonly Logic.Storage.KeyValueStore _store = new(System.IO.Path.Combine(AppInfo.DataDir, "widgets-data.json"));
 
     private TopBarWindow? _topBar;
@@ -74,12 +77,16 @@ internal sealed class ShellController : IDisposable
         _weather.Changed += w => _hub.Publish(MessageTypes.WeatherState, w);
         _privacy = new PrivacyIndicatorService(dispatcher);
         _privacy.Changed += p => _hub.Publish(MessageTypes.PrivacyState, p);
-        _dock = new DockController(_context, _tracker, _identity, _icons);
+        _trash = new TrashService(dispatcher);
+        _keyboard = new KeyboardLayoutService(dispatcher);
+        _keyboard.Changed += k => _hub.Publish(MessageTypes.InputLanguage, k);
+        _dock = new DockController(_context, _tracker, _identity, _icons, _trash, () => _start?.Toggle(fromWinKey: false));
         _taskbar = new TaskbarService(_settings, dispatcher);
         // Po skrytí/ukázání panelu Windows chvíli přepočítává pracovní plochu -> dock posunout s malým zpožděním.
         _taskbar.WorkAreaChanged += () => DelayOnUi(TimeSpan.FromMilliseconds(600), OnMonitorsChanged);
         _island = new IslandController(_context, _identity);
         _start = new StartController(_context);
+        _lock = new LockScreenController(_context, _shellMessages, () => _island.MediaPlaying, () => _performance?.Fullscreen ?? false);
         _performance = new PerformanceService(_settings, _battery);
         _performance.Changed += OnPerformanceChanged;
         _hub.Publish(MessageTypes.PerformanceState, _performance.State);
@@ -107,6 +114,10 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Dock", _dock.Start);
         Safe.Run("Dynamic Island", _island.Start);
         Safe.Run("Start", _start.Start);
+        Safe.Run("Zamykací obrazovka", _lock.Start);
+        Safe.Run("Koš", _trash.Start);
+        Safe.Run("Jazyk klávesnice", _keyboard.Start);
+        Safe.Run("Uživatel", () => _hub.Publish(MessageTypes.UserState, UserService.Load()));
         Safe.Run("Baterie", _battery.Start);
         Safe.Run("Počasí", _weather.Start);
         Safe.Run("Mikrofon a kamera", _privacy.Start);
@@ -182,6 +193,12 @@ internal sealed class ShellController : IDisposable
                 _settings.Replace(p.Settings);
         });
         _hub.On<object>(MessageTypes.SettingsOpen, (_, _) => ShowSettings());
+        // Tlačítko "Ukončit" v liště (jako "Exit Familiar"): běžné ukončení = vše se vrátí.
+        _hub.On<object>(MessageTypes.AppExit, (_, _) =>
+        {
+            Log.Info("Ukončení z horní lišty.");
+            System.Windows.Application.Current.Shutdown(0);
+        });
         _hub.On<SettingsActionPayload>(MessageTypes.SettingsAction, (_, p) =>
         {
             if (p is not null)
@@ -314,6 +331,7 @@ internal sealed class ShellController : IDisposable
         _dock.SetDarkMode(dark);
         _island.SetDarkMode(dark);
         _start.SetDarkMode(dark);
+        _lock.SetDarkMode(dark);
         Themes.ThemeResources.Apply(dark);
     }
 
@@ -363,6 +381,9 @@ internal sealed class ShellController : IDisposable
         Safe.Run("Hlavní panel", _taskbar.Dispose);
         Safe.Run("Dynamic Island", _island.Dispose);
         Safe.Run("Start", _start.Dispose);
+        Safe.Run("Zamykací obrazovka", _lock.Dispose);
+        Safe.Run("Koš", _trash.Dispose);
+        Safe.Run("Jazyk klávesnice", _keyboard.Dispose);
         Safe.Run("Vizualizér", _visualizer.Dispose);
         Safe.Run("Dock", _dock.Dispose);
         Safe.Run("Ikony", _icons.Dispose);

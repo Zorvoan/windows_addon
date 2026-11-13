@@ -14,6 +14,11 @@ public static class SettingsNormalizer
         s.Start ??= new();
         s.Island ??= new();
         s.Performance ??= new();
+        s.Lock ??= new();
+        s.TopBar ??= new();
+        s.Lock.IdleMinutes = Math.Clamp(s.Lock.IdleMinutes, 0, 240);
+        s.Lock.WallpaperBlur = double.IsFinite(s.Lock.WallpaperBlur) ? Math.Clamp(s.Lock.WallpaperBlur, 0, 40) : 0;
+        s.Lock.Dim = double.IsFinite(s.Lock.Dim) ? Math.Clamp(s.Lock.Dim, 0, 0.7) : 0.15;
         s.Appearance.Style = Themes.ThemeCodec.Sanitize(s.Appearance.Style);
 
         s.Weather.City = string.IsNullOrWhiteSpace(s.Weather.City) ? "Praha" : s.Weather.City.Trim();
