@@ -1,12 +1,24 @@
 # Testy na Windows (fáze 1)
 
-> **Nic z fáze 1 zatím neběželo na Windows.** Kód je sestavený (Debug i Release), logika má 28 automatických testů
+> **Nic zatím neběželo na Windows.** Kód je sestavený (Debug i Release), logika má 56 automatických testů
 > a všechny stránky rozhraní prošly UI harnessem v headless Chromiu. Okna, rozmazání, vložení do plochy, AppBar,
 > ikony, zvuk atd. ale ověří až tyhle testy.
 
 ## Než začneš
 
+Vývoj je na větvi `claude/serene-ritchie-7k4wyb`. Poprvé (nová složka):
+
 ```powershell
+git clone -b claude/serene-ritchie-7k4wyb https://github.com/Zorvoan/windows_addon.git
+cd windows_addon
+dotnet run --project src/BetterWindows
+```
+
+Když už repozitář máš:
+
+```powershell
+git fetch origin claude/serene-ritchie-7k4wyb
+git switch claude/serene-ritchie-7k4wyb
 git pull
 dotnet run --project src/BetterWindows
 ```
