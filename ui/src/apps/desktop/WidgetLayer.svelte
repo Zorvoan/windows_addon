@@ -78,7 +78,8 @@
   let radius = $derived(host.settings?.appearance.style?.radiusCard ?? 22);
   function padFor(type: string): number {
     const small = type === 'clock' || type === 'calendar';
-    return Math.round(Math.max(small ? 8 : 16, radius * (small ? 0.4 : 0.45)));
+    // Kalendář a hodiny: menší podíl (jinak by na čísla nezbylo místo); obsah v rozích je jen tlumený.
+    return Math.round(Math.max(small ? 8 : 16, radius * (small ? 0.32 : 0.45)));
   }
 </script>
 

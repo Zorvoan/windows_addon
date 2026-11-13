@@ -26,8 +26,9 @@ export function applyStyle(root: HTMLElement, style: ThemeStyle | undefined, sys
     value === null ? root.style.removeProperty(name) : root.style.setProperty(name, value);
 
   set('--bw-accent', accent);
-  // Text na barvě zvýraznění: bílý nebo tmavý podle toho, co má větší kontrast.
-  set('--bw-accent-fg', accent ? ((luminance(accent) + 0.05) / 0.05 > 1.05 / (luminance(accent) + 0.05) ? '#0d1324' : '#ffffff') : null);
+  // Text na barvě zvýraznění: bílý, dokud má aspoň kontrast 3:1 (velký / tučný text – jako na Macu);
+  // tmavý jen u světlých barev (žlutá, světle zelená…). Dřív vyhrál tmavý o setiny i u modré.
+  set('--bw-accent-fg', accent ? (1.05 / (luminance(accent) + 0.05) >= 3 ? '#ffffff' : '#0d1324') : null);
   set('--bw-radius-card', `${clamp(style.radiusCard, 0, 40, 22)}px`);
   set('--bw-glass-blur', `${clamp(style.glassBlur, 0, 60, 28)}px`);
   set('--bw-glass-bg', `light-dark(rgb(255 255 255 / ${glass}), rgb(18 18 22 / ${glass}))`);

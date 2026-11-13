@@ -6,7 +6,9 @@
   let offset = $state(0);
   let today = $derived(clock.now);
   let shown = $derived(new Date(today.getFullYear(), today.getMonth() + offset, 1));
-  let title = $derived(new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(shown));
+  // Měsíc a rok zvlášť: rok tlumeně, celé na jednom řádku (dřív se název lámal do dvou řádků).
+  let month = $derived(new Intl.DateTimeFormat(undefined, { month: 'long' }).format(shown));
+  let year = $derived(shown.getFullYear());
 
   // Zkratky dnů: 1. 1. 2024 bylo pondělí.
   const dayNames = Array.from({ length: 7 }, (_, i) =>
@@ -30,7 +32,7 @@
 
 <div class="calendar">
   <header>
-    <span class="title">{title}</span>
+    <span class="title">{month} <span class="year">{year}</span></span>
     <span class="nav">
       <button type="button" aria-label="Předchozí měsíc" onclick={() => offset--}><Icon name="chevronLeft" size={12} /></button>
       <button type="button" aria-label="Další měsíc" onclick={() => offset++}><Icon name="chevronRight" size={12} /></button>
@@ -47,34 +49,51 @@
 </div>
 
 <style>
-  /* Vyplní celou kartu a řádky se zmenší, když je kvůli zaoblení méně místa. */
+  /*
+   * Velikost buňky se počítá z místa v kartě (container query): 7 řádků (dny v týdnu + 6 týdnů)
+   * pod záhlavím, 7 sloupců. Číslo i kroužek dneška se odvozují od buňky -> vždy se vejdou,
+   * ať je karta zaoblená a odsazená jakkoli.
+   */
   .calendar {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: var(--bw-space-1);
+    container-type: size;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
     height: 100%;
-    font-size: 11px;
   }
   header {
+    flex: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 4px;
+    height: 16px;
   }
   .title {
-    font-size: var(--bw-text-xs);
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 11px;
     font-weight: var(--bw-weight-medium);
   }
   .title::first-letter {
     text-transform: uppercase;
   }
+  .year {
+    color: var(--bw-fg-muted);
+    font-weight: var(--bw-weight-normal);
+  }
   .nav {
+    flex: none;
     display: flex;
   }
   .nav button {
     display: grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
+    padding: 0;
     border: 0;
     border-radius: 50%;
     background: none;
@@ -84,24 +103,30 @@
     background: var(--bw-hover);
   }
   .grid {
+    --cell: min(calc(100cqw / 7), calc((100cqh - 19px) / 7));
+    flex: 1;
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-auto-rows: minmax(0, 1fr);
-    align-items: center;
-    row-gap: 1px;
-    text-align: center;
+    grid-auto-rows: var(--cell);
+    align-content: space-between;
+    font-size: calc(var(--cell) * 0.6);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
   }
-  .dow {
-    color: var(--bw-fg-subtle);
-  }
+  .dow,
   .day {
     display: grid;
     place-items: center;
-    height: min(16px, 100%);
-    aspect-ratio: 1;
     justify-self: center;
+    width: var(--cell);
+    height: var(--cell);
+  }
+  .dow {
+    color: var(--bw-fg-subtle);
+    font-size: 0.85em;
+  }
+  .day {
     border-radius: 50%;
-    font-variant-numeric: tabular-nums;
   }
   .out {
     color: var(--bw-fg-subtle);
