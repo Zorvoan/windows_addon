@@ -121,9 +121,10 @@
   }
   /*
    * Skok jako pod gravitací: nahoru zpomaluje, dolů zrychluje (průběh paraboly), krátká pauza
-   * na zemi. Výška je stejná při každém skoku (tak to dělá i dock v macOS při spouštění).
+   * na zemi. Výška je stejná při každém skoku (podle toho, jak si pamatuji dock v macOS při spouštění).
    */
-  .bouncing {
+  /* Skáče obrázek uvnitř, ne tlačítko: ukazatel myši tak z ikony „nevypadne“ a popisek nebliká. */
+  .bouncing > :global(*) {
     animation: bounce 0.72s linear infinite;
   }
   @keyframes bounce {
@@ -141,11 +142,11 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bouncing {
+    .bouncing > :global(*) {
       animation: none;
     }
   }
-  :global(:root[data-motion='reduced']) .bouncing {
+  :global(:root[data-motion='reduced']) .bouncing > :global(*) {
     animation: none;
   }
   .dot {

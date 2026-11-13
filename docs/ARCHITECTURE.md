@@ -82,11 +82,11 @@ jedna křivka pohybu `cubic-bezier(0.22, 1, 0.36, 1)` pro drobné přechody, ž�
   Zavírání je krátké, bez pružení (`--bw-ease-in`).
 - **Nezávislé na obnovovací frekvenci:** pružina se počítá v pevných krocích 1/240 s, zvětšování docku exponenciálním
   doběhem podle skutečného času (`follow`, τ 67 ms). `Spring` ze `svelte/motion` se nepoužívá – na 144 Hz běží rychleji.
-- **Ostrůvek a oblast okna:** během animace se do C# pošle jen obálka (větší z obou velikostí + rezerva na překmit),
-  po dosednutí přesný tvar → 2 zprávy na změnu, `SetWindowRgn` nikdy neořízne rostoucí okraj.
+- **Ostrůvek a oblast okna:** při roztahování se do C# hned pošle cílová velikost + rezerva na překmit (rostoucí okraj
+  se neořízne zpožděním zprávy), při zmenšování oblast sleduje pilulku (nepolyká kliknutí na lištu), po dosednutí přesný tvar.
 - **Start:** animuje se jen obsah (97 % → 100 %, průhlednost). Systémové rozmazání a rám kreslí Windows pro celé okno,
   ty se objeví naráz. Okno schová C# až po zavírací animaci (170 ms, vlastní časovač; při celé obrazovce/vypnutí hned).
-- **Poskakování v docku:** stejně vysoké skoky s gravitačním průběhem, po naběhnutí aplikace doběhne rozběhnutý skok.
+- **Poskakování v docku:** stejně vysoké skoky s gravitačním průběhem (skáče obrázek, ne tlačítko), po naběhnutí aplikace doběhne rozběhnutý skok.
 - **Omezení pohybu** (Windows „Efekty animace“, režim výkonu): CSS délky → 0, pružiny `instant`, poskakování vypnuté.
 - **Nejde:** animace cizích oken (minimalizace do docku apod.) kreslí Windows, shell je nemůže nahradit.
 

@@ -8,11 +8,11 @@
 
   Pohyb: rozměry pilulky řídí pružina (lib/motion), obsah se mezi stavy prolíná.
   Oblast okna se během animace NEhoní po snímcích (zpoždění zprávy by ořízlo rostoucí okraj):
-  na začátku se pošle obálka (větší z výchozí a cílové velikosti + rezerva na překmit),
-  po dosednutí přesný tvar.
+  při roztahování se hned pošle cílová velikost + rezerva na překmit, při zmenšování oblast
+  sleduje pilulku (příliš velká oblast by chvíli polykala kliknutí na lištu), po dosednutí přesný tvar.
 -->
 <script lang="ts">
-  import { onMount, tick, untrack } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { fade } from 'svelte/transition';
   import { SpringBox, springs, motionReduced } from '$lib/motion.svelte';
   import Icon from '$lib/components/Icon.svelte';
@@ -90,11 +90,11 @@
 
   $effect(() => {
     const target = sizeFor(mode);
-    const from = untrack(() => box.value);
-    // Obálka po dobu animace: větší z obou velikostí + rezerva na překmit, omezená oknem.
+    // Obálka po dobu animace: cílová velikost + rezerva na překmit, omezená oknem.
+    // (Větší současná pilulka se do oblasti dostane v report() – při zmenšování ji oblast sleduje.)
     envelope = {
-      w: Math.min(Math.max(from.w, target.w) * 1.04 + 8, window.innerWidth - 4),
-      h: Math.min(Math.max(from.h, target.h) * 1.04 + 8, window.innerHeight - TOP - 2),
+      w: Math.min(target.w * 1.04 + 8, window.innerWidth - 4),
+      h: Math.min(target.h * 1.04 + 8, window.innerHeight - TOP - 2),
     };
     report();
     box.set(target, { instant: motionReduced() }).then((settled) => {
@@ -111,7 +111,9 @@
     await tick();
     const hit: CssRect[] = [];
     if (envelope) {
-      const { w, h } = envelope;
+      const r = pill?.getBoundingClientRect();
+      const w = Math.max(envelope.w, r ? r.width + 4 : 0);
+      const h = Math.max(envelope.h, r ? r.height + 4 : 0);
       hit.push({ x: Math.floor((window.innerWidth - w) / 2), y: TOP - 2, width: Math.ceil(w), height: Math.ceil(h) });
     } else if (pill && mode !== 'hidden') {
       const r = pill.getBoundingClientRect();

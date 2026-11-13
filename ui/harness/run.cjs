@@ -151,6 +151,14 @@ async function hoverIsland(page, report) {
   if (Math.round(pillAfter.width) !== 400 || Math.round(pillAfter.height) !== 156) report.errors.push(`ostrůvek: po dosednutí má ${pillAfter.width}×${pillAfter.height}, čekal jsem 400×156`);
   if (expanded && expanded.width > 410) report.errors.push('ostrůvek: po dosednutí zůstala v oblasti okna obálka místo přesného tvaru');
   await page.getByRole('button', { name: 'Další' }).click();
+  // Sbalení: oblast okna se má zmenšovat s pilulkou (ne držet velkou obálku a polykat kliknutí na lištu).
+  await page.mouse.move(240, 172, { steps: 2 });
+  await page.waitForTimeout(300 + 250); // zpoždění odjetí (300 ms) + půlka animace
+  const collapsing = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.layout').at(-1)?.payload.hit[0];
+  report.notes.push(`island.layout během sbalování ${JSON.stringify(collapsing)}`);
+  if (!collapsing || collapsing.height > 100) report.errors.push('ostrůvek: oblast okna se při sbalování nezmenšuje s pilulkou');
+  await page.mouse.move(240, 18, { steps: 2 });
+  await page.waitForTimeout(800);
   const cmd = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'media.command');
   if (cmd.at(-1)?.payload.command !== 'next') report.errors.push('ostrůvek: tlačítko Další neposlalo media.command');
 

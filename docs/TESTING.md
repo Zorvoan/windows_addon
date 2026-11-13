@@ -271,9 +271,9 @@ Ideálně vyzkoušej na 60Hz i na 144Hz (nebo jiném rychlém) monitoru – rych
 |---|---|---|
 | 18.1 | Pusť hudbu, najeď myší na ostrůvek a zase odjeď; zkus to i rychle tam a zpět | Pilulka se měkce roztáhne a lehce dosedne; při rychlé změně plynule otočí směr bez cuknutí; obsah se prolne |
 | 18.2 | Sleduj okraj ostrůvku během roztahování | Okraj ani stín se **neořezávají** (rovná hrana uprostřed animace = chyba, napiš mi) |
-| 18.3 | Hned po roztažení klikni na lištu vedle ostrůvku (do 0,5 s) | Klik může krátce „spolknout“ průhledná rezerva okolo ostrůvku – po dosednutí už ne |
+| 18.3 | Během roztahování ostrůvku (první ~0,5 s) klikni na lištu těsně vedle něj | Klik může krátce „spolknout“ průhledná rezerva okolo ostrůvku – po dosednutí už ne. Po odjetí myší (sbalení) se lišta dá klikat hned |
 | 18.4 | Otevři Start (Launchpad) | Obsah se lehce zvětší a objeví; rozmazané pozadí okna se objeví naráz (to jinak nejde – kreslí ho Windows) |
-| 18.5 | Zavři Start: Esc, klik mimo, spuštění aplikace, ikona Launchpad znovu | Obsah krátce zmizí, pak se okno schová; nikdy nezůstane prázdný rozmazaný obdélník |
+| 18.5 | Zavři Start: Esc, klik mimo, spuštění aplikace, ikona Launchpad znovu | Obsah zmizí a na ~0,17 s zůstane prázdný rozmazaný rám, pak se okno schová. **Posuď, jestli to nevypadá hůř než okamžité zmizení** – pak to přepnu na okamžité |
 | 18.6 | Otevři Start a hned ho zavři a znovu otevři (rychle 2–3×) | Start se nezasekne zavřený ani prázdný; po posledním otevření je vidět a dá se psát |
 | 18.7 | Spusť z docku nespuštěnou aplikaci | Ikona skáče (stejně vysoko) až do naběhnutí, pak dopadne – neskočí dolů naráz; vršek ikony se neořízne |
 | 18.8 | Přejeď myší přes dock na 60Hz a na 144Hz monitoru | Zvětšování naběhne a dozní stejně rychle |
