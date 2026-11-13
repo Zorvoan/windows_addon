@@ -3,6 +3,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import { host } from '$lib/stores/host.svelte';
   import { load, save } from '$lib/stores/kv';
+  import { desktopTextInput } from '$lib/desktopTextInput';
 
   interface Reminder {
     id: string;
@@ -53,6 +54,7 @@
     type="text"
     placeholder="Přidat připomínku…"
     bind:value={draft}
+    use:desktopTextInput={{ onsubmit: add }}
     onkeydown={(e) => {
       if (e.key === 'Enter') add();
     }}

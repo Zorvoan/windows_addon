@@ -3,6 +3,7 @@
   režim vložení plochy a jestli vrstva dostává myš a klávesnici.
 -->
 <script lang="ts">
+  import { desktopTextInput } from '$lib/desktopTextInput';
   import Surface from '$lib/components/Surface.svelte';
   import { host } from '$lib/stores/host.svelte';
 
@@ -35,7 +36,7 @@
       </dl>
       <div class="tests">
         <button type="button" onclick={() => clicks++}>Test myši: {clicks}×</button>
-        <input type="text" placeholder="Test klávesnice – zkus psát" bind:value={typed} />
+        <input type="text" placeholder="Test klávesnice – zkus psát" bind:value={typed} use:desktopTextInput />
       </div>
       <p class="hint">Kartu vypneš v Nastavení › Plocha</p>
     </div>

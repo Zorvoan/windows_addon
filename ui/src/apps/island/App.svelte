@@ -115,6 +115,9 @@
     // Efekt se spustí i při změně režimu výkonu (motionReduced) – tvar a animace jen při změně stavu,
     // jinak by obálka zůstala nastavená navždy (pružina se nerozjede, takže nepřijde „dosednutí“).
     if (m === lastMode) return;
+    // Diagnostika do logu: kdy a proč stránka ostrůvek schová / ukáže (mizení ostrůvku).
+    if (m === 'hidden' || lastMode === 'hidden' || lastMode === null)
+      send('ui.log', { level: 'info', message: `Ostrůvek: ${lastMode ?? 'start'} -> ${m} (média: ${media?.available ? 'ano' : 'ne'}, zapnutý: ${host.settings?.island.enabled !== false})` });
     lastMode = m;
     const target = sizeFor(m);
     // Lišta rozmaže svůj obsah, dokud je ostrůvek rozbalený.

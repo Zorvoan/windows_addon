@@ -75,6 +75,12 @@ public sealed record StartVisibilityPayload(bool Open);
 
 public sealed record IslandExpandedPayload(bool Expanded);
 
+/// <summary>Textové pole widgetu na ploše: kde je (CSS px v okně plochy), co v něm je, jak vypadá.</summary>
+public sealed record DesktopTextInputPayload(string Key, CssRect Rect, string Value, string? Placeholder, double FontSize);
+
+/// <summary>Výsledek psaní: Submit = Enter (widget má text rovnou použít), jinak jen rozepsaný text.</summary>
+public sealed record DesktopTextResultPayload(string Key, string Value, bool Submit);
+
 public sealed record ThemeCodePayload(string Code);
 
 public sealed record ThemeImportResultPayload(bool Ok, string? Error);

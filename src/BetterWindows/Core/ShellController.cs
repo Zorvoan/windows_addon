@@ -167,6 +167,7 @@ internal sealed class ShellController : IDisposable
             _settingsWindow.Closed += (_, _) => _settingsWindow = null;
             _settingsWindow.Show();
             _settingsWindow.Activate();
+            _island.BringToTop(); // po otevření okna nastavení zůstat nad lištou (ostrůvek jinak mizel)
             return;
         }
 

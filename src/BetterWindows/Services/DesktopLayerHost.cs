@@ -32,6 +32,36 @@ internal sealed class DesktopLayerHost : IDisposable
         _context = context;
         _health = new DispatcherTimer(TimeSpan.FromSeconds(10), DispatcherPriority.Background, (_, _) => Safe.Run("Kontrola plochy", CheckHealth), context.Dispatcher);
         _context.Settings.Changed += OnSettingsChanged;
+        _context.Hub.On<DesktopTextInputPayload>(MessageTypes.DesktopTextInput, (bridge, p) =>
+        {
+            if (p is not null && bridge.Page == "desktop")
+                Safe.Run("Plocha – psaní do widgetu", () => ShowTextInput(bridge, p));
+        });
+    }
+
+    private DesktopInputWindow? _input;
+
+    /// <summary>
+    /// Psaní do widgetu: přes jeho textové pole ukázat skutečné vstupní okno (vrstva plochy klávesnici
+    /// nedostane – fokus má plocha Windows). Výsledek se pošle zpět stránce plochy.
+    /// </summary>
+    private void ShowTextInput(Bridge.MessageBridge bridge, DesktopTextInputPayload p)
+    {
+        if (_window is null)
+            return;
+        _input?.Close();
+        var rect = _window.ToScreen(p.Rect);
+        var input = new DesktopInputWindow(rect, _window.Monitor.Scale, p.Value, p.Placeholder, p.FontSize, _context.Theme.IsDark);
+        input.Finished += (text, submit) =>
+        {
+            if (_input == input)
+                _input = null;
+            _context.Hub.Send(bridge, MessageTypes.DesktopTextResult, new DesktopTextResultPayload(p.Key, text, submit));
+        };
+        _input = input;
+        input.Show();
+        // Klik šel do našeho okna, takže Windows nám popředí dá; pojistka přes ForegroundHelper.
+        ForegroundHelper.BringToForeground(new Windows.Win32.Foundation.HWND(new System.Windows.Interop.WindowInteropHelper(input).Handle));
     }
 
     public void Start() => Safe.Fire("Vrstva plochy", StartAsync);

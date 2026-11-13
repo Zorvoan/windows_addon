@@ -20,6 +20,7 @@ internal sealed class IslandController : IDisposable
     private IslandWindow? _window;
     private IslandGhostWindow? _ghost;
     private bool _flying;
+    private readonly System.Windows.Threading.DispatcherTimer _guard;
     private bool _fullscreen;
     private readonly AppIdentityResolver _identity;
     private readonly Func<bool> _reducedMotion;
@@ -30,6 +31,11 @@ internal sealed class IslandController : IDisposable
         _identity = identity;
         _reducedMotion = reducedMotion;
         tracker.WindowMinimizing += OnWindowMinimizing;
+        // Ostrůvek leží přímo nad lištou: kdyby se lišta (nebo cokoli) dostala v pořadí oken nad něj,
+        // úplně ho zakryje. Proto ho při změně aktivního okna a pravidelně zařadit zpět navrch.
+        tracker.ForegroundChanged += () => Safe.Run("Ostrůvek – navrch", Guard);
+        _guard = new System.Windows.Threading.DispatcherTimer(TimeSpan.FromSeconds(2),
+            System.Windows.Threading.DispatcherPriority.Background, (_, _) => Safe.Run("Ostrůvek – kontrola", Guard), context.Dispatcher);
         _media = new MediaService(context.Dispatcher, identity);
         // Hudbu ukazuje ostrůvek, mini přehrávač v liště i zamykací obrazovka (obal je zmenšený na 160 px).
         _media.Changed += m => _context.Hub.Publish(MessageTypes.MediaState, m);
@@ -73,6 +79,7 @@ internal sealed class IslandController : IDisposable
         _window = new IslandWindow(_context, _context.Monitors.GetPrimary());
         _window.SetBackdrop(BackdropMode.None);
         _window.Show();
+        _guard.Start();
         // Duch pro vlétnutí aplikace: vytvořit hned, ať první let necuká na vytváření okna.
         _ghost ??= CreateGhost();
         _ghost.Prepare();
@@ -85,6 +92,20 @@ internal sealed class IslandController : IDisposable
     }
 
     public void BringToTop() => _window?.BringToTop();
+
+    /// <summary>Ostrůvek má být vidět (není hra přes celou obrazovku) -> viditelný a navrchu.</summary>
+    private void Guard()
+    {
+        if (_window is null || _fullscreen)
+            return;
+        var hwnd = _window.Handle;
+        if (!hwnd.IsNull && !PInvoke.IsWindowVisible(hwnd))
+        {
+            Log.Warn("Ostrůvek: okno nebylo vidět – ukazuji znovu.");
+            _window.Show();
+        }
+        _window.BringToTop();
+    }
 
     // ================= Okno hrající aplikace vletí do ostrůvku =================
 
@@ -203,6 +224,7 @@ internal sealed class IslandController : IDisposable
     public void Dispose()
     {
         _context.Settings.Changed -= OnSettingsChanged;
+        _guard.Stop();
         Safe.Run("Zavření ducha ostrůvku", () => _ghost?.Close());
         CloseWindow();
         _media.Dispose();

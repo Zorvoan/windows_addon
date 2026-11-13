@@ -22,7 +22,7 @@ const pages = [
   { name: 'topbar', width: 1280, height: 36, backdrop: true, suffix: '-1280' },
   { name: 'topbar', width: 1100, height: 36, backdrop: true, suffix: '-1100' },
   { name: 'dock', width: 1200, height: 170, backdrop: true, interact: hoverDock },
-  { name: 'desktop', width: 1600, height: 900, backdrop: false },
+  { name: 'desktop', width: 1600, height: 900, backdrop: false, interact: typeOnDesktop },
   { name: 'lock', width: 1600, height: 900, backdrop: false, interact: useLock },
   { name: 'start', width: 820, height: 600, backdrop: true, interact: useStart },
   { name: 'island', width: 480, height: 200, backdrop: true, interact: hoverIsland },
@@ -84,6 +84,24 @@ async function hoverDock(page, report, fixtures) {
   await page.waitForTimeout(900);
   const after = await icon.evaluate((el) => [el.hasAttribute('data-dock-bouncing'), getComputedStyle(el).transform]);
   if (after[0] || (after[1] !== 'none' && after[1] !== 'matrix(1, 0, 0, 1, 0, 0)')) report.errors.push(`dock: poskakování po naběhnutí neskončilo (${after[1]})`);
+}
+
+// Psaní do widgetu: klik do pole pošle desktop.textInput (C# ukáže vstupní okno), výsledek se vrátí
+// zprávou desktop.textResult a Enter (submit) připomínku přidá.
+async function typeOnDesktop(page, report) {
+  const input = page.getByPlaceholder('Přidat připomínku…');
+  if (!(await input.count())) return;
+  await input.click();
+  const req = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'desktop.textInput').at(-1);
+  if (!req || !(req.payload.rect.width > 0)) {
+    report.errors.push('plocha: klik do připomínky neposlal desktop.textInput s polohou pole');
+    return;
+  }
+  await page.evaluate((key) => window.__deliver({ type: 'desktop.textResult', payload: { key, value: 'Zavolat mámě', submit: true } }), req.payload.key);
+  await page.waitForTimeout(100);
+  const saved = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'store.set' && m.payload.key === 'reminders').at(-1);
+  report.notes.push(`psaní do připomínky: ${JSON.stringify(saved?.payload.value?.map((r) => r.text))}`);
+  if (!saved?.payload.value?.some((r) => r.text === 'Zavolat mámě')) report.errors.push('plocha: text z vstupního okna se nepřidal do připomínek');
 }
 
 async function useLock(page, report) {

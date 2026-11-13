@@ -220,6 +220,7 @@ export type HostMessage =
   | { type: 'start.apps'; payload: { apps: StartApp[] } }
   | { type: 'start.visibility'; payload: { open: boolean } }
   | { type: 'island.absorb'; payload: Record<string, never> }
+  | { type: 'desktop.textResult'; payload: { key: string; value: string; submit: boolean } }
   | { type: 'island.expanded'; payload: { expanded: boolean } }
   | { type: 'theme.code'; payload: { code: string } }
   | { type: 'theme.importResult'; payload: { ok: boolean; error: string | null } }
@@ -253,6 +254,7 @@ export type UiMessage =
   | { type: 'dock.hover'; payload: { appId: string | null; rect: CssRect | null } }
   | { type: 'island.layout'; payload: { hit: CssRect[]; band: CssRect | null } }
   | { type: 'island.expanded'; payload: { expanded: boolean } }
+  | { type: 'desktop.textInput'; payload: { key: string; rect: CssRect; value: string; placeholder: string | null; fontSize: number } }
   | { type: 'media.command'; payload: { command: 'playPause' | 'next' | 'previous' } }
   | { type: 'volume.set'; payload: { level: number | null; muted: boolean | null } }
   | { type: 'start.launch'; payload: { appId: string } }
