@@ -142,7 +142,9 @@
    * je proto na pozadí stránky, ne na animovaném obsahu: panel se objeví celý najednou s rámem.
    */
   :global(html body.shell) {
-    background: var(--bw-glass-bg);
+    /* Stejný jemný tón jako lišta a dock – silnější tón skla (38 %) nad systémovým rozmazáním
+       vypadal jako plná šedá plocha. */
+    background: var(--bw-bar-tint);
   }
   .start {
     position: fixed;

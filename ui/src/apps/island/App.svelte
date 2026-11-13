@@ -18,6 +18,7 @@
   import { IslandAnimator, EXPANDED, type IslandLook, type IslandMode } from './motion';
   import Icon from '$lib/components/Icon.svelte';
   import Waveform from '$lib/components/Waveform.svelte';
+  import Marquee from '$lib/components/Marquee.svelte';
   import { host } from '$lib/stores/host.svelte';
   import { on, ready, send } from '$lib/bridge/bridge';
   import type { CssRect } from '$lib/bridge/messages';
@@ -107,8 +108,15 @@
   });
 
   let lastExpanded = false;
+  let lastMode: IslandMode | null = null;
   $effect(() => {
-    const target = sizeFor(mode);
+    const m = mode;
+    const reduced = motionReduced();
+    // Efekt se spustí i při změně režimu výkonu (motionReduced) – tvar a animace jen při změně stavu,
+    // jinak by obálka zůstala nastavená navždy (pružina se nerozjede, takže nepřijde „dosednutí“).
+    if (m === lastMode) return;
+    lastMode = m;
+    const target = sizeFor(m);
     // Lišta rozmaže svůj obsah, dokud je ostrůvek rozbalený.
     const expanded = mode === 'expanded';
     if (expanded !== lastExpanded) {
@@ -123,7 +131,7 @@
       h: Math.min(target.h * 1.04 + 8 + TOP + shadow.bottom, window.innerHeight),
     };
     report();
-    animator.go(mode, motionReduced()); // po dosednutí: envelope = null + přesný tvar (onSettle)
+    animator.go(m, reduced); // po dosednutí: envelope = null + přesný tvar (onSettle)
   });
 
   /*
@@ -203,7 +211,7 @@
       style:visibility={look.compact.opacity > 0.01 ? 'visible' : 'hidden'}
     >
       {#if media.thumbnail}<img class="art small" src={media.thumbnail} alt="" />{:else}<span class="art small ph"><Icon name="volume" size={12} /></span>{/if}
-      <span class="title">{media.title}</span>
+      <span class="title"><Marquee text={media.title ?? ''} /></span>
       <Waveform playing={media.playing} art={media.thumbnail} active={look.compact.opacity > 0.01} width={22} height={16} />
     </div>
     <div
@@ -218,8 +226,8 @@
       <div class="top">
         {#if media.thumbnail}<img class="art big" src={media.thumbnail} alt="" />{:else}<span class="art big ph"><Icon name="volume" size={24} /></span>{/if}
         <div class="meta">
-          <div class="title">{media.title}</div>
-          <div class="artist">{media.artist ?? ''}</div>
+          <div class="title"><Marquee text={media.title ?? ''} /></div>
+          <div class="artist"><Marquee text={media.artist ?? ''} /></div>
           {#if media.source}<div class="source">{media.source}</div>{/if}
         </div>
         <Waveform playing={media.playing} art={media.thumbnail} active={look.expanded.opacity > 0.01} width={28} height={22} />
@@ -353,6 +361,8 @@
   }
   .body-expanded {
     display: grid;
+    /* Sloupec nesmí růst s délkou názvu (jinak dlouhý název vytlačí proužky ven a nikdy „nepřeteče“). */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--bw-space-2);
     padding: var(--bw-space-4) var(--bw-space-5) var(--bw-space-3);
   }

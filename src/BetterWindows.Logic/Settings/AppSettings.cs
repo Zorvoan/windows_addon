@@ -38,7 +38,7 @@ public enum PerformanceMode { Auto, AlwaysReduced, NeverReduced }
 
 public sealed class AppSettings
 {
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = SettingsNormalizer.CurrentVersion;
     public AppearanceSettings Appearance { get; set; } = new();
     public WeatherSettings Weather { get; set; } = new();
     public DockSettings Dock { get; set; } = new();
@@ -119,7 +119,7 @@ public sealed class DockSettings
     /// <summary>Koš na konci docku.</summary>
     public bool ShowTrash { get; set; } = true;
     /// <summary>Největší zvětšení ikony pod kurzorem (1.0 = žádné).</summary>
-    public double MaxScale { get; set; } = 1.7;
+    public double MaxScale { get; set; } = 1.1;
 
     public static List<PinnedApp> DefaultPinned()
     {

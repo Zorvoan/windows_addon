@@ -223,8 +223,12 @@ internal static class DesktopEmbedder
     /// a jestli je rodič vrstvy povolený. Když to není naše okno (nebo WebView2 uvnitř), klik se
     /// k widgetům nedostane – to je potřeba vědět, než se zvolí jiné řešení.
     /// </summary>
-    public static string DescribeHitTest(HWND ours, PixelRect monitor)
+    public static string DescribeHitTest(HWND ours, PixelRect monitor) => HitTest(ours, monitor, out _);
+
+    /// <summary>Jako DescribeHitTest; <paramref name="widgetsOurs"/> = klik do oblasti widgetů dojde k nám.</summary>
+    public static string HitTest(HWND ours, PixelRect monitor, out bool widgetsOurs)
     {
+        widgetsOurs = false;
         var parts = new List<string>();
         var parent = PInvoke.GetParent(ours);
         if (!parent.IsNull)
@@ -237,6 +241,8 @@ internal static class DesktopEmbedder
         {
             var hit = PInvoke.WindowFromPoint(new System.Drawing.Point(x, y));
             var mine = hit == ours || PInvoke.IsChild(ours, hit);
+            if (name == "widgety")
+                widgetsOurs = mine;
             parts.Add($"{name} [{x},{y}] -> {ExplorerWindows.GetClassName(hit)} 0x{(nint)hit:X}{(mine ? " (naše)" : " (CIZÍ – klik k widgetům nedojde)")}");
         }
         return string.Join("; ", parts);

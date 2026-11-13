@@ -3,8 +3,12 @@ namespace BetterWindows.Logic.Settings;
 /// <summary>Opraví nesmyslné hodnoty (ručně upravený soubor, chyba v UI) na rozumné.</summary>
 public static class SettingsNormalizer
 {
+    /// <summary>Verze formátu nastavení. Při zvýšení přidat migraci do Migrate.</summary>
+    public const int CurrentVersion = 2;
+
     public static AppSettings Normalize(AppSettings s)
     {
+        Migrate(s);
         s.Appearance ??= new();
         s.Weather ??= new();
         s.Dock ??= new();
@@ -34,7 +38,7 @@ public static class SettingsNormalizer
             .Select(g => g.First())
             .ToList();
         s.Dock.IconSize = Math.Clamp(s.Dock.IconSize, 32, 96);
-        s.Dock.MaxScale = double.IsFinite(s.Dock.MaxScale) ? Math.Clamp(s.Dock.MaxScale, 1.0, 2.5) : 1.7;
+        s.Dock.MaxScale = double.IsFinite(s.Dock.MaxScale) ? Math.Clamp(s.Dock.MaxScale, 1.0, 2.5) : 1.1;
 
         s.Desktop.Widgets = (s.Desktop.Widgets ?? [])
             .Where(w => w is not null && WidgetTypes.All.Contains(w.Type))
@@ -55,5 +59,18 @@ public static class SettingsNormalizer
         v.Sensitivity = double.IsFinite(v.Sensitivity) ? Math.Clamp(v.Sensitivity, 0.2, 3.0) : 1.0;
 
         return s;
+    }
+
+    /// <summary>Jednorázové úpravy starších souborů nastavení.</summary>
+    private static void Migrate(AppSettings s)
+    {
+        if (s.Version < 2)
+        {
+            // v2: výchozí zvětšení docku 1,7 -> 1,1 (původní bylo moc velké). Jen když zůstala stará výchozí
+            // hodnota – vlastní volbu nepřepisujeme.
+            if (s.Dock is not null && Math.Abs(s.Dock.MaxScale - 1.7) < 0.001)
+                s.Dock.MaxScale = 1.1;
+        }
+        s.Version = CurrentVersion;
     }
 }

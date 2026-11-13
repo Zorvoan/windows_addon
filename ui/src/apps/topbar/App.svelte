@@ -14,6 +14,7 @@
   import { ready, send } from '$lib/bridge/bridge';
 
   import Icon from '$lib/components/Icon.svelte';
+  import Marquee from '$lib/components/Marquee.svelte';
 
   let appName = $derived(host.foreground?.appName || 'Plocha');
   let title = $derived(host.foreground?.title ?? '');
@@ -43,7 +44,7 @@
     {#if bar?.showNowPlaying !== false && media?.available}
       <span class="now-playing" title={`${media.title}${media.artist ? ' – ' + media.artist : ''}`}>
         {#if media.thumbnail}<img src={media.thumbnail} alt="" />{/if}
-        <span class="np-title">{media.title}</span>
+        <span class="np-title"><Marquee text={media.title ?? ''} /></span>
         {#if media.artist}<span class="np-artist">{media.artist}</span>{/if}
         <button type="button" aria-label={media.playing ? 'Pozastavit' : 'Přehrát'} onclick={() => send('media.command', { command: 'playPause' })}>
           <Icon name={media.playing ? 'pause' : 'play'} size={14} />
@@ -168,10 +169,10 @@
     object-fit: cover;
   }
   .np-title {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 160px;
     font-weight: var(--bw-weight-medium);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   .np-artist {
     color: var(--bw-fg-muted);

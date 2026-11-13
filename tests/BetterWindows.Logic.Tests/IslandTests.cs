@@ -25,3 +25,34 @@ public class IslandTests
         Assert.Equal(expected, MediaSourceMatch.Matches(source, appId));
     }
 }
+
+public class SettingsMigrationTests
+{
+    [Fact]
+    public void V1_default_dock_magnification_is_lowered_to_1_1()
+    {
+        var s = new BetterWindows.Logic.Settings.AppSettings { Version = 1 };
+        s.Dock.MaxScale = 1.7;
+        BetterWindows.Logic.Settings.SettingsNormalizer.Normalize(s);
+        Assert.Equal(1.1, s.Dock.MaxScale, 3);
+        Assert.Equal(BetterWindows.Logic.Settings.SettingsNormalizer.CurrentVersion, s.Version);
+    }
+
+    [Fact]
+    public void Custom_dock_magnification_is_kept()
+    {
+        var s = new BetterWindows.Logic.Settings.AppSettings { Version = 1 };
+        s.Dock.MaxScale = 1.4;
+        BetterWindows.Logic.Settings.SettingsNormalizer.Normalize(s);
+        Assert.Equal(1.4, s.Dock.MaxScale, 3);
+    }
+
+    [Fact]
+    public void Current_version_is_not_migrated_again()
+    {
+        var s = new BetterWindows.Logic.Settings.AppSettings();
+        s.Dock.MaxScale = 1.7; // vědomá volba v nové verzi
+        BetterWindows.Logic.Settings.SettingsNormalizer.Normalize(s);
+        Assert.Equal(1.7, s.Dock.MaxScale, 3);
+    }
+}

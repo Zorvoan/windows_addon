@@ -19,13 +19,17 @@
   const TRASH: DockItem = { appId: 'bw:trash', name: 'Koš', pinned: true, running: false, active: false, windowCount: 0 };
 
   const GAP = 8;
-  const PAD = 8;
-  const SEPARATOR = 8;
+  // Odsazení ikon od okraje pásu (vodorovně / nahoře / dole nad tečkou spuštěné aplikace).
+  const PADX = 14;
+  const PADT = 10;
+  const PADB = 6;
+  const DOT = 8; // tečka 4 px + mezera 4 px
+  const SEPARATOR = 9;
   const BOUNCE = 0.5;
   const LABEL_SPACE = 40; // popisek nad zvětšenou ikonou // výška skoku při spouštění jako podíl velikosti ikony // oddělovač: 1px čára + okraje (plus mezera GAP)
 
   let base = $derived(host.settings?.dock.iconSize ?? 48);
-  let maxScale = $derived(host.settings?.dock.magnification === false ? 1 : (host.settings?.dock.maxScale ?? 1.7));
+  let maxScale = $derived(host.settings?.dock.magnification === false ? 1 : (host.settings?.dock.maxScale ?? 1.1));
   let showLaunchpad = $derived(host.settings?.dock.showLaunchpad !== false);
   let showTrash = $derived(host.settings?.dock.showTrash !== false);
   let items = $derived([...(showLaunchpad ? [LAUNCHPAD] : []), ...host.dock, ...(showTrash ? [TRASH] : [])]);
@@ -61,14 +65,14 @@
 
   // Středy ikon v klidovém rozložení.
   let centers = $derived.by(() => {
-    let x = PAD;
+    let x = PADX;
     return items.map((_, i) => {
-      const c = x + (base + GAP) / 2;
+      const c = x + base / 2;
       x += base + GAP + (separators.has(i) ? SEPARATOR : 0);
       return c;
     });
   });
-  let restWidth = $derived(items.length * (base + GAP) + PAD * 2 + separators.size * SEPARATOR);
+  let restWidth = $derived(PADX * 2 + items.length * base + Math.max(0, items.length - 1) * GAP + separators.size * SEPARATOR);
   let result = $derived(magnify({ centers, cursor, base, maxScale, strength }));
 
   function onMove(e: MouseEvent) {
@@ -237,7 +241,8 @@
     class="band"
     bind:this={band}
     style:transform="translateX(calc(-50% + {result.shift}px))"
-    style:height="{base + PAD + 12}px"
+    style:height="{base + PADT + PADB + DOT}px"
+    style:padding="{PADT}px {PADX}px {PADB}px"
     role="toolbar"
     aria-label="Dock"
     tabindex="-1"
@@ -272,7 +277,7 @@
     display: flex;
     align-items: flex-end;
     gap: 8px;
-    padding: 8px 8px 4px;
+    /* padding: nastavuje style (PADT/PADX/PADB), aby souhlasil s výpočtem zvětšení */
     border-radius: var(--bw-radius-dock);
     background: var(--bw-dock-tint);
     border: 1px solid var(--bw-dock-border);

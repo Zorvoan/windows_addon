@@ -50,11 +50,13 @@ internal sealed class DesktopLayerHost : IDisposable
         _starting = true;
         try
         {
-            var snapshot = settings.Mode == DesktopMode.Bottom ? null : await DesktopEmbedder.EnsureSplitAsync();
+            // Automatický režim po zjištění, že vložená plocha nepropouští myš: rovnou „Okno vespod“.
+            var mode = settings.Mode == DesktopMode.Auto && _embedBlocksInput ? DesktopMode.Bottom : settings.Mode;
+            var snapshot = mode == DesktopMode.Bottom ? null : await DesktopEmbedder.EnsureSplitAsync();
             if (snapshot is not null)
                 Log.Info($"Plocha: {snapshot}");
 
-            var window = new DesktopWindow(_context, _context.Monitors.GetPrimary(), settings.Mode, snapshot);
+            var window = new DesktopWindow(_context, _context.Monitors.GetPrimary(), mode, snapshot);
             window.SetBackdrop(BackdropMode.None);
             window.Closed += OnWindowClosed;
             _closingOnPurpose = false;
@@ -69,7 +71,9 @@ internal sealed class DesktopLayerHost : IDisposable
                 return;
             }
 
-            SetStatus(window.ModeName, window.ModeDetail);
+            SetStatus(window.ModeName, _embedBlocksInput && window.ModeName == "bottom"
+                ? "Okno vespod – vložená plocha nepropouštěla kliknutí k widgetům"
+                : window.ModeDetail);
             ApplyIcons();
             _health.Start();
             LogHitTestLater(window);
@@ -80,7 +84,14 @@ internal sealed class DesktopLayerHost : IDisposable
         }
     }
 
-    /// <summary>Za chvíli (okno je rozložené, ikony skryté) zapsat do logu, kdo na ploše dostává kliknutí.</summary>
+    /// <summary>
+    /// Vložená plocha na 25H2 nemusí propouštět kliknutí k našemu oknu (kliknutí převezme plocha Windows).
+    /// Zjistíme to přes WindowFromPoint a v automatickém režimu přepneme na „Okno vespod“, kde myš funguje.
+    /// Platí do změny režimu v nastavení nebo do restartu aplikace.
+    /// </summary>
+    private bool _embedBlocksInput;
+
+    /// <summary>Za chvíli (okno je rozložené, ikony skryté) ověřit, kdo na ploše dostává kliknutí.</summary>
     private void LogHitTestLater(DesktopWindow window)
     {
         var timer = new DispatcherTimer(DispatcherPriority.Background, _context.Dispatcher) { Interval = TimeSpan.FromSeconds(2) };
@@ -90,7 +101,16 @@ internal sealed class DesktopLayerHost : IDisposable
             if (_window != window)
                 return;
             Safe.Run("Plocha – diagnostika kliknutí", () =>
-                Log.Info($"Plocha – kdo dostane klik: {DesktopEmbedder.DescribeHitTest(window.Handle, window.Monitor.Bounds)}"));
+            {
+                var detail = DesktopEmbedder.HitTest(window.Handle, window.Monitor.Bounds, out var ours);
+                Log.Info($"Plocha – kdo dostane klik: {detail}");
+                if (!ours && window.Embedded?.Success == true && _context.Settings.Current.Desktop.Mode == DesktopMode.Auto)
+                {
+                    Log.Warn("Plocha: vložená vrstva nedostává kliknutí – přepínám na „Okno vespod“ (widgety pak půjdou ovládat myší).");
+                    _embedBlocksInput = true;
+                    Restart("vložená plocha nepropouští kliknutí");
+                }
+            });
         };
         timer.Start();
     }
@@ -152,6 +172,8 @@ internal sealed class DesktopLayerHost : IDisposable
         var n = now.Desktop;
         if (o.Enabled != n.Enabled || o.Mode != n.Mode)
         {
+            if (o.Mode != n.Mode)
+                _embedBlocksInput = false; // uživatel zvolil režim sám -> zkusit znovu
             if (!n.Enabled)
                 Stop();
             else

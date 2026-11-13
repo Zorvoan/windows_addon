@@ -59,7 +59,7 @@ public class SettingsTests
         s.Desktop.Widgets = [new() { Id = "x", Type = "unknown" }, new() { Id = "c", Type = WidgetTypes.Clock, X = -5 }];
         SettingsNormalizer.Normalize(s);
         Assert.Equal(96, s.Dock.IconSize);
-        Assert.Equal(1.7, s.Dock.MaxScale);
+        Assert.Equal(1.1, s.Dock.MaxScale);
         Assert.Single(s.Dock.Pinned);
         Assert.Equal("Praha", s.Weather.City);
         Assert.Single(s.Desktop.Widgets);
