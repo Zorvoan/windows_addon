@@ -276,7 +276,9 @@ Ideálně vyzkoušej na 60Hz i na 144Hz (nebo jiném rychlém) monitoru – rych
 | 18.5 | Zavři Start: Esc, klik mimo, spuštění aplikace, ikona Launchpad znovu | Obsah zmizí a na ~0,17 s zůstane prázdný rozmazaný rám, pak se okno schová. **Posuď, jestli to nevypadá hůř než okamžité zmizení** – pak to přepnu na okamžité |
 | 18.6 | Otevři Start a hned ho zavři a znovu otevři (rychle 2–3×) | Start se nezasekne zavřený ani prázdný; po posledním otevření je vidět a dá se psát |
 | 18.7 | Spusť z docku nespuštěnou aplikaci | Ikona skáče (stejně vysoko) až do naběhnutí, pak dopadne – neskočí dolů naráz; vršek ikony se neořízne |
-| 18.8 | Přejeď myší přes dock na 60Hz a na 144Hz monitoru | Zvětšování naběhne a dozní stejně rychle |
+| 18.8 | Přejeď myší přes dock na 60Hz a na 144Hz monitoru | Zvětšování naběhne a dozní stejně rychle, bez trhání |
+| 18.8b | Při přejíždění docku sleduj okraje pásu | Rozmazání pod pásem drží krok s pásem; když viditelně zaostává nebo bliká o snímek, napiš mi (C# ho posouvá každý snímek) |
+| 18.8c | Najeď na dock a klikni do okna aplikace těsně nad dockem | Dokud je myš na docku, klik může spolknout průhledná rezerva pro zvětšené ikony; po odjetí z docku (~0,3 s) už ne |
 | 18.9 | Vypni Efekty animace (viz 17.5) a zopakuj 18.1, 18.4, 18.7 | Vše bez animací: ostrůvek mění tvar hned, Start se objeví hned, ikona neskáče |
 
 Světlý / tmavý režim už nejde přepnout v Better Windows – řídí se Windows (Apple: aplikace nemá mít vlastní přepínač vzhledu).

@@ -31,6 +31,7 @@ internal abstract class ShellWindowBase : Window
     private readonly string? _page;
     private HwndSourceHook? _hook; // odkaz držíme, aby delegáta neuklidil GC
     private BackdropMode _backdrop = BackdropMode.None;
+    private List<(int Left, int Top, int Right, int Bottom)>? _lastRegion; // naposledy nastavený tvar (px)
 
     protected ShellContext Context { get; }
     protected WebView2? Web { get; }
@@ -129,11 +130,17 @@ internal abstract class ShellWindowBase : Window
         if (Hwnd.IsNull)
             return;
         var s = Monitor.Scale;
+        var pixels = rects.Select(r => ((int)Math.Floor(r.X * s), (int)Math.Floor(r.Y * s),
+            (int)Math.Ceiling((r.X + r.Width) * s), (int)Math.Ceiling((r.Y + r.Height) * s))).ToList();
+        // Stejný tvar jako minule -> nic nedělat (SetWindowRgn překresluje okno, během animací by to bylo zbytečně často).
+        if (_lastRegion is not null && _lastRegion.SequenceEqual(pixels))
+            return;
+        _lastRegion = pixels;
+
         var region = PInvoke.CreateRectRgn(0, 0, 0, 0);
-        foreach (var r in rects)
+        foreach (var (left, top, right, bottom) in pixels)
         {
-            var part = PInvoke.CreateRectRgn((int)Math.Floor(r.X * s), (int)Math.Floor(r.Y * s),
-                (int)Math.Ceiling((r.X + r.Width) * s), (int)Math.Ceiling((r.Y + r.Height) * s));
+            var part = PInvoke.CreateRectRgn(left, top, right, bottom);
             PInvoke.CombineRgn(region, region, part, RGN_COMBINE_MODE.RGN_OR);
             PInvoke.DeleteObject(new HGDIOBJ(part.Value));
         }
@@ -145,6 +152,7 @@ internal abstract class ShellWindowBase : Window
     /// <summary>Zrušit tvar okna = celé okno zase viditelné a klikatelné.</summary>
     public void ClearRegion()
     {
+        _lastRegion = null;
         if (!Hwnd.IsNull)
             PInvoke.SetWindowRgn(Hwnd, HRGN.Null, true);
     }

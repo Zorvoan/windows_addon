@@ -13,7 +13,6 @@
 -->
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { fade } from 'svelte/transition';
   import { SpringBox, springs, motionReduced } from '$lib/motion.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import { host } from '$lib/stores/host.svelte';
@@ -126,10 +125,6 @@
     }
   }
 
-  // Prolnutí obsahu: nový naběhne s malým zpožděním, starý rychle zmizí (při omezení pohybu hned).
-  const fadeIn = () => ({ duration: motionReduced() ? 0 : 160, delay: motionReduced() ? 0 : 70 });
-  const fadeOut = () => ({ duration: motionReduced() ? 0 : 90 });
-
   onMount(() => {
     ready('island');
     const ro = new ResizeObserver(() => report());
@@ -149,14 +144,15 @@
   onmouseenter={enter}
   onmouseleave={leave}
 >
-  {#if mode === 'compact' && media}
-    <div class="layer row-compact" in:fade={fadeIn()} out:fade={fadeOut()}>
+  <!-- Všechny vrstvy jsou připravené v DOM a jen se prolínají (vytváření obsahu při najetí
+       myší by stálo čas právě v prvním snímku animace). -->
+  {#if media}
+    <div class="layer row-compact" class:shown={mode === 'compact'} aria-hidden={mode !== 'compact'}>
       {#if media.thumbnail}<img class="art small" src={media.thumbnail} alt="" />{:else}<span class="art small ph"><Icon name="volume" size={12} /></span>{/if}
       <span class="title">{media.title}</span>
       <span class="dots" class:playing={media.playing} aria-hidden="true">{#each [0, 1, 2, 3] as c (c)}<span class="col">{#each [0, 1, 2] as r (r)}<i></i>{/each}</span>{/each}</span>
     </div>
-  {:else if mode === 'expanded' && media}
-    <div class="layer body-expanded" in:fade={fadeIn()} out:fade={fadeOut()}>
+    <div class="layer body-expanded" class:shown={mode === 'expanded'} aria-hidden={mode !== 'expanded'}>
       <div class="top">
         {#if media.thumbnail}<img class="art big" src={media.thumbnail} alt="" />{:else}<span class="art big ph"><Icon name="volume" size={24} /></span>{/if}
         <div class="meta">
@@ -195,8 +191,9 @@
         </span>
       </div>
     </div>
-  {:else if mode === 'volume'}
-    <div class="layer row-volume" in:fade={fadeIn()} out:fade={fadeOut()}>
+  {/if}
+  {#if host.volume}
+    <div class="layer row-volume" class:shown={mode === 'volume'} aria-hidden={mode !== 'volume'}>
       <Icon name={host.volume?.muted ? 'mute' : 'volume'} size={16} />
       <div class="track"><div class="fill" style:width="{host.volume?.muted ? 0 : (host.volume?.level ?? 0) * 100}%"></div></div>
       <span class="pct">{host.volume?.muted ? 'Ztlumeno' : `${Math.round((host.volume?.level ?? 0) * 100)} %`}</span>
@@ -230,6 +227,23 @@
     top: 0;
     left: 50%;
     transform: translateX(-50%);
+    /* Prolnutí: starý obsah rychle zmizí, nový naběhne s malým zpožděním (délky z tokenů -> při
+       omezení pohybu 0). visibility zajistí, že skrytá tlačítka nejdou kliknout ani vybrat Tabem. */
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity calc(var(--bw-duration-fast) * 0.65) var(--bw-ease-in),
+      visibility 0s linear calc(var(--bw-duration-fast) * 0.65);
+  }
+  .layer.shown {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity var(--bw-duration-fast) var(--bw-ease) calc(var(--bw-duration-fast) * 0.5),
+      visibility 0s;
+  }
+  .layer:not(.shown) .dots i {
+    animation: none;
   }
   .row-compact,
   .row-volume {

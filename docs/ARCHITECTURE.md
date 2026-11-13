@@ -84,6 +84,11 @@ jedna křivka pohybu `cubic-bezier(0.22, 1, 0.36, 1)` pro drobné přechody, ž�
   doběhem podle skutečného času (`follow`, τ 67 ms). `Spring` ze `svelte/motion` se nepoužívá – na 144 Hz běží rychleji.
 - **Ostrůvek a oblast okna:** při roztahování se do C# hned pošle cílová velikost + rezerva na překmit (rostoucí okraj
   se neořízne zpožděním zprávy), při zmenšování oblast sleduje pilulku (nepolyká kliknutí na lištu), po dosednutí přesný tvar.
+- **Ostrůvek – obsah:** všechny tři vrstvy (kompaktní, rozbalená, hlasitost) jsou stále v DOM a jen se prolínají
+  (vytvářet obsah při najetí myší stálo ~10 ms v prvním snímku animace).
+- **Dock – oblast okna:** během zvětšování stálá obálka největšího možného zvětšení (2 změny tvaru na celé přejetí místo
+  jedné za snímek); poloha myši se do DOM promítá jednou za snímek. C# přeskočí `SetWindowRgn`, když se tvar nezměnil.
+  Okno s rozmazáním pod pásem se ale dál posouvá každý snímek (pás při zvětšení roste) – to jde ověřit jen na Windows.
 - **Start:** animuje se jen obsah (97 % → 100 %, průhlednost). Systémové rozmazání a rám kreslí Windows pro celé okno,
   ty se objeví naráz. Okno schová C# až po zavírací animaci (170 ms, vlastní časovač; při celé obrazovce/vypnutí hned).
 - **Poskakování v docku:** stejně vysoké skoky s gravitačním průběhem (skáče obrázek, ne tlačítko), po naběhnutí aplikace doběhne rozběhnutý skok.

@@ -21,7 +21,8 @@
   const GAP = 8;
   const PAD = 8;
   const SEPARATOR = 8;
-  const BOUNCE = 0.5; // výška skoku při spouštění jako podíl velikosti ikony // oddělovač: 1px čára + okraje (plus mezera GAP)
+  const BOUNCE = 0.5;
+  const LABEL_SPACE = 40; // popisek nad zvětšenou ikonou // výška skoku při spouštění jako podíl velikosti ikony // oddělovač: 1px čára + okraje (plus mezera GAP)
 
   let base = $derived(host.settings?.dock.iconSize ?? 48);
   let maxScale = $derived(host.settings?.dock.magnification === false ? 1 : (host.settings?.dock.maxScale ?? 1.7));
@@ -55,6 +56,8 @@
   let bouncing = $state<Record<string, true>>({});
   let frame = 0;
   let lastFrame = 0;
+  // Poslední pozice myši; do stavu (a tím do DOM) se promítne jen jednou za snímek v animate().
+  let pendingCursor: number | null = null;
 
   // Středy ikon v klidovém rozložení.
   let centers = $derived.by(() => {
@@ -70,7 +73,7 @@
 
   function onMove(e: MouseEvent) {
     const restLeft = (window.innerWidth - restWidth) / 2;
-    cursor = e.clientX - restLeft;
+    pendingCursor = e.clientX - restLeft;
     targetStrength = 1;
     animate();
   }
@@ -96,6 +99,7 @@
     const step = (now: number) => {
       const dt = now - lastFrame;
       lastFrame = now;
+      if (targetStrength > 0 && pendingCursor !== null && pendingCursor !== cursor) cursor = pendingCursor;
       strength = motionReduced() ? targetStrength : follow(strength, targetStrength, dt, followTau.dock);
       if (Math.abs(targetStrength - strength) < 0.01) {
         strength = targetStrength;
@@ -169,11 +173,43 @@
       hit.push(inflate({ x: left, y: top, width: right - left, height: bandRect.y - top + 2 }, 2));
     }
 
+    // Během zvětšování: stálá obálka nejvyššího možného zvětšení místo tvaru po snímcích
+    // (každá změna = SetWindowRgn s překreslením okna v C#). Po doznění zase přesný tvar.
+    if (items.length > 0 && (targetStrength > 0 || strength > 0)) {
+      const env = envelope(bandRect);
+      const all = [env, ...hit];
+      const left = Math.min(...all.map((r) => r.x));
+      const top = Math.min(...all.map((r) => r.y));
+      const right = Math.max(...all.map((r) => r.x + r.width));
+      const bottom = Math.max(...all.map((r) => r.y + r.height));
+      hit.length = 0;
+      hit.push({ x: left, y: top, width: right - left, height: bottom - top });
+    }
+
     const payload = { hit, band: items.length > 0 ? bandRect : null };
     const json = JSON.stringify(payload, (_, v) => (typeof v === 'number' ? Math.round(v) : v));
     if (json === lastSent) return;
     lastSent = json;
     send('dock.layout', JSON.parse(json));
+  }
+
+  /** Největší rozšíření pásu při zvětšení (přes všechny polohy kurzoru), počítá se jen při změně docku. */
+  let maxExtra = $derived.by(() => {
+    if (maxScale <= 1 || centers.length === 0) return 0;
+    let best = 0;
+    const end = restWidth;
+    for (let x = 0; x <= end; x += 4) {
+      const { sizes } = magnify({ centers, cursor: x, base, maxScale, strength: 1 });
+      best = Math.max(best, sizes.reduce((a, v) => a + v, 0) - base * sizes.length);
+    }
+    return best;
+  });
+
+  function envelope(bandRect: CssRect): CssRect {
+    const restLeft = (window.innerWidth - restWidth) / 2;
+    const bottom = bandRect.y + bandRect.height;
+    const lift = base * maxScale * (1 + BOUNCE) + LABEL_SPACE;
+    return { x: restLeft - maxExtra - 2, y: bottom - lift, width: restWidth + maxExtra * 2 + 4, height: lift + 2 };
   }
 
   function inflate(r: CssRect, by: number): CssRect {

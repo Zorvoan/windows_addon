@@ -138,8 +138,12 @@
    * Otevření: obsah se z 97 % zvětší pružinou (--bw-spring) a zprůhlední se do plné viditelnosti.
    * Zavření: krátce a bez pružení zpět (C# okno schová, až to doběhne).
    * Pozn.: systémové rozmazání a zaoblený rám kreslí Windows pro celé okno – ty se objeví/zmizí
-   * naráz, animuje se jen obsah (proto jen malé zmenšení, aby rozdíl nebyl vidět).
+   * naráz, animuje se jen obsah (proto jen malé zmenšení, aby rozdíl nebyl vidět). Tónování skla
+   * je proto na pozadí stránky, ne na animovaném obsahu: panel se objeví celý najednou s rámem.
    */
+  :global(html body.shell) {
+    background: var(--bw-glass-bg);
+  }
   .start {
     position: fixed;
     inset: 0;
@@ -147,7 +151,6 @@
     flex-direction: column;
     gap: var(--bw-space-4);
     padding: var(--bw-space-6);
-    background: var(--bw-glass-bg);
     color: var(--bw-fg);
     opacity: 0;
     transform: scale(0.97);
