@@ -13,6 +13,7 @@
   sleduje pilulku (příliš velká oblast by chvíli polykala kliknutí na lištu), po dosednutí přesný tvar.
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount, tick } from 'svelte';
   import { motionReduced } from '$lib/motion.svelte';
   import { IslandAnimator, EXPANDED, type IslandLook, type IslandMode } from './motion';
@@ -243,13 +244,13 @@
         </div>
       {/if}
       <div class="controls">
-        <button type="button" aria-label="Předchozí" disabled={!media.canPrevious} onclick={() => send('media.command', { command: 'previous' })}><Icon name="previous" size={18} /></button>
-        <button type="button" class="play" aria-label={media.playing ? 'Pozastavit' : 'Přehrát'} onclick={() => send('media.command', { command: 'playPause' })}>
+        <button type="button" aria-label={t('Předchozí')} disabled={!media.canPrevious} onclick={() => send('media.command', { command: 'previous' })}><Icon name="previous" size={18} /></button>
+        <button type="button" class="play" aria-label={media.playing ? t('Pozastavit') : t('Přehrát')} onclick={() => send('media.command', { command: 'playPause' })}>
           <Icon name={media.playing ? 'pause' : 'play'} size={22} />
         </button>
-        <button type="button" aria-label="Další" disabled={!media.canNext} onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={18} /></button>
+        <button type="button" aria-label={t('Další')} disabled={!media.canNext} onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={18} /></button>
         <span class="vol">
-          <button type="button" aria-label={host.volume?.muted ? 'Zapnout zvuk' : 'Ztlumit'} onclick={() => send('volume.set', { level: null, muted: !host.volume?.muted })}>
+          <button type="button" aria-label={host.volume?.muted ? t('Zapnout zvuk') : t('Ztlumit')} onclick={() => send('volume.set', { level: null, muted: !host.volume?.muted })}>
             <Icon name={host.volume?.muted ? 'mute' : 'volume'} size={16} />
           </button>
           <input
@@ -257,7 +258,7 @@
             min="0"
             max="1"
             step="0.02"
-            aria-label="Hlasitost"
+            aria-label={t('Hlasitost')}
             value={host.volume?.level ?? 0}
             oninput={(e) => send('volume.set', { level: Number(e.currentTarget.value), muted: null })}
           />
@@ -275,7 +276,7 @@
     >
       <Icon name={host.volume?.muted ? 'mute' : 'volume'} size={16} />
       <div class="track"><div class="fill" style:width="{host.volume?.muted ? 0 : (host.volume?.level ?? 0) * 100}%"></div></div>
-      <span class="pct">{host.volume?.muted ? 'Ztlumeno' : `${Math.round((host.volume?.level ?? 0) * 100)} %`}</span>
+      <span class="pct">{host.volume?.muted ? t('Ztlumeno') : `${Math.round((host.volume?.level ?? 0) * 100)} %`}</span>
     </div>
   {/if}
 </div>

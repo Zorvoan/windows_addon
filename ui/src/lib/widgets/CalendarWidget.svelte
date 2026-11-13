@@ -1,5 +1,6 @@
 <!-- Kalendář na měsíc (pondělí první), dnešek zvýrazněný, šipky mezi měsíci. -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import Icon from '$lib/components/Icon.svelte';
   import { clock } from '$lib/stores/clock.svelte';
 
@@ -34,8 +35,8 @@
   <header>
     <span class="title">{month} <span class="year">{year}</span></span>
     <span class="nav">
-      <button type="button" aria-label="Předchozí měsíc" onclick={() => offset--}><Icon name="chevronLeft" size={12} /></button>
-      <button type="button" aria-label="Další měsíc" onclick={() => offset++}><Icon name="chevronRight" size={12} /></button>
+      <button type="button" aria-label={t('Předchozí měsíc')} onclick={() => offset--}><Icon name="chevronLeft" size={12} /></button>
+      <button type="button" aria-label={t('Další měsíc')} onclick={() => offset++}><Icon name="chevronRight" size={12} /></button>
     </span>
   </header>
   <div class="grid">

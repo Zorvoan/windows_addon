@@ -4,6 +4,7 @@ using BetterWindows.Logic.Messaging;
 using BetterWindows.Logic.Settings;
 using BetterWindows.Native;
 using BetterWindows.ShellWindows;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Services;
 
@@ -73,7 +74,7 @@ internal sealed class DesktopLayerHost : IDisposable
         var settings = _context.Settings.Current.Desktop;
         if (!settings.Enabled)
         {
-            SetStatus("off", "Vypnuto v nastavení");
+            SetStatus("off", Loc.T("Vypnuto v nastavení"));
             return;
         }
 
@@ -102,7 +103,7 @@ internal sealed class DesktopLayerHost : IDisposable
             }
 
             SetStatus(window.ModeName, _embedBlocksInput && window.ModeName == "bottom"
-                ? "Okno vespod – vložená plocha nepropouštěla kliknutí k widgetům"
+                ? Loc.T("Okno vespod – vložená plocha nepropouštěla kliknutí k widgetům")
                 : window.ModeDetail);
             ApplyIcons();
             _health.Start();
@@ -150,7 +151,7 @@ internal sealed class DesktopLayerHost : IDisposable
         _health.Stop();
         CloseWindow();
         ShowIcons();
-        SetStatus("off", "Zastaveno");
+        SetStatus("off", Loc.T("Zastaveno"));
     }
 
     public void Restart(string reason)
@@ -163,7 +164,7 @@ internal sealed class DesktopLayerHost : IDisposable
         {
             Log.Error("Plocha: příliš mnoho restartů během minuty – vrstvu plochy vypínám do dalšího spuštění.");
             Stop();
-            SetStatus("failed", "Opakované selhání (víc než 3 restarty za minutu)");
+            SetStatus("failed", Loc.T("Opakované selhání (víc než 3 restarty za minutu)"));
             return;
         }
         _health.Stop();
@@ -263,7 +264,7 @@ internal sealed class DesktopLayerHost : IDisposable
         _window = null;
         _iconsHidden = false;
         SystemGuard.Record(s => s.DesktopIconsHidden = false);
-        SetStatus("failed", "Okno zaniklo, čekám na Průzkumníka");
+        SetStatus("failed", Loc.T("Okno zaniklo, čekám na Průzkumníka"));
         // Pozn.: konstruktor DispatcherTimer s obsluhou ji vyžaduje (null = výjimka), proto bez něj + Tick.
         var timer = new DispatcherTimer(DispatcherPriority.Background, _context.Dispatcher) { Interval = TimeSpan.FromSeconds(3) };
         timer.Tick += (_, _) =>

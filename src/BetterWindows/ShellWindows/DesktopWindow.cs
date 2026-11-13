@@ -5,6 +5,7 @@ using BetterWindows.Native;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.ShellWindows;
 
@@ -56,11 +57,11 @@ internal sealed class DesktopWindow : ShellWindowBase
                 return;
             }
             Log.Warn($"Vložení plochy selhalo: {result.Detail}");
-            ModeDetail = $"Vložení selhalo ({result.Detail}), záloha HWND_BOTTOM";
+            ModeDetail = Loc.T("Vložení selhalo ({detail}), záloha HWND_BOTTOM", ("detail", result.Detail));
         }
         else
         {
-            ModeDetail = _requestedMode == DesktopMode.Bottom ? "HWND_BOTTOM (zvoleno v nastavení)" : "HWND_BOTTOM (plocha nenalezena)";
+            ModeDetail = _requestedMode == DesktopMode.Bottom ? Loc.T("HWND_BOTTOM (zvoleno v nastavení)") : Loc.T("HWND_BOTTOM (plocha nenalezena)");
         }
         Log.Info($"Plocha: režim HWND_BOTTOM – {ModeDetail}");
     }

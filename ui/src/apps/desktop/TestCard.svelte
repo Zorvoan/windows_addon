@@ -3,42 +3,43 @@
   režim vložení plochy a jestli vrstva dostává myš a klávesnici.
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { desktopTextInput } from '$lib/desktopTextInput';
   import Surface from '$lib/components/Surface.svelte';
   import { host } from '$lib/stores/host.svelte';
 
   const modeLabels: Record<string, string> = {
-    'embed-raised': 'Vloženo do plochy (Windows 11 24H2+)',
-    'embed-classic': 'Vloženo do plochy (klasicky)',
-    bottom: 'Samostatné okno vespod (HWND_BOTTOM)',
-    failed: 'Selhalo',
-    off: 'Vypnuto',
+    'embed-raised': t('Vloženo do plochy (Windows 11 24H2+)'),
+    'embed-classic': t('Vloženo do plochy (klasicky)'),
+    bottom: t('Samostatné okno vespod (HWND_BOTTOM)'),
+    failed: t('Selhalo'),
+    off: t('Vypnuto'),
   };
 
   let clicks = $state(0);
   let typed = $state('');
-  let mode = $derived(host.desktop ? (modeLabels[host.desktop.mode] ?? host.desktop.mode) : 'Čekám na údaje…');
+  let mode = $derived(host.desktop ? (modeLabels[host.desktop.mode] ?? host.desktop.mode) : t('Čekám na údaje…'));
 </script>
 
 <div class="card">
   <Surface variant="glass" padding="lg">
     <div class="content">
-      <h2>Vrstva plochy</h2>
+      <h2>{t('Vrstva plochy')}</h2>
       <dl>
-        <dt>Režim</dt>
+        <dt>{t('Režim')}</dt>
         <dd>{mode}</dd>
         {#if host.desktop?.detail}
-          <dt>Detail</dt>
+          <dt>{t('Detail')}</dt>
           <dd class="muted">{host.desktop.detail}</dd>
         {/if}
-        <dt>Ikony plochy</dt>
-        <dd>{host.desktop?.iconsHidden ? 'skryté' : 'viditelné'}</dd>
+        <dt>{t('Ikony plochy')}</dt>
+        <dd>{host.desktop?.iconsHidden ? t('skryté') : t('viditelné')}</dd>
       </dl>
       <div class="tests">
-        <button type="button" onclick={() => clicks++}>Test myši: {clicks}×</button>
-        <input type="text" placeholder="Test klávesnice – zkus psát" bind:value={typed} use:desktopTextInput />
+        <button type="button" onclick={() => clicks++}>{t('Test myši: {n}×', { n: clicks })}</button>
+        <input type="text" placeholder={t('Test klávesnice – zkus psát')} bind:value={typed} use:desktopTextInput />
       </div>
-      <p class="hint">Kartu vypneš v Nastavení › Plocha</p>
+      <p class="hint">{t('Kartu vypneš v Nastavení › Plocha')}</p>
     </div>
   </Surface>
 </div>

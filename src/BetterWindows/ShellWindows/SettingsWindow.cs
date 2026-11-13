@@ -5,6 +5,7 @@ using BetterWindows.Core;
 using BetterWindows.Web;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.ShellWindows;
 
@@ -21,7 +22,7 @@ internal sealed class SettingsWindow : Window
     public SettingsWindow(MessageHub hub)
     {
         _hub = hub;
-        Title = $"{AppInfo.DisplayName} – Nastavení";
+        Title = Loc.T("Better Windows – Nastavení");
         Icon = AppIcons.WindowIcon;
         Width = 1040;
         Height = 760;
@@ -51,7 +52,7 @@ internal sealed class SettingsWindow : Window
         catch (WebView2RuntimeNotFoundException ex)
         {
             Log.Error("Chybí WebView2 Runtime", ex);
-            ShowError("Na počítači chybí Microsoft Edge WebView2 Runtime.\nStáhni ho z https://developer.microsoft.com/microsoft-edge/webview2/");
+            ShowError(Loc.T("Na počítači chybí Microsoft Edge WebView2 Runtime.\nStáhni ho z {url}", ("url", "https://developer.microsoft.com/microsoft-edge/webview2/")));
         }
         catch (Exception ex)
         {

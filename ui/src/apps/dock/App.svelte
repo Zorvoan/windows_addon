@@ -4,6 +4,7 @@
   systémové rozmazání samostatné okno, jehož polohu C# řídí podle "band".
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount, tick } from 'svelte';
   import { host } from '$lib/stores/host.svelte';
   import { on, ready, send } from '$lib/bridge/bridge';
@@ -16,7 +17,7 @@
 
   // Speciální položky jako v docku Familiar: Launchpad (Start) na začátku, Koš na konci.
   const LAUNCHPAD: DockItem = { appId: 'bw:launchpad', name: 'Launchpad', pinned: true, running: false, active: false, windowCount: 0 };
-  const TRASH: DockItem = { appId: 'bw:trash', name: 'Koš', pinned: true, running: false, active: false, windowCount: 0 };
+  const TRASH: DockItem = { appId: 'bw:trash', name: t('Koš'), pinned: true, running: false, active: false, windowCount: 0 };
 
   const GAP = 8;
   // Odsazení ikon od okraje pásu (vodorovně / nahoře / dole nad tečkou spuštěné aplikace).

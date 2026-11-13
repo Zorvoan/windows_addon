@@ -12,6 +12,7 @@ using BetterWindows.Monitors;
 using BetterWindows.Native;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Services;
 
@@ -234,19 +235,19 @@ internal sealed class DockController : IDisposable
             var title = string.IsNullOrWhiteSpace(w.Title) ? w.AppName : w.Title;
             if (title.Length > 60) title = title[..59] + "…";
             var hwnd = w.Hwnd;
-            menu.Items.Add(Item(w.IsMinimized ? $"{title} (minimalizováno)" : title, () => AppLauncher.Activate(hwnd)));
+            menu.Items.Add(Item(w.IsMinimized ? Loc.T("{title} (minimalizováno)", ("title", title)) : title, () => AppLauncher.Activate(hwnd)));
         }
         if (windows.Count > 0)
             menu.Items.Add(new Separator { Style = sepStyle });
         if (windows.Count > 0 && canLaunch)
-            menu.Items.Add(Item("Nové okno", () => AppLauncher.Launch(appId)));
+            menu.Items.Add(Item(Loc.T("Nové okno"), () => AppLauncher.Launch(appId)));
         menu.Items.Add(pinned
-            ? Item("Odepnout z docku", () => SetPinned(appId, false))
-            : Item("Připnout do docku", () => SetPinned(appId, true), canLaunch));
+            ? Item(Loc.T("Odepnout z docku"), () => SetPinned(appId, false))
+            : Item(Loc.T("Připnout do docku"), () => SetPinned(appId, true), canLaunch));
         if (windows.Count > 0)
         {
             menu.Items.Add(new Separator { Style = sepStyle });
-            menu.Items.Add(Item(windows.Count > 1 ? $"Ukončit (zavřít {windows.Count} okna)" : "Ukončit",
+            menu.Items.Add(Item(windows.Count > 1 ? Loc.T(windows.Count < 5 ? "Ukončit (zavřít {n} okna)" : "Ukončit (zavřít {n} oken)", ("n", windows.Count)) : Loc.T("Ukončit"),
                 () => AppLauncher.Close(windows.Select(w => w.Hwnd))));
         }
 
@@ -270,9 +271,9 @@ internal sealed class DockController : IDisposable
             return;
         var menu = new ContextMenu { Style = (Style)Application.Current.Resources["Bw.ContextMenu"] };
         var itemStyle = (Style)Application.Current.Resources["Bw.MenuItem"];
-        var open = new MenuItem { Header = "Otevřít koš", Style = itemStyle };
+        var open = new MenuItem { Header = Loc.T("Otevřít koš"), Style = itemStyle };
         open.Click += (_, _) => Safe.Run("Otevření koše", TrashService.Open);
-        var empty = new MenuItem { Header = "Vysypat koš…", Style = itemStyle, IsEnabled = _trash.Count != 0 };
+        var empty = new MenuItem { Header = Loc.T("Vysypat koš…"), Style = itemStyle, IsEnabled = _trash.Count != 0 };
         empty.Click += (_, _) => Safe.Run("Vysypání koše", _trash.Empty);
         menu.Items.Add(open);
         menu.Items.Add(empty);

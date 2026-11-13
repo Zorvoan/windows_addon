@@ -1,5 +1,6 @@
 <!-- Oranžová tečka = mikrofon, zelená = kamera (právě je používá nějaká aplikace). -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import type { PrivacyState } from '$lib/bridge/messages';
 
   interface Props {
@@ -12,10 +13,10 @@
 {#if state.micInUse || state.camInUse}
   <span class="dots">
     {#if state.camInUse}
-      <span class="dot cam" role="img" aria-label={`Kameru používá: ${state.camApps.join(', ') || 'neznámá aplikace'}`} title={`Kameru používá: ${state.camApps.join(', ') || 'neznámá aplikace'}`}></span>
+      <span class="dot cam" role="img" aria-label={t('Kameru používá: {apps}', { apps: state.camApps.join(', ') || t('neznámá aplikace') })} title={t('Kameru používá: {apps}', { apps: state.camApps.join(', ') || t('neznámá aplikace') })}></span>
     {/if}
     {#if state.micInUse}
-      <span class="dot mic" role="img" aria-label={`Mikrofon používá: ${state.micApps.join(', ') || 'neznámá aplikace'}`} title={`Mikrofon používá: ${state.micApps.join(', ') || 'neznámá aplikace'}`}></span>
+      <span class="dot mic" role="img" aria-label={t('Mikrofon používá: {apps}', { apps: state.micApps.join(', ') || t('neznámá aplikace') })} title={t('Mikrofon používá: {apps}', { apps: state.micApps.join(', ') || t('neznámá aplikace') })}></span>
     {/if}
   </span>
 {/if}

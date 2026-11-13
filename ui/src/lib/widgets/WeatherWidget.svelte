@@ -1,5 +1,6 @@
 <!-- Počasí z Open-Meteo (data z C#). -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import Icon from '$lib/components/Icon.svelte';
   import { host } from '$lib/stores/host.svelte';
   import { describeWeather, formatTemp } from '$lib/weather';
@@ -19,14 +20,14 @@
     </header>
     <div class="temp">{formatTemp(w.temperature)}</div>
     <div class="desc">{info.label}</div>
-    <div class="range">Max {formatTemp(w.high)} · Min {formatTemp(w.low)}</div>
+    <div class="range">{t('Max {hi} · Min {lo}', { hi: formatTemp(w.high), lo: formatTemp(w.low) })}</div>
     <footer>{updated ? `${updated} · ` : ''}Open-Meteo</footer>
   {:else if w?.status === 'disabled'}
-    <p class="muted">Počasí je vypnuté v nastavení</p>
+    <p class="muted">{t('Počasí je vypnuté v nastavení')}</p>
   {:else if w?.status === 'error'}
-    <p class="muted">{w.error ?? 'Počasí se nepodařilo načíst.'}</p>
+    <p class="muted">{w.error ?? t('Počasí se nepodařilo načíst.')}</p>
   {:else}
-    <p class="muted">Načítám počasí…</p>
+    <p class="muted">{t('Načítám počasí…')}</p>
   {/if}
 </div>
 

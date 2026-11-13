@@ -1,5 +1,6 @@
 <!-- Připomínky: přidat (Enter), odškrtnout, smazat. Ukládá C# (store "reminders"). -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import Icon from '$lib/components/Icon.svelte';
   import { host } from '$lib/stores/host.svelte';
   import { load, save } from '$lib/stores/kv';
@@ -34,25 +35,25 @@
 
 <div class="reminders">
   <header>
-    <span class="title">Připomínky</span>
+    <span class="title">{t('Připomínky')}</span>
     <span class="count">{open}</span>
   </header>
   <ul>
     {#each items as r (r.id)}
       <li class:done={r.done}>
-        <button type="button" class="check" aria-label={r.done ? 'Označit jako nesplněné' : 'Označit jako splněné'} onclick={() => toggle(r.id)}>
+        <button type="button" class="check" aria-label={r.done ? t('Označit jako nesplněné') : t('Označit jako splněné')} onclick={() => toggle(r.id)}>
           {#if r.done}<Icon name="check" size={10} strokeWidth={2.4} />{/if}
         </button>
         <span class="text">{r.text}</span>
         <button type="button" class="del" aria-label="Smazat" onclick={() => remove(r.id)}><Icon name="close" size={10} /></button>
       </li>
     {:else}
-      <li class="empty">Zatím nic. Napiš první připomínku.</li>
+      <li class="empty">{t('Zatím nic. Napiš první připomínku.')}</li>
     {/each}
   </ul>
   <input
     type="text"
-    placeholder="Přidat připomínku…"
+    placeholder={t('Přidat připomínku…')}
     bind:value={draft}
     use:desktopTextInput={{ onsubmit: add }}
     onkeydown={(e) => {

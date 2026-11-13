@@ -1,6 +1,7 @@
 using BetterWindows.Core;
 using BetterWindows.Logic.Settings;
 using Forms = System.Windows.Forms;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Tray;
 
@@ -28,15 +29,15 @@ public sealed class TrayIcon : IDisposable
     public TrayIcon()
     {
         _menu = new Forms.ContextMenuStrip();
-        _menu.Items.Add("Nastavení", null, (_, _) => SettingsRequested?.Invoke());
+        _menu.Items.Add(Loc.T("Nastavení"), null, (_, _) => SettingsRequested?.Invoke());
 
         // Rychlé přepnutí rozmazání lišty a docku (totéž je v Nastavení > Vzhled).
-        var backdropMenu = new Forms.ToolStripMenuItem("Rozmazání lišty a docku");
+        var backdropMenu = new Forms.ToolStripMenuItem(Loc.T("Rozmazání lišty a docku"));
         foreach (var (mode, text) in new[]
                  {
-                     (BackdropMode.SystemAcrylic, "Systémové (Windows 11 Acrylic)"),
-                     (BackdropMode.AccentAcrylic, "Vlastní tón (API z Windows 10)"),
-                     (BackdropMode.None, "Žádné"),
+                     (BackdropMode.SystemAcrylic, Loc.T("Systémové (Windows 11 Acrylic)")),
+                     (BackdropMode.AccentAcrylic, Loc.T("Vlastní tón (API z Windows 10)")),
+                     (BackdropMode.None, Loc.T("Žádné")),
                  })
         {
             var item = new Forms.ToolStripMenuItem(text, null, (_, _) => BackdropRequested?.Invoke(mode));
@@ -46,14 +47,14 @@ public sealed class TrayIcon : IDisposable
         _menu.Items.Add(backdropMenu);
 
         // Nouzové tlačítko: ukáže ikony plochy a hlavní panel Windows, kdyby cokoli zlobilo.
-        _menu.Items.Add("Obnovit ikony plochy a hlavní panel", null, (_, _) => RestoreSystemRequested?.Invoke());
+        _menu.Items.Add(Loc.T("Obnovit ikony plochy a hlavní panel"), null, (_, _) => RestoreSystemRequested?.Invoke());
 #if DEBUG
         _menu.Items.Add(new Forms.ToolStripSeparator());
         _menu.Items.Add("Test: chyba v UI (aplikace běží dál)", null, (_, _) => UiErrorTestRequested?.Invoke());
         _menu.Items.Add("Test: pád procesu (obnoví watchdog)", null, (_, _) => CrashTestRequested?.Invoke());
 #endif
         _menu.Items.Add(new Forms.ToolStripSeparator());
-        _menu.Items.Add("Ukončit", null, (_, _) => ExitRequested?.Invoke());
+        _menu.Items.Add(Loc.T("Ukončit"), null, (_, _) => ExitRequested?.Invoke());
 
         _icon = AppIcons.CreateTrayIcon();
         _notifyIcon = new Forms.NotifyIcon

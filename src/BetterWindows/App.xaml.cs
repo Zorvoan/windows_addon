@@ -3,6 +3,7 @@ using System.Threading;
 using System.Windows;
 using BetterWindows.Core;
 using BetterWindows.Tray;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows;
 
@@ -56,7 +57,7 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Error("Spuštění shellu selhalo", ex);
-            MessageBox.Show($"{AppInfo.DisplayName} se nepodařilo spustit:\n{ex.Message}\n\nPodrobnosti v logu:\n{Log.CurrentFile}",
+            MessageBox.Show(Loc.T("{app} se nepodařilo spustit:\n{error}\n\nPodrobnosti v logu:\n{log}", ("app", AppInfo.DisplayName), ("error", ex.Message), ("log", Log.CurrentFile)),
                 AppInfo.DisplayName, MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
             return;

@@ -10,6 +10,7 @@ using Windows.Win32.System.Com;
 using Windows.Win32.System.Threading;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.Shell.PropertiesSystem;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Services;
 
@@ -213,7 +214,7 @@ internal sealed class AppIdentityResolver
         string name;
         if (file.Equals("explorer.exe", StringComparison.OrdinalIgnoreCase))
         {
-            name = "Průzkumník souborů";
+            name = Loc.T("Průzkumník souborů");
         }
         else
         {

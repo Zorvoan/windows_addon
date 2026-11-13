@@ -1,5 +1,6 @@
 <!-- Baterie tohoto počítače (kruhový ukazatel). -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import Icon from '$lib/components/Icon.svelte';
   import { host } from '$lib/stores/host.svelte';
 
@@ -10,7 +11,7 @@
 </script>
 
 <div class="battery">
-  <span class="title">Baterie</span>
+  <span class="title">{t('Baterie')}</span>
   {#if b?.present}
     <div class="row">
       <svg viewBox="0 0 72 72" class="ring" aria-hidden="true">
@@ -21,13 +22,13 @@
         </foreignObject>
       </svg>
       <div>
-        <div class="label">Tento počítač</div>
+        <div class="label">{t('Tento počítač')}</div>
         <div class="pct">{pct} %</div>
-        <div class="state">{b.charging ? 'Nabíjí se' : b.onAc ? 'Napájení ze sítě' : 'Na baterii'}</div>
+        <div class="state">{b.charging ? t('Nabíjí se') : b.onAc ? t('Napájení ze sítě') : t('Na baterii')}</div>
       </div>
     </div>
   {:else}
-    <p class="muted">Tento počítač nemá baterii</p>
+    <p class="muted">{t('Tento počítač nemá baterii')}</p>
   {/if}
 </div>
 

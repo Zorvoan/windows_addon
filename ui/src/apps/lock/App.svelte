@@ -4,6 +4,7 @@
   V režimu úprav vpravo panel editoru s živým náhledem.
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount } from 'svelte';
   import Icon from '$lib/components/Icon.svelte';
   import ClockWidget from '$lib/widgets/ClockWidget.svelte';
@@ -104,17 +105,17 @@
     {#if cfg?.showMedia && host.media?.available}
       <!-- Ovládání hudby nesmí "odemknout" obrazovku. -->
       <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div class="media" role="group" aria-label="Hudba" onclick={(e) => e.stopPropagation()}>
+      <div class="media" role="group" aria-label={t('Hudba')} onclick={(e) => e.stopPropagation()}>
         {#if host.media.thumbnail}<img src={host.media.thumbnail} alt="" />{/if}
         <div class="meta">
           <div class="title">{host.media.title}</div>
           <div class="small">{host.media.artist ?? ''}</div>
         </div>
-        <button type="button" aria-label="Předchozí" onclick={() => send('media.command', { command: 'previous' })}><Icon name="previous" size={18} /></button>
-        <button type="button" aria-label={host.media.playing ? 'Pozastavit' : 'Přehrát'} onclick={() => send('media.command', { command: 'playPause' })}>
+        <button type="button" aria-label={t('Předchozí')} onclick={() => send('media.command', { command: 'previous' })}><Icon name="previous" size={18} /></button>
+        <button type="button" aria-label={host.media.playing ? t('Pozastavit') : t('Přehrát')} onclick={() => send('media.command', { command: 'playPause' })}>
           <Icon name={host.media.playing ? 'pause' : 'play'} size={22} />
         </button>
-        <button type="button" aria-label="Další" onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={18} /></button>
+        <button type="button" aria-label={t('Další')} onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={18} /></button>
       </div>
     {/if}
   </section>
@@ -127,7 +128,7 @@
       </div>
     {/if}
     {#if !host.lock.editing}
-      <div class="hint"><Icon name="lock" size={14} /> Klikni nebo stiskni libovolnou klávesu</div>
+      <div class="hint"><Icon name="lock" size={14} /> {t('Klikni nebo stiskni libovolnou klávesu')}</div>
     {/if}
   </footer>
 

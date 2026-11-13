@@ -2,6 +2,7 @@
   Okno nastavení. Každá změna se hned uloží (zpráva settings.update) a C# ji použije.
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount } from 'svelte';
   import { on, ready, send } from '$lib/bridge/bridge';
   import { themePresets } from '$lib/themes';
@@ -27,38 +28,38 @@
 
   on('theme.code', (p) => (themeCode = p.code));
   on('theme.importResult', (p) => {
-    importMessage = p.ok ? { ok: true, text: 'Motiv použit' } : { ok: false, text: p.error ?? 'Kód nejde použít.' };
+    importMessage = p.ok ? { ok: true, text: t('Motiv použit') } : { ok: false, text: p.error ?? t('Kód nejde použít.') };
     if (p.ok) importCode = '';
   });
 
   const sections = [
-    { id: 'appearance', title: 'Vzhled' },
-    { id: 'theme', title: 'Motiv' },
-    { id: 'performance', title: 'Výkon' },
-    { id: 'desktop', title: 'Plocha' },
-    { id: 'visualizer', title: 'Vizualizér' },
-    { id: 'dock', title: 'Dock' },
-    { id: 'start', title: 'Start' },
-    { id: 'island', title: 'Dynamic Island' },
-    { id: 'lock', title: 'Zamykací obrazovka' },
-    { id: 'topbar', title: 'Horní lišta' },
-    { id: 'weather', title: 'Počasí' },
-    { id: 'taskbar', title: 'Hlavní panel' },
-    { id: 'about', title: 'O aplikaci' },
+    { id: 'appearance', title: t('Vzhled') },
+    { id: 'theme', title: t('Motiv') },
+    { id: 'performance', title: t('Výkon') },
+    { id: 'desktop', title: t('Plocha') },
+    { id: 'visualizer', title: t('Vizualizér') },
+    { id: 'dock', title: t('Dock') },
+    { id: 'start', title: t('Start') },
+    { id: 'island', title: t('Dynamic Island') },
+    { id: 'lock', title: t('Zamykací obrazovka') },
+    { id: 'topbar', title: t('Horní lišta') },
+    { id: 'weather', title: t('Počasí') },
+    { id: 'taskbar', title: t('Hlavní panel') },
+    { id: 'about', title: t('O aplikaci') },
   ];
 
   const backdropOptions: { value: BackdropMode; label: string }[] = [
-    { value: 'systemAcrylic', label: 'Systémové' },
-    { value: 'accentAcrylic', label: 'Vlastní tón' },
-    { value: 'none', label: 'Žádné' },
+    { value: 'systemAcrylic', label: t('Systémové') },
+    { value: 'accentAcrylic', label: t('Vlastní tón') },
+    { value: 'none', label: t('Žádné') },
   ];
 
   const modeLabels: Record<string, string> = {
-    'embed-raised': 'Vloženo do plochy (Windows 11 24H2+)',
-    'embed-classic': 'Vloženo do plochy (klasicky)',
-    bottom: 'Samostatné okno vespod (HWND_BOTTOM)',
-    failed: 'Selhalo',
-    off: 'Vypnuto',
+    'embed-raised': t('Vloženo do plochy (Windows 11 24H2+)'),
+    'embed-classic': t('Vloženo do plochy (klasicky)'),
+    bottom: t('Samostatné okno vespod (HWND_BOTTOM)'),
+    failed: t('Selhalo'),
+    off: t('Vypnuto'),
   };
 
   /** Upraví kopii nastavení a pošle ji do C# (ten ji uloží a použije). */
@@ -91,20 +92,20 @@
 
   <main>
     {#if !s}
-      <p class="muted">Načítám nastavení…</p>
+      <p class="muted">{t('Načítám nastavení…')}</p>
     {:else}
       <section id="appearance">
         <Surface>
-          <Section title="Vzhled" description="Světlý a tmavý režim se řídí nastavením Windows">
+          <Section title={t('Vzhled')} description={t('Světlý a tmavý režim se řídí nastavením Windows')}>
             <div>
-              <SettingRow label="Rozmazání horní lišty" hint="Systémové je rozmazání Windows 11, vlastní tón je průhlednější">
-                <Segmented label="Rozmazání horní lišty" value={s.appearance.topBarBackdrop} options={backdropOptions} onchange={(v) => update((x) => (x.appearance.topBarBackdrop = v))} />
+              <SettingRow label={t('Rozmazání horní lišty')} hint={t('Systémové je rozmazání Windows 11, vlastní tón je průhlednější')}>
+                <Segmented label={t('Rozmazání horní lišty')} value={s.appearance.topBarBackdrop} options={backdropOptions} onchange={(v) => update((x) => (x.appearance.topBarBackdrop = v))} />
               </SettingRow>
-              <SettingRow label="Rozmazání docku">
-                <Segmented label="Rozmazání docku" value={s.appearance.dockBackdrop} options={backdropOptions} onchange={(v) => update((x) => (x.appearance.dockBackdrop = v))} />
+              <SettingRow label={t('Rozmazání docku')}>
+                <Segmented label={t('Rozmazání docku')} value={s.appearance.dockBackdrop} options={backdropOptions} onchange={(v) => update((x) => (x.appearance.dockBackdrop = v))} />
               </SettingRow>
-              <SettingRow label="Omezit animace" hint="Vypne zvětšování s doběhem a další plynulé přechody">
-                <Toggle label="Omezit animace" checked={s.appearance.reduceMotion} onchange={(v) => update((x) => (x.appearance.reduceMotion = v))} />
+              <SettingRow label={t('Omezit animace')} hint={t('Vypne zvětšování s doběhem a další plynulé přechody')}>
+                <Toggle label={t('Omezit animace')} checked={s.appearance.reduceMotion} onchange={(v) => update((x) => (x.appearance.reduceMotion = v))} />
               </SettingRow>
             </div>
           </Section>
@@ -113,7 +114,7 @@
 
       <section id="theme">
         <Surface>
-          <Section title="Motiv" description="Barvy, průhlednost, rozmazání a zaoblení. Nemění tón systémového rozmazání (ten určuje Windows) ani nativní kontextovou nabídku.">
+          <Section title={t('Motiv')} description={t('Barvy, průhlednost, rozmazání a zaoblení. Nemění tón systémového rozmazání (ten určuje Windows) ani nativní kontextovou nabídku.')}>
             <div>
               <div class="presets">
                 {#each themePresets as preset (preset.name)}
@@ -124,54 +125,54 @@
                     onclick={() => update((x) => (x.appearance.style = { ...preset }))}
                   >
                     <span class="swatch" style:background={preset.useSystemAccent ? host.system.accent : preset.accent}></span>
-                    {preset.name}
+                    {t(preset.name)}
                   </button>
                 {/each}
               </div>
-              <SettingRow label="Barva zvýraznění podle Windows" hint="Přizpůsobení › Barvy › Barva zvýraznění">
+              <SettingRow label={t('Barva zvýraznění podle Windows')} hint={t('Přizpůsobení › Barvy › Barva zvýraznění')}>
                 <Toggle
-                  label="Barva zvýraznění podle Windows"
+                  label={t('Barva zvýraznění podle Windows')}
                   checked={s.appearance.style.useSystemAccent}
                   onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, useSystemAccent: v }))}
                 />
               </SettingRow>
-              <SettingRow label="Vlastní barva zvýraznění">
+              <SettingRow label={t('Vlastní barva zvýraznění')}>
                 <input
                   disabled={s.appearance.style.useSystemAccent}
                   type="color"
                   class="color"
-                  aria-label="Barva zvýraznění"
+                  aria-label={t('Barva zvýraznění')}
                   value={s.appearance.style.accent}
                   onchange={(e) => update((x) => (x.appearance.style = { ...x.appearance.style, accent: e.currentTarget.value, useSystemAccent: false, name: 'Vlastní' }))}
                 />
               </SettingRow>
-              <SettingRow label="Zaoblení karet">
-                <Slider label="Zaoblení karet" min={0} max={40} value={s.appearance.style.radiusCard} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, radiusCard: v, name: 'Vlastní' }))} />
+              <SettingRow label={t('Zaoblení karet')}>
+                <Slider label={t('Zaoblení karet')} min={0} max={40} value={s.appearance.style.radiusCard} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, radiusCard: v, name: 'Vlastní' }))} />
               </SettingRow>
-              <SettingRow label="Rozmazání widgetů">
-                <Slider label="Rozmazání widgetů" min={0} max={60} value={s.appearance.style.glassBlur} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, glassBlur: v, name: 'Vlastní' }))} />
+              <SettingRow label={t('Rozmazání widgetů')}>
+                <Slider label={t('Rozmazání widgetů')} min={0} max={60} value={s.appearance.style.glassBlur} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, glassBlur: v, name: 'Vlastní' }))} />
               </SettingRow>
-              <SettingRow label="Neprůhlednost widgetů">
-                <Slider label="Neprůhlednost widgetů" min={0} max={1} step={0.05} value={s.appearance.style.glassOpacity} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, glassOpacity: v, name: 'Vlastní' }))} />
+              <SettingRow label={t('Neprůhlednost widgetů')}>
+                <Slider label={t('Neprůhlednost widgetů')} min={0} max={1} step={0.05} value={s.appearance.style.glassOpacity} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, glassOpacity: v, name: 'Vlastní' }))} />
               </SettingRow>
-              <SettingRow label="Tón horní lišty" hint="Přidává barvu přes systémové rozmazání">
-                <Slider label="Tón horní lišty" min={0} max={0.8} step={0.02} value={s.appearance.style.barTint} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, barTint: v, name: 'Vlastní' }))} />
+              <SettingRow label={t('Tón horní lišty')} hint={t('Přidává barvu přes systémové rozmazání')}>
+                <Slider label={t('Tón horní lišty')} min={0} max={0.8} step={0.02} value={s.appearance.style.barTint} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, barTint: v, name: 'Vlastní' }))} />
               </SettingRow>
-              <SettingRow label="Tón docku">
-                <Slider label="Tón docku" min={0} max={0.8} step={0.02} value={s.appearance.style.dockTint} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, dockTint: v, name: 'Vlastní' }))} />
+              <SettingRow label={t('Tón docku')}>
+                <Slider label={t('Tón docku')} min={0} max={0.8} step={0.02} value={s.appearance.style.dockTint} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, dockTint: v, name: 'Vlastní' }))} />
               </SettingRow>
-              <SettingRow label="Sdílet motiv" hint="Kód obsahuje motiv a velikost ikon docku. Pošli ho komukoli s Better Windows.">
-                <Button onclick={() => send('theme.export', {})}>Vytvořit kód</Button>
+              <SettingRow label={t('Sdílet motiv')} hint={t('Kód obsahuje motiv a velikost ikon docku. Pošli ho komukoli s Better Windows.')}>
+                <Button onclick={() => send('theme.export', {})}>{t('Vytvořit kód')}</Button>
               </SettingRow>
               {#if themeCode}
                 <div class="code">
-                  <input type="text" readonly value={themeCode} aria-label="Kód motivu" onfocus={(e) => e.currentTarget.select()} />
-                  <Button onclick={() => navigator.clipboard?.writeText(themeCode)}>Kopírovat</Button>
+                  <input type="text" readonly value={themeCode} aria-label={t('Kód motivu')} onfocus={(e) => e.currentTarget.select()} />
+                  <Button onclick={() => navigator.clipboard?.writeText(themeCode)}>{t('Kopírovat')}</Button>
                 </div>
               {/if}
-              <SettingRow label="Použít kód motivu">
-                <input class="import" type="text" placeholder="BW1.…" aria-label="Kód motivu k importu" bind:value={importCode} />
-                <Button variant="primary" disabled={!importCode.trim()} onclick={() => send('theme.import', { code: importCode })}>Použít</Button>
+              <SettingRow label={t('Použít kód motivu')}>
+                <input class="import" type="text" placeholder="BW1.…" aria-label={t('Kód motivu k importu')} bind:value={importCode} />
+                <Button variant="primary" disabled={!importCode.trim()} onclick={() => send('theme.import', { code: importCode })}>{t('Použít')}</Button>
               </SettingRow>
               {#if importMessage}
                 <p class="message" class:error={!importMessage.ok}>{importMessage.text}</p>
@@ -183,28 +184,28 @@
 
       <section id="performance">
         <Surface>
-          <Section title="Výkon" description="Ztlumí animace a pozastaví vizualizér, když na nich nezáleží nebo když šetříš baterii">
+          <Section title={t('Výkon')} description={t('Ztlumí animace a pozastaví vizualizér, když na nich nezáleží nebo když šetříš baterii')}>
             <div>
-              <SettingRow label="Režim">
+              <SettingRow label={t('Režim')}>
                 <Segmented
-                  label="Režim výkonu"
+                  label={t('Režim výkonu')}
                   value={s.performance.mode}
                   options={[
-                    { value: 'auto', label: 'Automaticky' },
-                    { value: 'alwaysReduced', label: 'Vždy úsporně' },
-                    { value: 'neverReduced', label: 'Vždy plné animace' },
+                    { value: 'auto', label: t('Automaticky') },
+                    { value: 'alwaysReduced', label: t('Vždy úsporně') },
+                    { value: 'neverReduced', label: t('Vždy plné animace') },
                   ]}
                   onchange={(v) => update((x) => (x.performance.mode = v))}
                 />
               </SettingRow>
-              <SettingRow label="Ztlumit na baterii">
-                <Toggle label="Ztlumit na baterii" checked={s.performance.reduceOnBattery} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnBattery = v))} />
+              <SettingRow label={t('Ztlumit na baterii')}>
+                <Toggle label={t('Ztlumit na baterii')} checked={s.performance.reduceOnBattery} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnBattery = v))} />
               </SettingRow>
-              <SettingRow label="Ztlumit při aplikaci přes celou obrazovku" hint="Hry, videa, prezentace">
-                <Toggle label="Ztlumit při celé obrazovce" checked={s.performance.reduceOnFullscreen} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnFullscreen = v))} />
+              <SettingRow label={t('Ztlumit při aplikaci přes celou obrazovku')} hint={t('Hry, videa, prezentace')}>
+                <Toggle label={t('Ztlumit při celé obrazovce')} checked={s.performance.reduceOnFullscreen} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnFullscreen = v))} />
               </SettingRow>
-              <SettingRow label="Teď">
-                <span class="status">{host.performance.reduced ? 'Ztlumené animace' : 'Plné animace'}</span>
+              <SettingRow label={t('Teď')}>
+                <span class="status">{host.performance.reduced ? t('Ztlumené animace') : t('Plné animace')}</span>
                 <span class="muted small">{host.performance.reason}</span>
               </SettingRow>
             </div>
@@ -214,40 +215,40 @@
 
       <section id="desktop">
         <Surface>
-          <Section title="Plocha" description="Vrstva pod všemi aplikacemi: tapeta, widgety a vizualizér">
+          <Section title={t('Plocha')} description={t('Vrstva pod všemi aplikacemi: tapeta, widgety a vizualizér')}>
             <div>
-              <SettingRow label="Vrstva plochy">
-                <Toggle label="Vrstva plochy" checked={s.desktop.enabled} onchange={(v) => update((x) => (x.desktop.enabled = v))} />
+              <SettingRow label={t('Vrstva plochy')}>
+                <Toggle label={t('Vrstva plochy')} checked={s.desktop.enabled} onchange={(v) => update((x) => (x.desktop.enabled = v))} />
               </SettingRow>
-              <SettingRow label="Způsob umístění" hint="Automaticky zkusí vložení do plochy Windows, při neúspěchu okno vespod. Okno vespod nedostává klávesnici.">
+              <SettingRow label={t('Způsob umístění')} hint={t('Automaticky zkusí vložení do plochy Windows, při neúspěchu okno vespod. Okno vespod nedostává klávesnici.')}>
                 <Segmented
-                  label="Způsob umístění"
+                  label={t('Způsob umístění')}
                   value={s.desktop.mode}
                   options={[
-                    { value: 'auto', label: 'Automaticky' },
-                    { value: 'embed', label: 'Vložit do plochy' },
-                    { value: 'bottom', label: 'Okno vespod' },
+                    { value: 'auto', label: t('Automaticky') },
+                    { value: 'embed', label: t('Vložit do plochy') },
+                    { value: 'bottom', label: t('Okno vespod') },
                   ]}
                   onchange={(v) => update((x) => (x.desktop.mode = v))}
                 />
               </SettingRow>
-              <SettingRow label="Stav" hint={host.desktop?.detail ?? undefined}>
+              <SettingRow label={t('Stav')} hint={host.desktop?.detail ?? undefined}>
                 <span class="status">{host.desktop ? (modeLabels[host.desktop.mode] ?? host.desktop.mode) : '–'}</span>
               </SettingRow>
-              <SettingRow label="Skrýt ikony plochy" hint="Jen když je vrstva vložená do plochy. Bez skrytí ikon nereagují widgety na myš.">
-                <Toggle label="Skrýt ikony plochy" checked={s.desktop.hideIcons} onchange={(v) => update((x) => (x.desktop.hideIcons = v))} />
+              <SettingRow label={t('Skrýt ikony plochy')} hint={t('Jen když je vrstva vložená do plochy. Bez skrytí ikon nereagují widgety na myš.')}>
+                <Toggle label={t('Skrýt ikony plochy')} checked={s.desktop.hideIcons} onchange={(v) => update((x) => (x.desktop.hideIcons = v))} />
               </SettingRow>
-              <SettingRow label="Tapeta" hint={s.desktop.wallpaperPath ?? 'Aktuální tapeta Windows'}>
-                <Button onclick={() => action('pickWallpaper')}><Icon name="image" size={14} /> Vybrat obrázek…</Button>
+              <SettingRow label={t('Tapeta')} hint={s.desktop.wallpaperPath ?? t('Aktuální tapeta Windows')}>
+                <Button onclick={() => action('pickWallpaper')}><Icon name="image" size={14} /> {t('Vybrat obrázek…')}</Button>
                 {#if s.desktop.wallpaperPath}
-                  <Button onclick={() => action('clearWallpaper')}>Použít tapetu Windows</Button>
+                  <Button onclick={() => action('clearWallpaper')}>{t('Použít tapetu Windows')}</Button>
                 {/if}
               </SettingRow>
-              <SettingRow label="Widgety">
-                <Toggle label="Widgety" checked={s.desktop.showWidgets} onchange={(v) => update((x) => (x.desktop.showWidgets = v))} />
+              <SettingRow label={t('Widgety')}>
+                <Toggle label={t('Widgety')} checked={s.desktop.showWidgets} onchange={(v) => update((x) => (x.desktop.showWidgets = v))} />
               </SettingRow>
-              <SettingRow label="Testovací karta" hint="Diagnostika vrstvy plochy (režim, test myši a klávesnice)">
-                <Toggle label="Testovací karta" checked={s.desktop.showTestCard} onchange={(v) => update((x) => (x.desktop.showTestCard = v))} />
+              <SettingRow label={t('Testovací karta')} hint={t('Diagnostika vrstvy plochy (režim, test myši a klávesnice)')}>
+                <Toggle label={t('Testovací karta')} checked={s.desktop.showTestCard} onchange={(v) => update((x) => (x.desktop.showTestCard = v))} />
               </SettingRow>
             </div>
           </Section>
@@ -256,25 +257,25 @@
 
       <section id="visualizer">
         <Surface>
-          <Section title="Vizualizér" description="Reaguje na zvuk, který hraje z počítače (ne na mikrofon)">
+          <Section title={t('Vizualizér')} description={t('Reaguje na zvuk, který hraje z počítače (ne na mikrofon)')}>
             <div>
-              <SettingRow label="Zapnuto">
-                <Toggle label="Vizualizér" checked={s.desktop.visualizer.enabled} onchange={(v) => update((x) => (x.desktop.visualizer.enabled = v))} />
+              <SettingRow label={t('Zapnuto')}>
+                <Toggle label={t('Vizualizér')} checked={s.desktop.visualizer.enabled} onchange={(v) => update((x) => (x.desktop.visualizer.enabled = v))} />
               </SettingRow>
-              <SettingRow label="Scéna">
+              <SettingRow label={t('Scéna')}>
                 <Segmented
-                  label="Scéna"
+                  label={t('Scéna')}
                   value={s.desktop.visualizer.scene}
                   options={[
-                    { value: 'dots', label: 'Tečky' },
-                    { value: 'wave', label: 'Vlna' },
-                    { value: 'ring', label: 'Kruh' },
+                    { value: 'dots', label: t('Tečky') },
+                    { value: 'wave', label: t('Vlna') },
+                    { value: 'ring', label: t('Kruh') },
                   ]}
                   onchange={(v) => update((x) => (x.desktop.visualizer.scene = v))}
                 />
               </SettingRow>
-              <SettingRow label="Citlivost">
-                <Slider label="Citlivost" min={0.2} max={3} step={0.1} value={s.desktop.visualizer.sensitivity} format={(v) => `${v.toFixed(1)}×`} onchange={(v) => update((x) => (x.desktop.visualizer.sensitivity = v))} />
+              <SettingRow label={t('Citlivost')}>
+                <Slider label={t('Citlivost')} min={0.2} max={3} step={0.1} value={s.desktop.visualizer.sensitivity} format={(v) => `${v.toFixed(1)}×`} onchange={(v) => update((x) => (x.desktop.visualizer.sensitivity = v))} />
               </SettingRow>
             </div>
           </Section>
@@ -283,28 +284,28 @@
 
       <section id="dock">
         <Surface>
-          <Section title="Dock">
+          <Section title={t('Dock')}>
             <div>
-              <SettingRow label="Zapnuto">
-                <Toggle label="Dock" checked={s.dock.enabled} onchange={(v) => update((x) => (x.dock.enabled = v))} />
+              <SettingRow label={t('Zapnuto')}>
+                <Toggle label={t('Dock')} checked={s.dock.enabled} onchange={(v) => update((x) => (x.dock.enabled = v))} />
               </SettingRow>
-              <SettingRow label="Velikost ikon">
-                <Slider label="Velikost ikon" min={32} max={96} step={2} value={s.dock.iconSize} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.dock.iconSize = v))} />
+              <SettingRow label={t('Velikost ikon')}>
+                <Slider label={t('Velikost ikon')} min={32} max={96} step={2} value={s.dock.iconSize} format={(v) => `${v} px`} onchange={(v) => update((x) => (x.dock.iconSize = v))} />
               </SettingRow>
-              <SettingRow label="Zvětšování při najetí">
-                <Toggle label="Zvětšování" checked={s.dock.magnification} onchange={(v) => update((x) => (x.dock.magnification = v))} />
+              <SettingRow label={t('Zvětšování při najetí')}>
+                <Toggle label={t('Zvětšování')} checked={s.dock.magnification} onchange={(v) => update((x) => (x.dock.magnification = v))} />
               </SettingRow>
-              <SettingRow label="Náhledy oken" hint="Po najetí na ikonu spuštěné aplikace">
-                <Toggle label="Náhledy oken" checked={s.dock.previews} onchange={(v) => update((x) => (x.dock.previews = v))} />
+              <SettingRow label={t('Náhledy oken')} hint={t('Po najetí na ikonu spuštěné aplikace')}>
+                <Toggle label={t('Náhledy oken')} checked={s.dock.previews} onchange={(v) => update((x) => (x.dock.previews = v))} />
               </SettingRow>
-              <SettingRow label="Launchpad a Koš" hint="Ikona Startu na začátku docku a koš na konci">
-                <Toggle label="Launchpad" checked={s.dock.showLaunchpad} onchange={(v) => update((x) => (x.dock.showLaunchpad = v))} />
-                <Toggle label="Koš" checked={s.dock.showTrash} onchange={(v) => update((x) => (x.dock.showTrash = v))} />
+              <SettingRow label={t('Launchpad a Koš')} hint={t('Ikona Startu na začátku docku a koš na konci')}>
+                <Toggle label={t('Launchpad')} checked={s.dock.showLaunchpad} onchange={(v) => update((x) => (x.dock.showLaunchpad = v))} />
+                <Toggle label={t('Koš')} checked={s.dock.showTrash} onchange={(v) => update((x) => (x.dock.showTrash = v))} />
               </SettingRow>
-              <SettingRow label="Největší zvětšení">
-                <Slider label="Největší zvětšení" min={1} max={2.5} step={0.1} value={s.dock.maxScale} format={(v) => `${v.toFixed(1)}×`} onchange={(v) => update((x) => (x.dock.maxScale = v))} />
+              <SettingRow label={t('Největší zvětšení')}>
+                <Slider label={t('Největší zvětšení')} min={1} max={2.5} step={0.1} value={s.dock.maxScale} format={(v) => `${v.toFixed(1)}×`} onchange={(v) => update((x) => (x.dock.maxScale = v))} />
               </SettingRow>
-              <SettingRow label="Připnuté aplikace" hint="Připnout jde pravým tlačítkem na ikonu v docku">
+              <SettingRow label={t('Připnuté aplikace')} hint={t('Připnout jde pravým tlačítkem na ikonu v docku')}>
                 <span></span>
               </SettingRow>
               <ul class="pinned">
@@ -312,10 +313,10 @@
                   <li>
                     {#if host.icons[p.appId]}<img src={host.icons[p.appId]} alt="" />{:else}<span class="ph">{p.name.charAt(0)}</span>{/if}
                     <span class="name" title={p.appId}>{p.name}</span>
-                    <Button onclick={() => action('unpin', p.appId)}>Odepnout</Button>
+                    <Button onclick={() => action('unpin', p.appId)}>{t('Odepnout')}</Button>
                   </li>
                 {:else}
-                  <li class="muted">Nic není připnuté.</li>
+                  <li class="muted">{t('Nic není připnuté.')}</li>
                 {/each}
               </ul>
             </div>
@@ -325,16 +326,16 @@
 
       <section id="start">
         <Surface>
-          <Section title="Start" description="Vyhledávání a všechny aplikace. Otevřeš ho kliknutím na logo v horní liště.">
+          <Section title={t('Start')} description={t('Vyhledávání a všechny aplikace. Otevřeš ho kliknutím na logo v horní liště.')}>
             <div>
-              <SettingRow label="Zapnuto">
-                <Toggle label="Start" checked={s.start.enabled} onchange={(v) => update((x) => (x.start.enabled = v))} />
+              <SettingRow label={t('Zapnuto')}>
+                <Toggle label={t('Start')} checked={s.start.enabled} onchange={(v) => update((x) => (x.start.enabled = v))} />
               </SettingRow>
               <SettingRow
-                label="Otevírat klávesou Windows"
-                hint="Samotný stisk klávesy Windows otevře tento Start místo Startu Windows. Zkratky (Win+E, Win+L…) fungují dál. Když je v popředí aplikace spuštěná jako správce, otevře se Start Windows."
+                label={t('Otevírat klávesou Windows')}
+                hint={t('Samotný stisk klávesy Windows otevře tento Start místo Startu Windows. Zkratky (Win+E, Win+L…) fungují dál. Když je v popředí aplikace spuštěná jako správce, otevře se Start Windows.')}
               >
-                <Toggle label="Otevírat klávesou Windows" checked={s.start.replaceWinKey} disabled={!s.start.enabled} onchange={(v) => update((x) => (x.start.replaceWinKey = v))} />
+                <Toggle label={t('Otevírat klávesou Windows')} checked={s.start.replaceWinKey} disabled={!s.start.enabled} onchange={(v) => update((x) => (x.start.replaceWinKey = v))} />
               </SettingRow>
             </div>
           </Section>
@@ -343,19 +344,19 @@
 
       <section id="island">
         <Surface>
-          <Section title="Dynamic Island" description="Právě hrající hudba a hlasitost nahoře uprostřed">
+          <Section title={t('Dynamic Island')} description={t('Právě hrající hudba a hlasitost nahoře uprostřed')}>
             <div>
-              <SettingRow label="Zapnuto">
-                <Toggle label="Dynamic Island" checked={s.island.enabled} onchange={(v) => update((x) => (x.island.enabled = v))} />
+              <SettingRow label={t('Zapnuto')}>
+                <Toggle label={t('Dynamic Island')} checked={s.island.enabled} onchange={(v) => update((x) => (x.island.enabled = v))} />
               </SettingRow>
-              <SettingRow label="Ukazovat změnu hlasitosti">
-                <Toggle label="Ukazovat změnu hlasitosti" checked={s.island.showVolume} onchange={(v) => update((x) => (x.island.showVolume = v))} />
+              <SettingRow label={t('Ukazovat změnu hlasitosti')}>
+                <Toggle label={t('Ukazovat změnu hlasitosti')} checked={s.island.showVolume} onchange={(v) => update((x) => (x.island.showVolume = v))} />
               </SettingRow>
               <SettingRow
-                label="Oznámení"
-                hint="Číst oznámení ostatních aplikací Windows dovolí jen aplikacím nainstalovaným jako balíček (MSIX). Better Windows zatím balíček není, proto oznámení v ostrůvku nejsou."
+                label={t('Oznámení')}
+                hint={t('Číst oznámení ostatních aplikací Windows dovolí jen aplikacím nainstalovaným jako balíček (MSIX). Better Windows zatím balíček není, proto oznámení v ostrůvku nejsou.')}
               >
-                <span class="muted small">nedostupné</span>
+                <span class="muted small">{t('nedostupné')}</span>
               </SettingRow>
             </div>
           </Section>
@@ -365,22 +366,22 @@
       <section id="lock">
         <Surface>
           <Section
-            title="Zamykací obrazovka"
-            description="Vlastní obrazovka s hodinami, hudbou a počasím, která se ukáže PŘED zámkem Windows. Otevřeš ji zkratkou Win+Shift+L nebo tlačítkem Zamknout ve Startu."
+            title={t('Zamykací obrazovka')}
+            description={t('Vlastní obrazovka s hodinami, hudbou a počasím, která se ukáže PŘED zámkem Windows. Otevřeš ji zkratkou Win+Shift+L nebo tlačítkem Zamknout ve Startu.')}
           >
             <div>
-              <SettingRow label="Zapnuto">
-                <Toggle label="Zamykací obrazovka" checked={s.lock.enabled} onchange={(v) => update((x) => (x.lock.enabled = v))} />
+              <SettingRow label={t('Zapnuto')}>
+                <Toggle label={t('Zamykací obrazovka')} checked={s.lock.enabled} onchange={(v) => update((x) => (x.lock.enabled = v))} />
               </SettingRow>
-              <SettingRow label="Po odemknutí zamknout Windows" hint="Doporučeno. Naše obrazovka nic nechrání (jde obejít Ctrl+Alt+Del); heslo, PIN nebo Windows Hello chce až zámek Windows.">
-                <Toggle label="Po odemknutí zamknout Windows" checked={s.lock.requireWindowsLock} onchange={(v) => update((x) => (x.lock.requireWindowsLock = v))} />
+              <SettingRow label={t('Po odemknutí zamknout Windows')} hint={t('Doporučeno. Naše obrazovka nic nechrání (jde obejít Ctrl+Alt+Del); heslo, PIN nebo Windows Hello chce až zámek Windows.')}>
+                <Toggle label={t('Po odemknutí zamknout Windows')} checked={s.lock.requireWindowsLock} onchange={(v) => update((x) => (x.lock.requireWindowsLock = v))} />
               </SettingRow>
-              <SettingRow label="Ukázat po nečinnosti" hint="Ne během hudby, videa a her přes celou obrazovku">
-                <Slider label="Ukázat po nečinnosti" min={0} max={60} step={1} value={s.lock.idleMinutes} format={(v) => (v === 0 ? 'nikdy' : `${v} min`)} onchange={(v) => update((x) => (x.lock.idleMinutes = v))} />
+              <SettingRow label={t('Ukázat po nečinnosti')} hint={t('Ne během hudby, videa a her přes celou obrazovku')}>
+                <Slider label={t('Ukázat po nečinnosti')} min={0} max={60} step={1} value={s.lock.idleMinutes} format={(v) => (v === 0 ? t('nikdy') : `${v} min`)} onchange={(v) => update((x) => (x.lock.idleMinutes = v))} />
               </SettingRow>
-              <SettingRow label="Vzhled" hint="Styl hodin, umístění, co se ukazuje, rozmazání tapety – s živým náhledem. Náhled Windows nezamkne.">
-                <Button onclick={() => send('lock.open', { editing: true })}><Icon name="pencil" size={14} /> Upravit</Button>
-                <Button onclick={() => send('lock.open', { editing: false, preview: true })}><Icon name="lock" size={14} /> Náhled</Button>
+              <SettingRow label={t('Vzhled')} hint={t('Styl hodin, umístění, co se ukazuje, rozmazání tapety – s živým náhledem. Náhled Windows nezamkne.')}>
+                <Button onclick={() => send('lock.open', { editing: true })}><Icon name="pencil" size={14} /> {t('Upravit')}</Button>
+                <Button onclick={() => send('lock.open', { editing: false, preview: true })}><Icon name="lock" size={14} /> {t('Náhled')}</Button>
               </SettingRow>
             </div>
           </Section>
@@ -389,19 +390,19 @@
 
       <section id="topbar">
         <Surface>
-          <Section title="Horní lišta">
+          <Section title={t('Horní lišta')}>
             <div>
-              <SettingRow label="Právě hraje" hint="Mini přehrávač vedle názvu aplikace">
-                <Toggle label="Právě hraje" checked={s.topBar.showNowPlaying} onchange={(v) => update((x) => (x.topBar.showNowPlaying = v))} />
+              <SettingRow label={t('Právě hraje')} hint={t('Mini přehrávač vedle názvu aplikace')}>
+                <Toggle label={t('Právě hraje')} checked={s.topBar.showNowPlaying} onchange={(v) => update((x) => (x.topBar.showNowPlaying = v))} />
               </SettingRow>
-              <SettingRow label="Jazyk klávesnice">
-                <Toggle label="Jazyk klávesnice" checked={s.topBar.showLanguage} onchange={(v) => update((x) => (x.topBar.showLanguage = v))} />
+              <SettingRow label={t('Jazyk klávesnice')}>
+                <Toggle label={t('Jazyk klávesnice')} checked={s.topBar.showLanguage} onchange={(v) => update((x) => (x.topBar.showLanguage = v))} />
               </SettingRow>
-              <SettingRow label="Uživatel">
-                <Toggle label="Uživatel" checked={s.topBar.showUser} onchange={(v) => update((x) => (x.topBar.showUser = v))} />
+              <SettingRow label={t('Uživatel')}>
+                <Toggle label={t('Uživatel')} checked={s.topBar.showUser} onchange={(v) => update((x) => (x.topBar.showUser = v))} />
               </SettingRow>
-              <SettingRow label="Tlačítko Ukončit">
-                <Toggle label="Tlačítko Ukončit" checked={s.topBar.showExit} onchange={(v) => update((x) => (x.topBar.showExit = v))} />
+              <SettingRow label={t('Tlačítko Ukončit')}>
+                <Toggle label={t('Tlačítko Ukončit')} checked={s.topBar.showExit} onchange={(v) => update((x) => (x.topBar.showExit = v))} />
               </SettingRow>
             </div>
           </Section>
@@ -410,17 +411,17 @@
 
       <section id="weather">
         <Surface>
-          <Section title="Počasí" description="Open-Meteo, bez účtu a API klíče">
+          <Section title={t('Počasí')} description={t('Open-Meteo, bez účtu a API klíče')}>
             <div>
-              <SettingRow label="Zapnuto">
-                <Toggle label="Počasí" checked={s.weather.enabled} onchange={(v) => update((x) => (x.weather.enabled = v))} />
+              <SettingRow label={t('Zapnuto')}>
+                <Toggle label={t('Počasí')} checked={s.weather.enabled} onchange={(v) => update((x) => (x.weather.enabled = v))} />
               </SettingRow>
               <SettingRow
-                label="Město"
-                hint={s.weather.resolved ? `Nalezeno: ${s.weather.resolved.name}${s.weather.resolved.country ? ', ' + s.weather.resolved.country : ''}` : (host.weather?.error ?? 'Uloží se Enterem')}
+                label={t('Město')}
+                hint={s.weather.resolved ? t('Nalezeno: {place}', { place: s.weather.resolved.name + (s.weather.resolved.country ? ', ' + s.weather.resolved.country : '') }) : (host.weather?.error ?? t('Uloží se Enterem'))}
               >
-                <TextField label="Město" value={s.weather.city} placeholder="např. Praha" onsubmit={(v) => update((x) => (x.weather.city = v))} />
-                <Button onclick={() => action('refreshWeather')}><Icon name="refresh" size={14} /> Obnovit</Button>
+                <TextField label={t('Město')} value={s.weather.city} placeholder={t('např. Praha')} onsubmit={(v) => update((x) => (x.weather.city = v))} />
+                <Button onclick={() => action('refreshWeather')}><Icon name="refresh" size={14} /> {t('Obnovit')}</Button>
               </SettingRow>
             </div>
           </Section>
@@ -429,25 +430,25 @@
 
       <section id="taskbar">
         <Surface>
-          <Section title="Hlavní panel Windows">
+          <Section title={t('Hlavní panel Windows')}>
             <div>
               <SettingRow
-                label="Skrýt hlavní panel"
-                hint="Vrátí se při ukončení aplikace, při pádu i po zabití procesu. Windows si přitom zapamatuje „automaticky skrývat“ – to aplikace při ukončení také vrací."
+                label={t('Skrýt hlavní panel')}
+                hint={t('Vrátí se při ukončení aplikace, při pádu i po zabití procesu. Windows si přitom zapamatuje „automaticky skrývat“ – to aplikace při ukončení také vrací.')}
               >
                 {#if confirmTaskbar}
-                  <span class="confirm">Opravdu skrýt?</span>
+                  <span class="confirm">{t('Opravdu skrýt?')}</span>
                   <Button
                     variant="primary"
                     onclick={() => {
                       confirmTaskbar = false;
                       update((x) => (x.taskbar.hide = true));
-                    }}>Skrýt</Button
+                    }}>{t('Skrýt')}</Button
                   >
-                  <Button onclick={() => (confirmTaskbar = false)}>Zrušit</Button>
+                  <Button onclick={() => (confirmTaskbar = false)}>{t('Zrušit')}</Button>
                 {:else}
                   <Toggle
-                    label="Skrýt hlavní panel"
+                    label={t('Skrýt hlavní panel')}
                     checked={s.taskbar.hide}
                     onchange={(v) => {
                       if (v) confirmTaskbar = true;
@@ -456,8 +457,8 @@
                   />
                 {/if}
               </SettingRow>
-              <SettingRow label="Nouzová obnova" hint="Ukáže ikony plochy i hlavní panel a vypne jejich skrývání. Totéž je v nabídce ikony v oznamovací oblasti.">
-                <Button onclick={() => action('restoreSystem')}>Obnovit ikony plochy a hlavní panel</Button>
+              <SettingRow label={t('Nouzová obnova')} hint={t('Ukáže ikony plochy i hlavní panel a vypne jejich skrývání. Totéž je v nabídce ikony v oznamovací oblasti.')}>
+                <Button onclick={() => action('restoreSystem')}>{t('Obnovit ikony plochy a hlavní panel')}</Button>
               </SettingRow>
             </div>
           </Section>
@@ -466,21 +467,21 @@
 
       <section id="about">
         <Surface>
-          <Section title="O aplikaci">
+          <Section title={t('O aplikaci')}>
             <div>
               <dl class="about">
-                <dt>Verze</dt>
+                <dt>{t('Verze')}</dt>
                 <dd>{host.diagnostics?.version ?? '–'}</dd>
                 <dt>Windows</dt>
                 <dd>{host.diagnostics?.windowsVersion ?? '–'}</dd>
-                <dt>Vrstva plochy</dt>
+                <dt>{t('Vrstva plochy')}</dt>
                 <dd>{host.diagnostics?.desktopMode ?? '–'} {host.diagnostics?.desktopDetail ? `– ${host.diagnostics.desktopDetail}` : ''}</dd>
-                <dt>Data</dt>
+                <dt>{t('Data')}</dt>
                 <dd class="path">{host.diagnostics?.dataDir ?? '–'}</dd>
               </dl>
               <div class="buttons">
-                <Button onclick={() => action('openLogs')}><Icon name="folder" size={14} /> Otevřít logy</Button>
-                <Button onclick={() => action('openDataDir')}><Icon name="folder" size={14} /> Složka s daty</Button>
+                <Button onclick={() => action('openLogs')}><Icon name="folder" size={14} /> {t('Otevřít logy')}</Button>
+                <Button onclick={() => action('openDataDir')}><Icon name="folder" size={14} /> {t('Složka s daty')}</Button>
               </div>
             </div>
           </Section>

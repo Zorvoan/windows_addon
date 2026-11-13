@@ -1,5 +1,6 @@
 <!-- Ikona baterie s úrovní nabití a bleskem při nabíjení. Zobrazí se jen, když baterie existuje. -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import type { BatteryState } from '$lib/bridge/messages';
 
   interface Props {
@@ -13,7 +14,7 @@
 </script>
 
 {#if state?.present}
-  <span class="battery" class:low title={`Baterie ${percent} %${state.charging ? ' – nabíjí se' : state.onAc ? ' – napájení ze sítě' : ''}`}>
+  <span class="battery" class:low title={t('Baterie {p} %', { p: percent }) + (state.charging ? ' – ' + t('nabíjí se') : state.onAc ? ' – ' + t('napájení ze sítě') : '')}>
     {#if showPercent}<span class="pct">{percent} %</span>{/if}
     <svg width="24" height="13" viewBox="0 0 24 13" aria-hidden="true">
       <rect x="0.75" y="0.75" width="19.5" height="11.5" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.55" stroke-width="1.2" />

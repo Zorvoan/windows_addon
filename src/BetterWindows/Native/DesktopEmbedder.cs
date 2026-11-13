@@ -4,6 +4,7 @@ using BetterWindows.Monitors;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Native;
 
@@ -119,7 +120,7 @@ internal static class DesktopEmbedder
     public static EmbedResult Embed(HWND window, DesktopSnapshot snap, PixelRect monitor)
     {
         if (snap.Layout is DesktopLayout.NoProgman or DesktopLayout.Unsplit)
-            return new EmbedResult(false, "failed", HWND.Null, HWND.Null, $"Nevhodné rozložení plochy: {snap}");
+            return new EmbedResult(false, "failed", HWND.Null, HWND.Null, Loc.T("Nevhodné rozložení plochy: {snap}", ("snap", snap)));
 
         var originalStyle = WindowStyles.GetStyle(window);
         var originalEx = WindowStyles.GetExStyle(window);
@@ -136,7 +137,7 @@ internal static class DesktopEmbedder
             parent = snap.WorkerW;
             insertAfter = HWND.Null; // HWND_TOP (= 0): navrch mezi sourozenci
             mode = "embed-raised";
-            detail = "24H2+: podokno WorkerW uvnitř Progman (WS_EX_LAYERED)";
+            detail = Loc.T("24H2+: podokno WorkerW uvnitř Progman (WS_EX_LAYERED)");
         }
         else if (snap.Layout == DesktopLayout.Raised)
         {
@@ -144,8 +145,8 @@ internal static class DesktopEmbedder
             insertAfter = snap.DefView; // hned pod vrstvu s ikonami (HWND.Null = navrch, když DefView chybí)
             mode = "embed-raised";
             detail = snap.WorkerW.IsNull
-                ? "24H2+: podokno Progman pod SHELLDLL_DefView (WS_EX_LAYERED)"
-                : "24H2+: podokno Progman pod SHELLDLL_DefView (WorkerW je zakázané – nepropouští myš)";
+                ? Loc.T("24H2+: podokno Progman pod SHELLDLL_DefView (WS_EX_LAYERED)")
+                : Loc.T("24H2+: podokno Progman pod SHELLDLL_DefView (WorkerW je zakázané – nepropouští myš)");
         }
         else
         {
@@ -177,7 +178,7 @@ internal static class DesktopEmbedder
             PInvoke.SetParent(window, HWND.Null);
             WindowStyles.SetStyle(window, originalStyle);
             WindowStyles.SetExStyle(window, originalEx);
-            return new EmbedResult(false, "failed", HWND.Null, HWND.Null, $"SetParent selhalo (chyba {error}, předchozí rodič 0x{(nint)previousParent:X}); {snap}");
+            return new EmbedResult(false, "failed", HWND.Null, HWND.Null, Loc.T("SetParent selhalo (chyba {error}, předchozí rodič {parent}); {snap}", ("error", error), ("parent", $"0x{(nint)previousParent:X}"), ("snap", snap)));
         }
 
         PlaceInParent(window, parent, insertAfter, monitor);

@@ -3,6 +3,7 @@
   Šipky = výběr, Enter = spustit, Esc = zavřít, pravé tlačítko = připnout do docku.
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount, tick } from 'svelte';
   import Icon from '$lib/components/Icon.svelte';
   import { host } from '$lib/stores/host.svelte';
@@ -74,8 +75,8 @@
 <div class="start" class:open={host.startOpen}>
   <div class="search">
     <Icon name="search" size={18} />
-    <input bind:this={input} bind:value={query} type="text" placeholder="Hledat" aria-label="Hledat aplikace" spellcheck="false" />
-    <button type="button" class="close" aria-label="Zavřít" onclick={() => send('start.close', {})}><Icon name="close" size={14} /></button>
+    <input bind:this={input} bind:value={query} type="text" placeholder={t('Hledat')} aria-label={t('Hledat aplikace')} spellcheck="false" />
+    <button type="button" class="close" aria-label={t('Zavřít')} onclick={() => send('start.close', {})}><Icon name="close" size={14} /></button>
   </div>
 
   <div class="grid" bind:this={grid} style:--cols={COLUMNS}>
@@ -101,33 +102,33 @@
         <span class="name">{app.name}</span>
       </button>
     {:else}
-      <p class="empty">{host.startApps.length === 0 ? 'Načítám aplikace…' : `Nic nenalezeno pro „${query}“`}</p>
+      <p class="empty">{host.startApps.length === 0 ? t('Načítám aplikace…') : t('Nic nenalezeno pro „{q}“', { q: query })}</p>
     {/each}
   </div>
 
   <footer class="power">
     {#if host.user}<span class="who">{host.user.name}</span>{/if}
-    <button type="button" class="power-btn" onclick={() => send('settings.open', {})}><Icon name="sliders" size={15} /> Nastavení</button>
+    <button type="button" class="power-btn" onclick={() => send('settings.open', {})}><Icon name="sliders" size={15} /> {t('Nastavení')}</button>
     <button
       type="button"
       class="power-btn"
       onclick={() => {
         send('start.close', {});
         send('lock.open', { editing: false });
-      }}><Icon name="lock" size={15} /> Zamknout</button
+      }}><Icon name="lock" size={15} /> {t('Zamknout')}</button
     >
   </footer>
 
   {#if menu}
     <div class="menu" style:left="{menu.x}px" style:top="{menu.y}px" role="menu">
-      <button type="button" role="menuitem" onclick={() => menu && launch(menu.app)}>Otevřít</button>
+      <button type="button" role="menuitem" onclick={() => menu && launch(menu.app)}>{t('Otevřít')}</button>
       <button
         type="button"
         role="menuitem"
         onclick={() => {
           if (menu) send('start.pin', { appId: menu.app.appId });
           menu = null;
-        }}>Připnout do docku</button
+        }}>{t('Připnout do docku')}</button
       >
     </div>
   {/if}

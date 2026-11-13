@@ -126,11 +126,11 @@ public sealed class DockSettings
         var windows = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         var list = new List<PinnedApp>();
         if (!string.IsNullOrEmpty(windows))
-            list.Add(new PinnedApp { AppId = Apps.AppId.FromExePath(Path.Combine(windows, "explorer.exe")), Name = "Průzkumník souborů" });
+            list.Add(new PinnedApp { AppId = Apps.AppId.FromExePath(Path.Combine(windows, "explorer.exe")), Name = Localization.Loc.T("Průzkumník souborů") });
         list.Add(new PinnedApp
         {
             AppId = Apps.AppId.FromAumid("windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel"),
-            Name = "Nastavení",
+            Name = Localization.Loc.T("Nastavení"),
         });
         return list;
     }

@@ -3,6 +3,7 @@
   tady se jen přidává jemný tón a obsah. Data chodí z C# (host store).
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import { onMount } from 'svelte';
   import Logo from '$lib/components/Logo.svelte';
   import Clock from '$lib/components/Clock.svelte';
@@ -16,7 +17,7 @@
   import Icon from '$lib/components/Icon.svelte';
   import Marquee from '$lib/components/Marquee.svelte';
 
-  let appName = $derived(host.foreground?.appName || 'Plocha');
+  let appName = $derived(host.foreground?.appName || t('Plocha'));
   let title = $derived(host.foreground?.title ?? '');
   let bar = $derived(host.settings?.topBar);
   let media = $derived(host.media);
@@ -46,10 +47,10 @@
         {#if media.thumbnail}<img src={media.thumbnail} alt="" />{/if}
         <span class="np-title"><Marquee text={media.title ?? ''} /></span>
         {#if media.artist}<span class="np-artist">{media.artist}</span>{/if}
-        <button type="button" aria-label={media.playing ? 'Pozastavit' : 'Přehrát'} onclick={() => send('media.command', { command: 'playPause' })}>
+        <button type="button" aria-label={media.playing ? t('Pozastavit') : t('Přehrát')} onclick={() => send('media.command', { command: 'playPause' })}>
           <Icon name={media.playing ? 'pause' : 'play'} size={14} />
         </button>
-        <button type="button" aria-label="Další" disabled={!media.canNext} onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={14} /></button>
+        <button type="button" aria-label={t('Další')} disabled={!media.canNext} onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={14} /></button>
       </span>
     {/if}
   </div>
@@ -60,12 +61,12 @@
   <div class="right">
     {#if bar?.showExit !== false}
       <button type="button" class="exit" class:confirm={confirmExit} onclick={exitClick}>
-        {confirmExit ? 'Opravdu ukončit?' : 'Ukončit'}
+        {confirmExit ? t('Opravdu ukončit?') : t('Ukončit')}
       </button>
     {/if}
-    <IconButton icon="search" label="Hledat (Start)" onclick={() => send('start.toggle', {})} />
+    <IconButton icon="search" label={t('Hledat (Start)')} onclick={() => send('start.toggle', {})} />
     <PrivacyDots state={host.privacy} />
-    <IconButton icon="sliders" label="Nastavení Better Windows" onclick={() => send('settings.open', {})} />
+    <IconButton icon="sliders" label={t('Nastavení Better Windows')} onclick={() => send('settings.open', {})} />
     {#if host.weather?.status === 'ok'}<span class="item"><WeatherBadge state={host.weather} /></span>{/if}
     <span class="item"><BatteryIndicator state={host.battery} /></span>
     {#if bar?.showLanguage !== false && host.inputLanguage?.code}

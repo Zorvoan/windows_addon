@@ -1,4 +1,5 @@
 using System.Globalization;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Logic.Lock;
 
@@ -19,7 +20,7 @@ public static class KeyboardLanguage
         }
         catch (CultureNotFoundException)
         {
-            return ($"{langId & 0xFFFF:X4}", "Neznámý jazyk");
+            return ($"{langId & 0xFFFF:X4}", Loc.T("Neznámý jazyk"));
         }
     }
 }

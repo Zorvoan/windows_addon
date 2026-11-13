@@ -301,9 +301,19 @@ Ideálně vyzkoušej na 60Hz i na 144Hz (nebo jiném rychlém) monitoru – rych
 | 19.2 | Přepni na skladbu s jinak barevným obalem (černobílý, hnědý, modrý…) | Proužky mají ztlumenou barvu obalu s jemným přechodem (černobílý obal = šedé) |
 | 19.3 | Vypni vizualizér na ploše (Nastavení › Plocha) | Proužky v ostrůvku se dál hýbou podle hudby |
 | 19.4 | Hrající aplikaci minimalizuj (tlačítko _ nebo Win+↓) | Zmenšený obraz okna vletí do ostrůvku a ostrůvek se krátce nafoukne. **Pozn.:** se zapnutými animacemi Windows zároveň poletí skutečné okno dolů na hlavní panel – to nejde vypnout. Napiš, jestli to tak vypadá dobře |
-| 19.5 | Minimalizuj jinou aplikaci, která nehraje | Nic nevletí |
+| 19.5 | Minimalizuj jinou aplikaci, která nehraje (např. Průzkumník souborů) | Do ostrůvku nic nevletí; obraz okna zajede dolů do její ikony v docku a ikona se krátce „nadechne“ |
 | 19.6 | Hudba je pozastavená a minimalizuješ přehrávač | Nic nevletí (jen když hraje) |
 
 Když 19.4 nic neudělá, pošli řádky `Ostrůvek:` z logu (a název aplikace, která hrála).
+
+## 20. Jazyk podle Windows
+
+| # | Udělej | Má se stát |
+|---|---|---|
+| 20.1 | Windows v češtině (nebo slovenštině), spusť Better Windows | Vše česky jako dosud |
+| 20.2 | Nastavení Windows › Čas a jazyk › Jazyk a oblast › Jazyk zobrazení Windows = English, odhlásit a přihlásit, spusť Better Windows | Lišta, dock, ostrůvek, Start, widgety, zamykací obrazovka, Nastavení i nabídka v oznamovací oblasti a kontextová nabídka docku jsou anglicky; datum a čas v anglickém formátu |
+| 20.3 | Totéž s jiným jazykem (např. němčinou) | Anglicky (překlad je zatím jen čeština + angličtina); datum a čas v němčině |
+
+Názvy aplikací (např. „Nastavení“, „Průzkumník souborů“ u už připnutých ikon) dává Windows nebo jsou uložené v nastavení – ty se nepřekládají.
 
 Světlý / tmavý režim už nejde přepnout v Better Windows – řídí se Windows (Apple: aplikace nemá mít vlastní přepínač vzhledu).

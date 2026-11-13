@@ -48,7 +48,9 @@ public static class WebViewHost
     public static Task<CoreWebView2Environment> GetEnvironmentAsync() =>
         _environment ??= CoreWebView2Environment.CreateAsync(
             browserExecutableFolder: null,
-            userDataFolder: Path.Combine(AppInfo.LocalDataDir, "WebView2"));
+            userDataFolder: Path.Combine(AppInfo.LocalDataDir, "WebView2"),
+            // Jazyk stránek = jazyk Windows (navigator.language, formát dat a čísel, výběr češtiny / angličtiny).
+            options: new CoreWebView2EnvironmentOptions { Language = System.Globalization.CultureInfo.CurrentUICulture.Name });
 
     /// <summary>Připraví WebView2 a načte stránku ui/&lt;page&gt;.html.</summary>
     /// <exception cref="WebView2RuntimeNotFoundException">Na počítači chybí WebView2 Runtime.</exception>

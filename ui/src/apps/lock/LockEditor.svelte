@@ -1,5 +1,6 @@
 <!-- Panel editoru zamykací obrazovky: změny se hned ukazují v náhledu, "Hotovo" je uloží. -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import Segmented from '$lib/components/forms/Segmented.svelte';
   import Toggle from '$lib/components/forms/Toggle.svelte';
   import Slider from '$lib/components/forms/Slider.svelte';
@@ -20,46 +21,46 @@
 <!-- Kliky a klávesy uvnitř editoru nesmí "odemknout" obrazovku pod ním. -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <aside class="editor" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
-  <h2>Upravit zamykací obrazovku</h2>
+  <h2>{t('Upravit zamykací obrazovku')}</h2>
 
-  <span class="label">Styl hodin</span>
+  <span class="label">{t('Styl hodin')}</span>
   <Segmented
-    label="Styl hodin"
+    label={t('Styl hodin')}
     value={draft.clockStyle}
     options={[
-      { value: 'large', label: 'Velké' },
-      { value: 'thin', label: 'Tenké' },
-      { value: 'bold', label: 'Tučné' },
-      { value: 'analog', label: 'Ručičky' },
+      { value: 'large', label: t('Velké') },
+      { value: 'thin', label: t('Tenké') },
+      { value: 'bold', label: t('Tučné') },
+      { value: 'analog', label: t('Ručičky') },
     ]}
     onchange={(v) => set('clockStyle', v)}
   />
 
-  <span class="label">Umístění</span>
+  <span class="label">{t('Umístění')}</span>
   <Segmented
-    label="Umístění hodin"
+    label={t('Umístění hodin')}
     value={draft.clockPosition}
     options={[
-      { value: 'top', label: 'Nahoře' },
-      { value: 'center', label: 'Uprostřed' },
+      { value: 'top', label: t('Nahoře') },
+      { value: 'center', label: t('Uprostřed') },
     ]}
     onchange={(v) => set('clockPosition', v)}
   />
 
-  <div class="row"><span>Sekundy</span><Toggle label="Sekundy" checked={draft.showSeconds} onchange={(v) => set('showSeconds', v)} /></div>
-  <div class="row"><span>Hudba</span><Toggle label="Hudba" checked={draft.showMedia} onchange={(v) => set('showMedia', v)} /></div>
-  <div class="row"><span>Počasí</span><Toggle label="Počasí" checked={draft.showWeather} onchange={(v) => set('showWeather', v)} /></div>
-  <div class="row"><span>Baterie</span><Toggle label="Baterie" checked={draft.showBattery} onchange={(v) => set('showBattery', v)} /></div>
-  <div class="row"><span>Uživatel</span><Toggle label="Uživatel" checked={draft.showUser} onchange={(v) => set('showUser', v)} /></div>
+  <div class="row"><span>{t('Sekundy')}</span><Toggle label={t('Sekundy')} checked={draft.showSeconds} onchange={(v) => set('showSeconds', v)} /></div>
+  <div class="row"><span>{t('Hudba')}</span><Toggle label={t('Hudba')} checked={draft.showMedia} onchange={(v) => set('showMedia', v)} /></div>
+  <div class="row"><span>{t('Počasí')}</span><Toggle label={t('Počasí')} checked={draft.showWeather} onchange={(v) => set('showWeather', v)} /></div>
+  <div class="row"><span>{t('Baterie')}</span><Toggle label={t('Baterie')} checked={draft.showBattery} onchange={(v) => set('showBattery', v)} /></div>
+  <div class="row"><span>{t('Uživatel')}</span><Toggle label={t('Uživatel')} checked={draft.showUser} onchange={(v) => set('showUser', v)} /></div>
 
-  <span class="label">Rozmazání tapety</span>
-  <Slider label="Rozmazání tapety" min={0} max={40} value={draft.wallpaperBlur} format={(v) => `${v} px`} onchange={(v) => set('wallpaperBlur', v)} />
-  <span class="label">Ztmavení tapety</span>
-  <Slider label="Ztmavení tapety" min={0} max={0.7} step={0.05} value={draft.dim} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => set('dim', v)} />
+  <span class="label">{t('Rozmazání tapety')}</span>
+  <Slider label={t('Rozmazání tapety')} min={0} max={40} value={draft.wallpaperBlur} format={(v) => `${v} px`} onchange={(v) => set('wallpaperBlur', v)} />
+  <span class="label">{t('Ztmavení tapety')}</span>
+  <Slider label={t('Ztmavení tapety')} min={0} max={0.7} step={0.05} value={draft.dim} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => set('dim', v)} />
 
   <div class="buttons">
-    <Button onclick={oncancel}>Zrušit</Button>
-    <Button variant="primary" onclick={ondone}>Hotovo</Button>
+    <Button onclick={oncancel}>{t('Zrušit')}</Button>
+    <Button variant="primary" onclick={ondone}>{t('Hotovo')}</Button>
   </div>
 </aside>
 

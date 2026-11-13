@@ -1,5 +1,6 @@
 <!-- Kompaktní počasí (ikona + teplota) pro horní lištu. -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import Icon from './Icon.svelte';
   import type { WeatherState } from '$lib/bridge/messages';
   import { describeWeather, formatTemp } from '$lib/weather';
@@ -18,7 +19,7 @@
     <span>{formatTemp(state.temperature)}</span>
   </span>
 {:else if state?.status === 'error'}
-  <span class="weather muted" title={`Počasí: ${state.error ?? 'chyba'}`}>
+  <span class="weather muted" title={t('Počasí: {e}', { e: state.error ?? t('chyba') })}>
     <Icon name="cloud" size={16} />
     <span>–</span>
   </span>

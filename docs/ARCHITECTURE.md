@@ -63,6 +63,12 @@ Stav (nastavení, baterie, počasí…) je „sticky“: stránka po načtení p
 
 Font Inter je přibalený lokálně (`@fontsource-variable/inter`), nic se nestahuje z internetu.
 
+## Jazyk
+
+- **UI:** `ui/src/lib/i18n.ts` – `t('český text', { proměnná })`. Klíčem je český text, anglický překlad je v `ui/src/lib/i18n/en.ts`. Jazyk = `navigator.language`, který WebView2 dostane z jazyka zobrazení Windows (`CoreWebView2EnvironmentOptions.Language`). cs/sk → čeština, jinak angličtina. Data a čísla formátuje `Intl` podle téhož jazyka.
+- **C#:** `BetterWindows.Logic/Localization/Loc.cs` – `Loc.T("český text", ("proměnná", hodnota))`, jazyk z `CultureInfo.CurrentUICulture`. Překládá se jen to, co vidí uživatel (nabídky, dialogy, stavové texty posílané do stránek); logy zůstávají česky.
+- **Kontrola:** `npm run build` spouští `harness/i18n-check.cjs` (každé `t('…')` má překlad), test `LocTests` totéž pro `Loc.T`, harness vykreslí stránky i v `en-US` a hlídá, že na nich nezůstal český text.
+
 ## Směr designu
 
 - **Produkt:** shell ve stylu macOS nad Windows 11 (lišta, dock, ostrůvek, widgety nad tapetou) pro toho, kdo chce klidnější a osobnější plochu.

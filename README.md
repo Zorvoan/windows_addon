@@ -53,6 +53,7 @@ The user interface is currently in Czech.
 | **Start / Launchpad** | All apps with search by name or initials, pin to dock, full keyboard control. Optionally opened with the Windows key. |
 | **Lock screen** | A custom screen with clock and music, with a layout editor, shown **before** the real Windows lock (Win+Shift+L, Start, or after inactivity). |
 | **Themes** | Presets and sharing via a text code (`BW1.…`). Light/dark mode and accent color follow Windows. |
+| **Language** | The whole interface follows the Windows display language: Czech and Slovak get Czech, every other language gets English. Dates and numbers use the Windows format. |
 | **Accessibility** | Respects Windows' transparency effects, contrast themes and reduced motion settings. Performance mode on battery and in full screen. |
 
 ## Screenshots

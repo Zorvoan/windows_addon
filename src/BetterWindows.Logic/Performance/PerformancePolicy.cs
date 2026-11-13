@@ -1,4 +1,5 @@
 using BetterWindows.Logic.Settings;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Logic.Performance;
 
@@ -9,23 +10,23 @@ public static class PerformancePolicy
     public static (bool Reduced, string Reason) Evaluate(AppSettings settings, bool onBattery, bool batterySaver, bool fullscreen)
     {
         if (settings.Appearance.ReduceMotion)
-            return (true, "Omezit animace je zapnuto ve Vzhledu");
+            return (true, Loc.T("Omezit animace je zapnuto ve Vzhledu"));
 
         var p = settings.Performance;
         switch (p.Mode)
         {
             case PerformanceMode.AlwaysReduced:
-                return (true, "Režim výkonu: vždy úsporně");
+                return (true, Loc.T("Režim výkonu: vždy úsporně"));
             case PerformanceMode.NeverReduced:
-                return (false, "Režim výkonu: vždy plné animace");
+                return (false, Loc.T("Režim výkonu: vždy plné animace"));
         }
 
         if (p.ReduceOnFullscreen && fullscreen)
-            return (true, "Aplikace přes celou obrazovku");
+            return (true, Loc.T("Aplikace přes celou obrazovku"));
         if (batterySaver)
-            return (true, "Úspora energie Windows");
+            return (true, Loc.T("Úspora energie Windows"));
         if (p.ReduceOnBattery && onBattery)
-            return (true, "Napájení z baterie");
-        return (false, "Plné animace");
+            return (true, Loc.T("Napájení z baterie"));
+        return (false, Loc.T("Plné animace"));
     }
 }

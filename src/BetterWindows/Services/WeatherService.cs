@@ -5,6 +5,7 @@ using BetterWindows.Logic.Messaging;
 using BetterWindows.Logic.Settings;
 using BetterWindows.Logic.Weather;
 using Microsoft.Win32;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Services;
 
@@ -61,7 +62,7 @@ internal sealed class WeatherService : IDisposable
                 location = OpenMeteo.ParseGeocoding(json, weather.City);
                 if (location is null)
                 {
-                    PublishError($"Město „{weather.City}“ nenalezeno.");
+                    PublishError(Loc.T("Město „{city}“ nenalezeno.", ("city", weather.City)));
                     Schedule(TimeSpan.FromMinutes(30));
                     return;
                 }
@@ -77,7 +78,7 @@ internal sealed class WeatherService : IDisposable
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException)
         {
             Log.Warn($"Počasí: {ex.Message}");
-            PublishError("Počasí se nepodařilo načíst (bez připojení?).");
+            PublishError(Loc.T("Počasí se nepodařilo načíst (bez připojení?)."));
             Schedule(TimeSpan.FromMinutes(2));
         }
         finally

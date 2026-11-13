@@ -9,6 +9,7 @@ using BetterWindows.Native;
 using BetterWindows.Services;
 using BetterWindows.ShellWindows;
 using BetterWindows.Web;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Core;
 
@@ -299,8 +300,8 @@ internal sealed class ShellController : IDisposable
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Vyber tapetu",
-            Filter = "Obrázky|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif|Všechny soubory|*.*",
+            Title = Loc.T("Vyber tapetu"),
+            Filter = $"{Loc.T("Obrázky")}|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif|{Loc.T("Všechny soubory")}|*.*",
         };
         if (dialog.ShowDialog(_settingsWindow) == true)
             _settings.Update(s => s.Desktop.WallpaperPath = dialog.FileName);

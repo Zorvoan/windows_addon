@@ -3,6 +3,7 @@
   "Upravit widgety": přetahování (mřížka 8 px), přidání, odebrání; "Hotovo" uloží.
 -->
 <script lang="ts">
+  import { t } from '$lib/i18n';
   import Surface from '$lib/components/Surface.svelte';
   import Icon from '$lib/components/Icon.svelte';
   import ClockWidget from '$lib/widgets/ClockWidget.svelte';
@@ -85,15 +86,15 @@
 
 <div class="toolbar">
   {#if editing}
-    <span class="label">Přidat:</span>
-    {#each types as t (t)}
-      <button type="button" class="chip" onclick={() => add(t)}><Icon name="plus" size={11} /> {widgetInfo[t].title}</button>
+    <span class="label">{t('Přidat:')}</span>
+    {#each types as ty (ty)}
+      <button type="button" class="chip" onclick={() => add(ty)}><Icon name="plus" size={11} /> {widgetInfo[ty].title}</button>
     {/each}
-    <button type="button" class="chip primary" onclick={finish}>Hotovo</button>
-    <button type="button" class="chip" onclick={() => (editing = false)}>Zrušit</button>
+    <button type="button" class="chip primary" onclick={finish}>{t('Hotovo')}</button>
+    <button type="button" class="chip" onclick={() => (editing = false)}>{t('Zrušit')}</button>
   {:else}
-    <span class="label">Widgety</span>
-    <button type="button" class="chip" onclick={startEdit}><Icon name="pencil" size={11} /> Upravit widgety</button>
+    <span class="label">{t('Widgety')}</span>
+    <button type="button" class="chip" onclick={startEdit}><Icon name="pencil" size={11} /> {t('Upravit widgety')}</button>
   {/if}
 </div>
 
@@ -129,7 +130,7 @@
       </div>
     </Surface>
     {#if editing}
-      <button type="button" class="remove" aria-label="Odebrat widget" onclick={() => remove(w.id)}><Icon name="close" size={10} strokeWidth={2.4} /></button>
+      <button type="button" class="remove" aria-label={t('Odebrat widget')} onclick={() => remove(w.id)}><Icon name="close" size={10} strokeWidth={2.4} /></button>
     {/if}
   </div>
 {/each}

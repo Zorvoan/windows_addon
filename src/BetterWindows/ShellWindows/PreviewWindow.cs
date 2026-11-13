@@ -9,6 +9,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
 using Windows.Win32.UI.WindowsAndMessaging;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.ShellWindows;
 
@@ -96,7 +97,7 @@ internal sealed class PreviewWindow : ShellWindowBase
                 Background = new SolidColorBrush(IsDark ? Color.FromArgb(0x14, 0xED, 0xED, 0xED) : Color.FromArgb(0x14, 0x17, 0x17, 0x17)),
                 Child = new TextBlock
                 {
-                    Text = w.IsMinimized ? "Minimalizováno" : "",
+                    Text = w.IsMinimized ? Loc.T("Minimalizováno") : "",
                     Foreground = fg,
                     Opacity = 0.6,
                     FontSize = 11,
@@ -134,7 +135,7 @@ internal sealed class PreviewWindow : ShellWindowBase
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
                 Cursor = Cursors.Arrow,
-                ToolTip = "Zavřít okno",
+                ToolTip = Loc.T("Zavřít okno"),
             };
             var hwnd = w.Hwnd;
             close.Click += (_, _) => CloseRequested?.Invoke(hwnd);

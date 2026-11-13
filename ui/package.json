@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings && vite build",
+    "build": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings && node harness/i18n-check.cjs && vite build",
     "watch": "vite build --watch",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "harness": "node harness/run.cjs"

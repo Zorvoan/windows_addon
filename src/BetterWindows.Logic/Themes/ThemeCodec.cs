@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using BetterWindows.Logic.Settings;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Logic.Themes;
 
@@ -44,12 +45,12 @@ public static partial class ThemeCodec
         code = code?.Trim();
         if (string.IsNullOrEmpty(code) || code.Length > MaxLength)
         {
-            error = "Kód je prázdný nebo moc dlouhý.";
+            error = Loc.T("Kód je prázdný nebo moc dlouhý.");
             return false;
         }
         if (!code.StartsWith(Prefix, StringComparison.Ordinal))
         {
-            error = "Tohle není kód motivu Better Windows (má začínat „BW1.“).";
+            error = Loc.T("Tohle není kód motivu Better Windows (má začínat „BW1.“).");
             return false;
         }
 
@@ -85,7 +86,7 @@ public static partial class ThemeCodec
         }
         catch (Exception ex) when (ex is FormatException or JsonException or DecoderFallbackException)
         {
-            error = "Kód motivu je poškozený.";
+            error = Loc.T("Kód motivu je poškozený.");
             return false;
         }
     }

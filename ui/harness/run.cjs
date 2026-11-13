@@ -301,6 +301,47 @@ async function toggleSetting(page, report) {
     }
   }
 
+  // Angličtina: Windows v jiném jazyce než češtině -> stránky anglicky (navigator.language z WebView2).
+  // Na stránce nesmí zůstat žádný český text ze slovníku (= zapomenutý překlad).
+  const enSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'lib', 'i18n', 'en.ts'), 'utf8');
+  const czechKeys = [...enSource.matchAll(/^\s*'((?:[^'\\]|\\.)*)':\s*\n?\s*'((?:[^'\\]|\\.)*)'/gm)]
+    .filter((m) => m[1] !== m[2] && m[1].length >= 4 && !m[1].includes('{'))
+    .map((m) => m[1])
+    // Data z C# (názvy aplikací Windows, texty stavu) jsou ve fixtures česky – překládá je C# (Loc), ne stránka.
+    .filter((k) => !JSON.stringify(fixtures).includes(k));
+  const expectEn = { topbar: 'Quit', settings: 'Appearance', start: 'Search', desktop: 'Edit Widgets', lock: 'Click or press any key' };
+  for (const def of pages.filter((p) => !p.suffix && p.name in expectEn)) {
+    const errors = [];
+    const page = await browser.newPage({ viewport: { width: def.width, height: def.height }, colorScheme: 'dark', locale: 'en-US', timezoneId: 'Europe/London' });
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    await page.addInitScript(() => {
+      const listeners = [];
+      window.__sent = [];
+      window.chrome = { webview: { postMessage: (m) => window.__sent.push(m), addEventListener: (_t, cb) => listeners.push(cb) } };
+      window.__deliver = (msg) => listeners.forEach((cb) => cb({ data: msg }));
+    });
+    await page.goto(`${base}/${def.name}.html`);
+    await page.waitForFunction(() => window.__sent.some((m) => m.type === 'ui.ready'), null, { timeout: 5000 }).catch(() => errors.push('stránka neposlala ui.ready'));
+    for (const msg of fixtures) await page.evaluate((m) => window.__deliver(m), msg);
+    if (def.name === 'start') await page.evaluate(() => window.__deliver({ type: 'start.visibility', payload: { open: true } }));
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: path.join(outDir, `${def.name}-en.png`), fullPage: !!def.fullPage });
+    const { lang, text } = await page.evaluate(() => {
+      const attrs = [...document.querySelectorAll('[aria-label],[title],[placeholder]')]
+        .flatMap((e) => ['aria-label', 'title', 'placeholder'].map((a) => e.getAttribute(a) ?? ''));
+      return { lang: document.documentElement.lang, text: document.body.innerText + '\n' + attrs.join('\n') };
+    });
+    if (lang !== 'en') errors.push(`<html lang> je "${lang}", čekal jsem "en"`);
+    if (!text.includes(expectEn[def.name])) errors.push(`chybí anglický text "${expectEn[def.name]}"`);
+    const word = (k) => new RegExp(`(^|[^\\p{L}])${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^\\p{L}])`, 'u');
+    const leftovers = czechKeys.filter((k) => word(k).test(text));
+    if (leftovers.length) errors.push(`český text v anglické verzi: ${leftovers.join(' | ')}`);
+    console.log(`[${errors.length ? 'CHYBA' : 'ok'}] ${def.name} (en-US)`);
+    errors.forEach((e) => console.log('       ! ' + e));
+    if (errors.length) failed = true;
+    await page.close();
+  }
+
   await browser.close();
   server.close();
   console.log(failed ? '\nHarness: SELHALO' : `\nHarness: vše v pořádku, snímky v ${outDir}`);

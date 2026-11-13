@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using BetterWindows.Logic.Localization;
 
 namespace BetterWindows.Core;
 
@@ -109,7 +110,7 @@ public static class CrashGuard
         try
         {
             MessageBox.Show(
-                $"{AppInfo.DisplayName} narazilo na chybu a ukončí se.\n\n{ex.Message}\n\nPodrobnosti jsou v logu:\n{Log.CurrentFile}",
+                Loc.T("{app} narazilo na chybu a ukončí se.\n\n{error}\n\nPodrobnosti jsou v logu:\n{log}", ("app", AppInfo.DisplayName), ("error", ex.Message), ("log", Log.CurrentFile)),
                 AppInfo.DisplayName, MessageBoxButton.OK, MessageBoxImage.Error);
         }
         catch
