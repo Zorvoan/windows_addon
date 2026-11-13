@@ -45,8 +45,9 @@ internal sealed class StartController : IDisposable
         hub.On<StartLaunchPayload>(MessageTypes.StartLaunch, (_, p) =>
         {
             if (p is null) return;
-            Close();
+            // Nejdřív spustit (ještě máme popředí, nová aplikace ho tak smí převzít), pak zavřít.
             Safe.Run("Start – spuštění", () => AppLauncher.Launch(p.AppId));
+            Close();
         });
         hub.On<StartPinPayload>(MessageTypes.StartPin, (_, p) =>
         {

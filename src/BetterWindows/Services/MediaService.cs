@@ -156,7 +156,7 @@ internal sealed class MediaService : IDisposable
         try
         {
             using var stream = await reference.OpenReadAsync();
-            if (stream.Size == 0 || stream.Size > 4_000_000)
+            if (stream.Size == 0 || stream.Size > 1_000_000)
                 return null;
             using var reader = new DataReader(stream);
             await reader.LoadAsync((uint)stream.Size);

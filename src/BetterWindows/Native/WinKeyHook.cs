@@ -75,8 +75,17 @@ internal sealed class WinKeyHook : IDisposable
         {
             while (PInvoke.GetMessage(out var msg, HWND.Null, 0, 0) > 0)
             {
-                if (msg.message == WmReplay)
+                if (msg.message != WmReplay)
+                    continue;
+                try
+                {
                     Replay((ushort)msg.wParam.Value);
+                }
+                catch (Exception ex)
+                {
+                    // Výjimka tady by shodila celý proces hned po zahozeném uvolnění klávesy.
+                    Log.Error("Vložení uvolnění klávesy Win selhalo výjimkou", ex);
+                }
             }
         }
         finally

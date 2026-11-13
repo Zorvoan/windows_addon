@@ -29,8 +29,8 @@ internal sealed class WindowPreviewController : IDisposable
     {
         _context = context;
         _tracker = tracker;
-        _showTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(450), DispatcherPriority.Normal, (_, _) => { _showTimer!.Stop(); ShowPending(); }, context.Dispatcher);
-        _hideTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(350), DispatcherPriority.Normal, (_, _) => { _hideTimer!.Stop(); if (!_overPreview) Hide(); }, context.Dispatcher);
+        _showTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(450), DispatcherPriority.Normal, (_, _) => { _showTimer!.Stop(); Safe.Run("Náhledy – zobrazení", ShowPending); }, context.Dispatcher);
+        _hideTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(350), DispatcherPriority.Normal, (_, _) => { _hideTimer!.Stop(); if (!_overPreview) Safe.Run("Náhledy – skrytí", Hide); }, context.Dispatcher);
         _showTimer.Stop();
         _hideTimer.Stop();
         _tracker.WindowsChanged += () =>

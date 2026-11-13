@@ -64,7 +64,12 @@ internal sealed class PreviewWindow : ShellWindowBase
         _frame.Background = new SolidColorBrush(IsDark ? Color.FromArgb(0x55, 0x10, 0x10, 0x14) : Color.FromArgb(0x55, 0xF4, 0xF4, 0xF6));
         var fg = IsDark ? Brushes.WhiteSmoke : new SolidColorBrush(Color.FromRgb(0x14, 0x14, 0x18));
 
-        foreach (var w in windows.Take(6))
+        // Kolik místa má jeden náhled, aby se celý panel vešel na monitor.
+        var shown = windows.Take(6).ToList();
+        var monitorDip = Monitor.Bounds.Width / Monitor.Scale;
+        var maxThumbW = Math.Max(80, Math.Min(MaxThumbW, (monitorDip - 40) / Math.Max(1, shown.Count) - Pad - 8));
+
+        foreach (var w in shown)
         {
             var src = new HWND((nint)w.Hwnd);
             nint thumb = 0;
@@ -80,7 +85,7 @@ internal sealed class PreviewWindow : ShellWindowBase
 
             // Velikost náhledu podle poměru stran okna.
             double aspect = size.cx > 0 && size.cy > 0 ? (double)size.cx / size.cy : 16.0 / 9;
-            double tw = MaxThumbW, th = tw / aspect;
+            double tw = maxThumbW, th = tw / aspect;
             if (th > MaxThumbH) { th = MaxThumbH; tw = th * aspect; }
 
             var slot = new Border
@@ -150,7 +155,8 @@ internal sealed class PreviewWindow : ShellWindowBase
         _frame.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         var s = Monitor.Scale;
         int width = (int)Math.Ceiling(_frame.DesiredSize.Width * s), height = (int)Math.Ceiling(_frame.DesiredSize.Height * s);
-        int left = Math.Clamp(anchor.Left + anchor.Width / 2 - width / 2, Monitor.Bounds.Left + 8, Monitor.Bounds.Right - width - 8);
+        // Bez Math.Clamp: kdyby byl panel širší než monitor, min > max by vyhodilo výjimku.
+        int left = Math.Max(Monitor.Bounds.Left + 8, Math.Min(anchor.Left + anchor.Width / 2 - width / 2, Monitor.Bounds.Right - width - 8));
         int top = anchor.Top - height - (int)(10 * s);
         _rect = new PixelRect(left, top, left + width, top + height);
         Width = width / s;

@@ -74,7 +74,7 @@ Testy jsou seřazené tak, aby každý stavěl na předchozích. Když selže 2.
 |---|---|---|---|
 | 5.1 | Dole uprostřed | Dock s Průzkumníkem a Nastavením + spuštěné aplikace s tečkou | řádky `Dock`, `WebView2 'dock'` |
 | 5.2 | Ikony | Skutečné ikony aplikací (i u Kalkulačky/Nastavení – aplikace z Microsoft Store) | řádky `Ikona` |
-| 5.3 | Najeď myší nad dock | Ikony se plynule zvětší, nad ikonou popisek | – |
+| 5.3 | Najeď myší nad dock | Ikony se plynule zvětší, nad ikonou popisek. **Notebook na baterii:** zvětšení je bez plynulého doběhu (režim výkonu) – připoj nabíječku nebo Nastavení › Výkon › „Vždy plné animace“ | – |
 | 5.4 | Klikni vedle docku (nad ním, vedle něj) | Klik projde do okna/plochy pod ním (dock nepřekáží) | – |
 | 5.5 | Pod dockem je rozmazání sedící přesně na pásu | Ano, se zaoblenými rohy. Když místo toho uvidíš čtverec jinde nebo nic: Nastavení › Vzhled › Rozmazání docku › **Žádné** | řádky `DockBackdropWindow` |
 | 5.6 | Klik na neběžící připnutou aplikaci | Spustí se (ikona poskakuje, pak tečka) | řádky `Dock:` / `Spouštím` |
@@ -89,7 +89,7 @@ Testy jsou seřazené tak, aby každý stavěl na předchozích. Když selže 2.
 
 | # | Udělej | Má se stát | Když ne, pošli |
 |---|---|---|---|
-| 6.1 | Pusť hudbu a minimalizuj okna | Dole na ploše tečky reagují na hudbu (ne na mikrofon) | řádky `Vizualizér` |
+| 6.1 | Pusť hudbu a minimalizuj okna | Dole na ploše tečky reagují na hudbu (ne na mikrofon). **Notebook na baterii:** vizualizér je pozastavený (režim výkonu) – připoj nabíječku nebo Nastavení › Výkon › „Vždy plné animace“ | řádky `Vizualizér`, `Výkon:` |
 | 6.2 | Nastavení › Vizualizér › Scéna Vlna / Kruh, citlivost | Mění se | – |
 | 6.3 | Ztiš / zastav hudbu | Tečky zhasnou | – |
 | 6.4 | Přepni výstup (sluchátka ↔ reproduktory) | Vizualizér funguje dál | totéž |
