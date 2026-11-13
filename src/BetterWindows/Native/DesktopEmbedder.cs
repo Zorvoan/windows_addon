@@ -217,4 +217,28 @@ internal static class DesktopEmbedder
         }
         return best;
     }
+
+    /// <summary>
+    /// Diagnostika vstupu: které okno dostane klik na daném místě vrstvy plochy (WindowFromPoint),
+    /// a jestli je rodič vrstvy povolený. Když to není naše okno (nebo WebView2 uvnitř), klik se
+    /// k widgetům nedostane – to je potřeba vědět, než se zvolí jiné řešení.
+    /// </summary>
+    public static string DescribeHitTest(HWND ours, PixelRect monitor)
+    {
+        var parts = new List<string>();
+        var parent = PInvoke.GetParent(ours);
+        if (!parent.IsNull)
+        {
+            var ex = WindowStyles.GetExStyle(parent);
+            parts.Add($"rodič {ExplorerWindows.GetClassName(parent)} povolený={(bool)PInvoke.IsWindowEnabled(parent)}, " +
+                      $"WS_EX_TRANSPARENT={(ex & WINDOW_EX_STYLE.WS_EX_TRANSPARENT) != 0}, WS_EX_LAYERED={(ex & WINDOW_EX_STYLE.WS_EX_LAYERED) != 0}");
+        }
+        foreach (var (name, x, y) in new[] { ("widgety", monitor.Left + 150, monitor.Top + 150), ("střed", monitor.Left + monitor.Width / 2, monitor.Top + monitor.Height / 2) })
+        {
+            var hit = PInvoke.WindowFromPoint(new System.Drawing.Point(x, y));
+            var mine = hit == ours || PInvoke.IsChild(ours, hit);
+            parts.Add($"{name} [{x},{y}] -> {ExplorerWindows.GetClassName(hit)} 0x{(nint)hit:X}{(mine ? " (naše)" : " (CIZÍ – klik k widgetům nedojde)")}");
+        }
+        return string.Join("; ", parts);
+    }
 }

@@ -11,7 +11,8 @@ namespace BetterWindows.ShellWindows;
 /// </summary>
 internal sealed class IslandWindow : ShellWindowBase
 {
-    private const double WidthDip = 480, HeightDip = 176;
+    // Výška: rozbalená pilulka (4 + 156 px) + místo pro její stín (~34 px).
+    private const double WidthDip = 480, HeightDip = 200;
 
     public IslandWindow(ShellContext context, MonitorInfo monitor)
         : base("island", context, monitor)

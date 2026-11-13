@@ -133,7 +133,7 @@ internal sealed class ShellController : IDisposable
 
     private void DelayOnUi(TimeSpan delay, Action action)
     {
-        var timer = new DispatcherTimer(delay, DispatcherPriority.Background, null, _dispatcher);
+        var timer = new DispatcherTimer(DispatcherPriority.Background, _dispatcher) { Interval = delay };
         timer.Tick += (_, _) =>
         {
             timer.Stop();
@@ -199,7 +199,7 @@ internal sealed class ShellController : IDisposable
         _hub.On<object>(MessageTypes.AppExit, (_, _) =>
         {
             Log.Info("Ukončení z horní lišty.");
-            System.Windows.Application.Current.Shutdown(0);
+            App.Quit(0);
         });
         _hub.On<SettingsActionPayload>(MessageTypes.SettingsAction, (_, p) =>
         {

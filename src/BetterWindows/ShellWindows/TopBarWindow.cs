@@ -74,11 +74,52 @@ internal sealed class TopBarWindow : ShellWindowBase
                 Place();
                 break;
             case PInvoke.ABN_FULLSCREENAPP:
-                Log.Info($"Aplikace přes celou obrazovku: {(lParam != 0 ? "otevřena" : "zavřena")}");
-                FullscreenChanged?.Invoke(lParam != 0);
+                OnFullscreenNotification(lParam != 0);
                 break;
         }
         return 0;
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _fullscreenRecheck;
+
+    /// <summary>
+    /// ABN_FULLSCREENAPP chodí i při kliknutí na plochu a při našich oknech přes celou obrazovku –
+    /// lišta, dock a ostrůvek by pak zmizely bez důvodu. „Otevřena“ proto ověříme podle okna v popředí;
+    /// když neprojde, zkusíme to ještě jednou za chvíli (hra se mohla do popředí dostat až po zprávě).
+    /// </summary>
+    private void OnFullscreenNotification(bool open)
+    {
+        _fullscreenRecheck?.Stop();
+        if (!open)
+        {
+            Log.Info("Aplikace přes celou obrazovku: zavřena");
+            FullscreenChanged?.Invoke(false);
+            return;
+        }
+        if (FullscreenCheck.IsRealFullscreenApp(Monitor.Bounds, out var reason))
+        {
+            Log.Info($"Aplikace přes celou obrazovku: otevřena ({reason})");
+            FullscreenChanged?.Invoke(true);
+            return;
+        }
+        Log.Info($"Aplikace přes celou obrazovku: ignoruji ({reason})");
+        _fullscreenRecheck ??= new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Normal, Dispatcher)
+        {
+            Interval = TimeSpan.FromMilliseconds(500),
+        };
+        _fullscreenRecheck.Tick -= OnFullscreenRecheck;
+        _fullscreenRecheck.Tick += OnFullscreenRecheck;
+        _fullscreenRecheck.Start();
+    }
+
+    private void OnFullscreenRecheck(object? sender, EventArgs e)
+    {
+        _fullscreenRecheck?.Stop();
+        if (FullscreenCheck.IsRealFullscreenApp(Monitor.Bounds, out var reason))
+        {
+            Log.Info($"Aplikace přes celou obrazovku: otevřena po ověření ({reason})");
+            FullscreenChanged?.Invoke(true);
+        }
     }
 
     /// <summary>Uvolní rezervovaný okraj. Volat před zavřením okna.</summary>

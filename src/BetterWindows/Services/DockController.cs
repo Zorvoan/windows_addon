@@ -96,7 +96,7 @@ internal sealed class DockController : IDisposable
             _window?.Hide();
         else
             _window?.Show();
-        _backdrop?.SetVisible(!fullscreen);
+        _backdrop?.SetVisible(!fullscreen); // zařadí se znovu těsně POD dock (ne navrch)
     }
 
     public void SetBackdrop(BackdropMode mode) => _backdrop?.SetBackdrop(mode);

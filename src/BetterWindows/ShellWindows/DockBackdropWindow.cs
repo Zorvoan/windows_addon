@@ -14,6 +14,7 @@ namespace BetterWindows.ShellWindows;
 internal sealed class DockBackdropWindow : ShellWindowBase
 {
     private PixelRect? _rect;
+    private HWND _dock;
     private bool _visible = true;
 
     public DockBackdropWindow(ShellContext context, MonitorInfo monitor)
@@ -42,10 +43,10 @@ internal sealed class DockBackdropWindow : ShellWindowBase
         _visible = visible;
         if (Hwnd.IsNull)
             return;
-        if (!visible || _rect is null)
+        if (!visible || _rect is null || _dock.IsNull)
             PInvoke.ShowWindowAsync(Hwnd, SHOW_WINDOW_CMD.SW_HIDE);
         else
-            PInvoke.ShowWindowAsync(Hwnd, SHOW_WINDOW_CMD.SW_SHOWNA);
+            Apply(); // NE ShowWindow: zobrazené okno by skočilo navrch a zakrylo dock (šedý obdélník místo ikon)
     }
 
     /// <summary>Přesune pozadí pod pás docku a v pořadí oken těsně pod okno docku.</summary>
@@ -53,16 +54,42 @@ internal sealed class DockBackdropWindow : ShellWindowBase
     {
         if (Hwnd.IsNull)
             return;
-        if (!_visible || rect is null || rect.Value.Width <= 0 || rect.Value.Height <= 0)
+        _dock = dock;
+        // Obdélník si pamatujeme i když je pozadí schované – po návratu se ukáže na správném místě.
+        _rect = rect is { Width: > 0, Height: > 0 } ? rect : null;
+        if (!_visible || _rect is null)
         {
             PInvoke.ShowWindowAsync(Hwnd, SHOW_WINDOW_CMD.SW_HIDE);
-            _rect = null;
             return;
         }
-        _rect = rect;
-        var r = rect.Value;
+        Apply();
+    }
+
+    /// <summary>Znovu zařadit těsně pod dock (po zobrazení docku nebo jiného okna navrch).</summary>
+    public void Reassert()
+    {
+        if (_visible && _rect is not null && !_dock.IsNull && !Hwnd.IsNull)
+            Apply();
+    }
+
+    private void Apply()
+    {
+        var r = _rect!.Value;
         // hWndInsertAfter = dock -> naše okno bude v pořadí hned ZA (pod) dockem.
-        PInvoke.SetWindowPos(Hwnd, dock, r.Left, r.Top, r.Width, r.Height,
+        PInvoke.SetWindowPos(Hwnd, _dock, r.Left, r.Top, r.Width, r.Height,
             SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_SHOWWINDOW);
+    }
+
+    /// <summary>
+    /// Pojistka: pozadí nikdy nebere myš. HTTRANSPARENT předá klik oknu pod ním ze stejného vlákna,
+    /// tedy docku – i kdyby se pořadí oken někdy prohodilo.
+    /// </summary>
+    protected override nint OnWindowMessage(int msg, nint wParam, nint lParam, ref bool handled)
+    {
+        const int WM_NCHITTEST = 0x0084, HTTRANSPARENT = -1;
+        if (msg != WM_NCHITTEST)
+            return 0;
+        handled = true;
+        return HTTRANSPARENT;
     }
 }

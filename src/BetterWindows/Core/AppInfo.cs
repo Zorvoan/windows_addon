@@ -5,6 +5,12 @@ namespace BetterWindows.Core;
 /// <summary>Název aplikace a cesty k jejím datovým složkám.</summary>
 public static class AppInfo
 {
+    /// <summary>
+    /// Aplikace se ukončuje (WPF při ukončení zavírá okna ještě před OnExit). Obsluhy „okno zaniklo“
+    /// podle toho poznají, že nejde o pád Průzkumníka a nemají nic obnovovat ani vytvářet znovu.
+    /// </summary>
+    public static volatile bool Exiting;
+
     /// <summary>Jméno, které vidí uživatel.</summary>
     public const string DisplayName = "Better Windows";
 

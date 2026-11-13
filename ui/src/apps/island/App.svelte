@@ -108,18 +108,25 @@
     }
     // Obálka po dobu animace: cílová velikost + rezerva na překmit, omezená oknem.
     // (Větší současná pilulka se do oblasti dostane v report() – při zmenšování ji oblast sleduje.)
+    const shadow = mode === 'expanded' ? SHADOW : { side: 0, bottom: 0 };
     envelope = {
-      w: Math.min(target.w * 1.04 + 8, window.innerWidth - 4),
-      h: Math.min(target.h * 1.04 + 8 + TOP, window.innerHeight),
+      w: Math.min(target.w * 1.04 + 8 + shadow.side * 2, window.innerWidth),
+      h: Math.min(target.h * 1.04 + 8 + TOP + shadow.bottom, window.innerHeight),
     };
     report();
     animator.go(mode, motionReduced()); // po dosednutí: envelope = null + přesný tvar (onSettle)
   });
 
-  /** Okraj (jen v tmavém režimu), malý stín a velký měkký stín podle rozbalení (0..1). */
+  /*
+   * Stín musí zůstat UVNITŘ tvaru okna (SetWindowRgn), jinak se uřízne do ostré hrany.
+   * Kompaktní pilulka: jen 1px okraj v tmavém režimu (vejde se do 2px rezervy).
+   * Rozbalená: měkký stín podle rozbalení (0..1); tvar okna se o SHADOW rozšíří (report()).
+   */
+  const SHADOW = { side: 26, bottom: 34 }; // dosah stínu 0 8px 24px (+ rezerva)
   function pillShadow(s: number): string {
     const k = Math.round(s * 100) / 100;
-    return `0 0 0 1px light-dark(transparent, rgb(237 237 237 / 0.12)), 0 4px 16px rgb(0 0 0 / 0.3), 0 ${k * 14}px ${k * 40}px rgb(0 0 0 / ${k * 0.35})`;
+    const ring = '0 0 0 1px light-dark(transparent, rgb(237 237 237 / 0.12))';
+    return k > 0.01 ? `${ring}, 0 ${k * 8}px ${k * 24}px rgb(0 0 0 / ${k * 0.3})` : ring;
   }
 
   // ---- Tvar okna do C# ----
@@ -130,13 +137,22 @@
     const hit: CssRect[] = [];
     if (envelope) {
       const r = pill?.getBoundingClientRect();
-      const w = Math.max(envelope.w, r ? r.width + 4 : 0);
-      const h = Math.max(envelope.h, r ? r.bottom + 2 : 0);
+      // Při sbalování ještě dobíhá stín -> i s ním.
+      const side = look.shadow > 0.01 ? SHADOW.side : 2;
+      const bottom = look.shadow > 0.01 ? SHADOW.bottom : 2;
+      const w = Math.min(window.innerWidth, Math.max(envelope.w, r ? r.width + side * 2 : 0));
+      const h = Math.min(window.innerHeight, Math.max(envelope.h, r ? r.bottom + bottom : 0));
       // Od horního okraje: pilulka se při nafouknutí a „želé“ na konci sbalení posune i kousek nahoru.
       hit.push({ x: Math.floor((window.innerWidth - w) / 2), y: 0, width: Math.ceil(w), height: Math.ceil(h) });
     } else if (pill && mode !== 'hidden') {
       const r = pill.getBoundingClientRect();
-      hit.push({ x: Math.floor(r.left) - 2, y: Math.floor(r.top) - 2, width: Math.ceil(r.width) + 4, height: Math.ceil(r.height) + 4 });
+      // Rozbalená pilulka má stín -> tvar okna i s ním (jinak by se uřízl).
+      const side = look.shadow > 0.01 ? SHADOW.side : 2;
+      const bottom = look.shadow > 0.01 ? SHADOW.bottom : 2;
+      const x = Math.max(0, Math.floor(r.left) - side);
+      const right = Math.min(window.innerWidth, Math.ceil(r.right) + side);
+      const y = Math.max(0, Math.floor(r.top) - 2);
+      hit.push({ x, y, width: right - x, height: Math.min(window.innerHeight, Math.ceil(r.bottom) + bottom) - y });
     }
     const json = JSON.stringify(hit);
     if (json !== lastSent) {

@@ -25,7 +25,7 @@ const pages = [
   { name: 'desktop', width: 1600, height: 900, backdrop: false },
   { name: 'lock', width: 1600, height: 900, backdrop: false, interact: useLock },
   { name: 'start', width: 820, height: 600, backdrop: true, interact: useStart },
-  { name: 'island', width: 480, height: 176, backdrop: true, interact: hoverIsland },
+  { name: 'island', width: 480, height: 200, backdrop: true, interact: hoverIsland },
   { name: 'settings', width: 900, height: 900, backdrop: false, fullPage: true, interact: toggleSetting },
 ].filter((p) => fs.existsSync(path.join(root, `${p.name}.html`)));
 
@@ -151,10 +151,11 @@ async function hoverIsland(page, report) {
   if (!compact || !expanded || expanded.height <= compact.height) report.errors.push('ostrůvek: tvar se po najetí nezvětšil');
   const pillAfter = await page.evaluate(() => document.querySelector('.pill').getBoundingClientRect().toJSON());
   if (Math.round(pillAfter.width) !== 400 || Math.round(pillAfter.height) !== 156) report.errors.push(`ostrůvek: po dosednutí má ${pillAfter.width}×${pillAfter.height}, čekal jsem 400×156`);
-  if (expanded && expanded.width > 410) report.errors.push('ostrůvek: po dosednutí zůstala v oblasti okna obálka místo přesného tvaru');
+  // Přesný tvar rozbalené pilulky = 400 + stín 2×26 = 452 (obálka během animace je širší).
+  if (expanded && expanded.width > 460) report.errors.push('ostrůvek: po dosednutí zůstala v oblasti okna obálka místo přesného tvaru');
   await page.getByRole('button', { name: 'Další' }).click();
   // Sbalení: oblast okna se má zmenšovat s pilulkou (ne držet velkou obálku a polykat kliknutí na lištu).
-  await page.mouse.move(240, 172, { steps: 2 });
+  await page.mouse.move(240, 196, { steps: 2 });
   await page.waitForTimeout(300 + 250); // zpoždění odjetí (300 ms) + půlka animace
   const collapsing = (await page.evaluate(() => window.__sent)).filter((m) => m.type === 'island.layout').at(-1)?.payload.hit[0];
   report.notes.push(`island.layout během sbalování ${JSON.stringify(collapsing)}`);
@@ -166,7 +167,7 @@ async function hoverIsland(page, report) {
 
   // Omezené animace: tvar se změní hned (bez pružiny).
   await page.evaluate(() => window.__deliver({ type: 'performance.state', payload: { reduced: true, reason: 'test' } }));
-  await page.mouse.move(240, 170, { steps: 2 });
+  await page.mouse.move(240, 196, { steps: 2 });
   await page.waitForTimeout(450); // zpoždění odjetí myší (300 ms) + snímek
   const reducedSize = await page.evaluate(() => document.querySelector('.pill').getBoundingClientRect().height);
   report.notes.push(`omezené animace: výška pilulky po odjetí myší ${reducedSize}`);

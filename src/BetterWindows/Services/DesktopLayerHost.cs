@@ -72,11 +72,27 @@ internal sealed class DesktopLayerHost : IDisposable
             SetStatus(window.ModeName, window.ModeDetail);
             ApplyIcons();
             _health.Start();
+            LogHitTestLater(window);
         }
         finally
         {
             _starting = false;
         }
+    }
+
+    /// <summary>Za chvíli (okno je rozložené, ikony skryté) zapsat do logu, kdo na ploše dostává kliknutí.</summary>
+    private void LogHitTestLater(DesktopWindow window)
+    {
+        var timer = new DispatcherTimer(DispatcherPriority.Background, _context.Dispatcher) { Interval = TimeSpan.FromSeconds(2) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            if (_window != window)
+                return;
+            Safe.Run("Plocha – diagnostika kliknutí", () =>
+                Log.Info($"Plocha – kdo dostane klik: {DesktopEmbedder.DescribeHitTest(window.Handle, window.Monitor.Bounds)}"));
+        };
+        timer.Start();
     }
 
     public void Stop()
@@ -111,7 +127,7 @@ internal sealed class DesktopLayerHost : IDisposable
         _iconsHidden = false;
         SystemGuard.Record(s => s.DesktopIconsHidden = false);
         // Dáme Průzkumníku chvilku, ať plochu postaví.
-        var timer = new DispatcherTimer(TimeSpan.FromSeconds(2), DispatcherPriority.Background, null, _context.Dispatcher);
+        var timer = new DispatcherTimer(DispatcherPriority.Background, _context.Dispatcher) { Interval = TimeSpan.FromSeconds(2) };
         timer.Tick += (_, _) =>
         {
             timer.Stop();
@@ -188,7 +204,7 @@ internal sealed class DesktopLayerHost : IDisposable
 
     private void OnWindowClosed(object? sender, EventArgs e)
     {
-        if (_closingOnPurpose || sender != _window)
+        if (_closingOnPurpose || AppInfo.Exiting || sender != _window)
             return;
         // Okno zaniklo samo – nejspíš spadl / restartoval se Průzkumník a vzal ho s sebou.
         Log.Warn("Vrstva plochy zanikla (pravděpodobně restart Průzkumníka). Čekám na obnovu plochy.");
@@ -196,11 +212,12 @@ internal sealed class DesktopLayerHost : IDisposable
         _iconsHidden = false;
         SystemGuard.Record(s => s.DesktopIconsHidden = false);
         SetStatus("failed", "Okno zaniklo, čekám na Průzkumníka");
-        var timer = new DispatcherTimer(TimeSpan.FromSeconds(3), DispatcherPriority.Background, null, _context.Dispatcher);
+        // Pozn.: konstruktor DispatcherTimer s obsluhou ji vyžaduje (null = výjimka), proto bez něj + Tick.
+        var timer = new DispatcherTimer(DispatcherPriority.Background, _context.Dispatcher) { Interval = TimeSpan.FromSeconds(3) };
         timer.Tick += (_, _) =>
         {
             timer.Stop();
-            if (_window is null && !ExplorerWindows.FindProgman().IsNull)
+            if (_window is null && !AppInfo.Exiting && !ExplorerWindows.FindProgman().IsNull)
                 Restart("okno zaniklo");
         };
         timer.Start();

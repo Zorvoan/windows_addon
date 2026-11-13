@@ -191,3 +191,8 @@ GetKeyboardLayout
 SHQueryRecycleBin
 SHQUERYRBINFO
 SHEmptyRecycleBin
+
+// Diagnostika: kdo dostane klik na vrstvě plochy
+WindowFromPoint
+IsChild
+IsWindowEnabled

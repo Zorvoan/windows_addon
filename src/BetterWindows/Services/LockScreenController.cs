@@ -116,7 +116,7 @@ internal sealed class LockScreenController : IDisposable
     /// <summary>Okno zaniklo (Alt+F4, chyba) – nepovažovat zámek za otevřený a připravit nové.</summary>
     private void OnWindowClosed(object? sender, EventArgs e)
     {
-        if (_closingWindow || sender != _window)
+        if (_closingWindow || AppInfo.Exiting || sender != _window)
             return;
         Log.Warn("Zámek: okno bylo zavřeno, připravuji nové.");
         _window = null;

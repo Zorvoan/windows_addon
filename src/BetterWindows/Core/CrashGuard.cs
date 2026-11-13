@@ -100,6 +100,7 @@ public static class CrashGuard
         Log.Error($"{FatalErrorBurst} chyb během 30 s – aplikace se ukončí.");
         RunEmergencyCleanup();
         ShowCrashMessage(ex);
+        AppInfo.Exiting = true;
         app.Shutdown(1);
     }
 

@@ -35,6 +35,8 @@ internal sealed class DesktopWindow : ShellWindowBase
         _snapshot = snapshot;
     }
 
+    public HWND Handle => Hwnd;
+
     protected override bool IsTopmost => false;
     protected override bool NoActivate => _noActivate;
 

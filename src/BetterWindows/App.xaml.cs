@@ -74,7 +74,7 @@ public partial class App : Application
         });
         _tray.ShowBackdrop(_shell.Settings.Current.Appearance.TopBarBackdrop);
         _shell.Settings.Changed += (_, now) => _tray.ShowBackdrop(now.Appearance.TopBarBackdrop);
-        _tray.ExitRequested += () => Shutdown(0);
+        _tray.ExitRequested += () => Quit(0);
 #if DEBUG
         _tray.UiErrorTestRequested += () => throw new InvalidOperationException("Testovací chyba v UI vlákně (aplikace má běžet dál).");
         _tray.CrashTestRequested += () => new Thread(() => throw new InvalidOperationException("Testovací pád procesu.")).Start();
@@ -83,8 +83,22 @@ public partial class App : Application
         _shell.Start();
     }
 
+    /// <summary>Řádné ukončení: nejdřív příznak (okna se pak zavírají „schválně“), pak Shutdown.</summary>
+    public static void Quit(int code)
+    {
+        AppInfo.Exiting = true;
+        Current.Shutdown(code);
+    }
+
+    protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+    {
+        AppInfo.Exiting = true; // odhlášení / vypnutí počítače
+        base.OnSessionEnding(e);
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
+        AppInfo.Exiting = true;
         Safe.Run("Ukončení shellu", () => _shell?.Dispose());
         Safe.Run("Obnova systému při ukončení", () => SystemGuard.RestoreCurrent("ukončení"));
         _tray?.Dispose();
