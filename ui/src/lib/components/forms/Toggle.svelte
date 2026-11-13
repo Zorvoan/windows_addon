@@ -31,7 +31,7 @@
     border-radius: var(--bw-radius-pill);
     border: 1px solid var(--bw-border);
     background: var(--bw-hover);
-    transition: background var(--bw-duration) var(--bw-ease);
+    transition: background-color var(--bw-duration) var(--bw-ease);
   }
   button.on {
     background: var(--bw-accent);
@@ -47,9 +47,9 @@
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: white;
+    background: #fff;
     box-shadow: var(--bw-shadow-sm);
-    transition: transform var(--bw-duration) var(--bw-ease-spring);
+    transition: transform var(--bw-duration) var(--bw-ease);
   }
   .on .knob {
     transform: translateX(18px);

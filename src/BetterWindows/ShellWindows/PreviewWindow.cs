@@ -19,7 +19,7 @@ namespace BetterWindows.ShellWindows;
 /// </summary>
 internal sealed class PreviewWindow : ShellWindowBase
 {
-    private const double MaxThumbW = 220, MaxThumbH = 130, Pad = 10, TitleH = 24;
+    private const double MaxThumbW = 220, MaxThumbH = 128, Pad = 8, TitleH = 24;
 
     private readonly List<(nint Thumb, Border Slot)> _thumbs = [];
     private readonly StackPanel _row = new() { Orientation = Orientation.Horizontal };
@@ -36,7 +36,7 @@ internal sealed class PreviewWindow : ShellWindowBase
         _frame = new Border
         {
             CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(6),
+            Padding = new Thickness(4),
             Child = _row,
         };
         Content = _frame;
@@ -61,8 +61,8 @@ internal sealed class PreviewWindow : ShellWindowBase
         new System.Windows.Interop.WindowInteropHelper(this).EnsureHandle();
         ClearThumbnails();
         _row.Children.Clear();
-        _frame.Background = new SolidColorBrush(IsDark ? Color.FromArgb(0x55, 0x10, 0x10, 0x14) : Color.FromArgb(0x55, 0xF4, 0xF4, 0xF6));
-        var fg = IsDark ? Brushes.WhiteSmoke : new SolidColorBrush(Color.FromRgb(0x14, 0x14, 0x18));
+        _frame.Background = new SolidColorBrush(IsDark ? Color.FromArgb(0x55, 0x14, 0x14, 0x15) : Color.FromArgb(0x55, 0xFA, 0xFA, 0xFA));
+        var fg = new SolidColorBrush(IsDark ? Color.FromRgb(0xED, 0xED, 0xED) : Color.FromRgb(0x17, 0x17, 0x17));
 
         // Kolik místa má jeden náhled, aby se celý panel vešel na monitor.
         var shown = windows.Take(6).ToList();
@@ -92,8 +92,8 @@ internal sealed class PreviewWindow : ShellWindowBase
             {
                 Width = tw,
                 Height = th,
-                CornerRadius = new CornerRadius(4),
-                Background = new SolidColorBrush(Color.FromArgb(0x22, 0x80, 0x80, 0x80)),
+                CornerRadius = new CornerRadius(6),
+                Background = new SolidColorBrush(IsDark ? Color.FromArgb(0x14, 0xED, 0xED, 0xED) : Color.FromArgb(0x14, 0x17, 0x17, 0x17)),
                 Child = new TextBlock
                 {
                     Text = w.IsMinimized ? "Minimalizováno" : "",
@@ -112,16 +112,25 @@ internal sealed class PreviewWindow : ShellWindowBase
                 FontSize = 12,
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(2, 0, 4, 0),
+                Margin = new Thickness(4, 0, 8, 0),
+            };
+            // Ikona zavření kreslená čárou (stejná sada jako v UI), ne textový znak.
+            var cross = new System.Windows.Shapes.Path
+            {
+                Data = Geometry.Parse("M0,0 L8,8 M8,0 L0,8"),
+                Stroke = fg,
+                StrokeThickness = 1.5,
+                StrokeStartLineCap = PenLineCap.Round,
+                StrokeEndLineCap = PenLineCap.Round,
+                Width = 8,
+                Height = 8,
             };
             var close = new Button
             {
-                Content = "✕",
-                Width = 20,
-                Height = 20,
+                Content = cross,
+                Width = 24,
+                Height = 24,
                 Padding = new Thickness(0),
-                FontSize = 10,
-                Foreground = fg,
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
                 Cursor = Cursors.Arrow,
@@ -139,8 +148,8 @@ internal sealed class PreviewWindow : ShellWindowBase
             item.Children.Add(header);
             item.Children.Add(slot);
 
-            var hover = new Border { CornerRadius = new CornerRadius(6), Padding = new Thickness(4), Child = item, Background = Brushes.Transparent };
-            hover.MouseEnter += (_, _) => hover.Background = new SolidColorBrush(Color.FromArgb(0x26, 0x80, 0x80, 0x80));
+            var hover = new Border { CornerRadius = new CornerRadius(8), Padding = new Thickness(4), Child = item, Background = Brushes.Transparent };
+            hover.MouseEnter += (_, _) => hover.Background = new SolidColorBrush(IsDark ? Color.FromArgb(0x12, 0xED, 0xED, 0xED) : Color.FromArgb(0x0D, 0x17, 0x17, 0x17));
             hover.MouseLeave += (_, _) => hover.Background = Brushes.Transparent;
             hover.MouseLeftButtonUp += (_, e) =>
             {

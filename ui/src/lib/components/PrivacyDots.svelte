@@ -23,26 +23,18 @@
 <style>
   .dots {
     display: inline-flex;
-    gap: 5px;
+    gap: var(--bw-space-1);
     padding: 0 var(--bw-space-1);
   }
   .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    animation: appear var(--bw-duration-slow) var(--bw-ease-spring);
   }
   .mic {
     background: var(--bw-privacy-mic);
-    box-shadow: 0 0 6px var(--bw-privacy-mic);
   }
   .cam {
     background: var(--bw-privacy-cam);
-    box-shadow: 0 0 6px var(--bw-privacy-cam);
-  }
-  @keyframes appear {
-    from {
-      transform: scale(0);
-    }
   }
 </style>

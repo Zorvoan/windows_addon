@@ -193,7 +193,8 @@
   }
   .large .time {
     font-size: clamp(96px, 12vw, 180px);
-    font-weight: 600;
+    font-weight: 500;
+    letter-spacing: -0.03em;
   }
   .thin .time {
     font-size: clamp(110px, 14vw, 210px);
@@ -201,7 +202,7 @@
   }
   .bold .time {
     font-size: clamp(110px, 14vw, 200px);
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.04em;
   }
   .analog {
@@ -222,14 +223,14 @@
     gap: var(--bw-space-3);
     padding: var(--bw-space-3) var(--bw-space-4);
     border-radius: var(--bw-radius-lg);
-    background: rgb(255 255 255 / 0.14);
-    backdrop-filter: blur(20px) saturate(1.4);
-    border: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(20 20 21 / 0.28);
+    backdrop-filter: blur(24px) saturate(1.3);
+    border: 1px solid rgb(237 237 237 / 0.12);
     text-shadow: none;
   }
   .big {
-    font-size: 22px;
-    font-weight: var(--bw-weight-bold);
+    font-size: 20px;
+    font-weight: var(--bw-weight-medium);
   }
   .small {
     font-size: var(--bw-text-sm);
@@ -241,7 +242,7 @@
   .media img {
     width: 48px;
     height: 48px;
-    border-radius: 10px;
+    border-radius: 6px;
     object-fit: cover;
   }
   .media .meta {
@@ -249,7 +250,7 @@
     min-width: 0;
   }
   .media .title {
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -301,7 +302,7 @@
   .hint {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--bw-space-2);
     font-size: var(--bw-text-sm);
     opacity: 0.75;
   }

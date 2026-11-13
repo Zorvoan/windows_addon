@@ -27,7 +27,7 @@
 
   on('theme.code', (p) => (themeCode = p.code));
   on('theme.importResult', (p) => {
-    importMessage = p.ok ? { ok: true, text: 'Motiv byl použit.' } : { ok: false, text: p.error ?? 'Kód nejde použít.' };
+    importMessage = p.ok ? { ok: true, text: 'Motiv použit' } : { ok: false, text: p.error ?? 'Kód nejde použít.' };
     if (p.ok) importCode = '';
   });
 
@@ -83,7 +83,7 @@
 
 <div class="layout">
   <nav>
-    <div class="brand"><Logo size={22} /> Better Windows</div>
+    <div class="brand"><Logo size={16} /> Better Windows</div>
     {#each sections as sec (sec.id)}
       <a href="#{sec.id}">{sec.title}</a>
     {/each}
@@ -95,7 +95,7 @@
     {:else}
       <section id="appearance">
         <Surface>
-          <Section title="Vzhled" description="Barvy a průhlednost se řídí jedním místem – designovými tokeny.">
+          <Section title="Vzhled" description="Světlý nebo tmavý režim a rozmazání lišty a docku">
             <div>
               <SettingRow label="Motiv">
                 <Segmented
@@ -109,13 +109,13 @@
                   onchange={(v) => update((x) => (x.appearance.theme = v))}
                 />
               </SettingRow>
-              <SettingRow label="Rozmazání horní lišty" hint="Systémové = Windows 11 Acrylic. Vlastní tón = starší API, průhlednější.">
+              <SettingRow label="Rozmazání horní lišty" hint="Systémové je rozmazání Windows 11, vlastní tón je průhlednější">
                 <Segmented label="Rozmazání horní lišty" value={s.appearance.topBarBackdrop} options={backdropOptions} onchange={(v) => update((x) => (x.appearance.topBarBackdrop = v))} />
               </SettingRow>
               <SettingRow label="Rozmazání docku">
                 <Segmented label="Rozmazání docku" value={s.appearance.dockBackdrop} options={backdropOptions} onchange={(v) => update((x) => (x.appearance.dockBackdrop = v))} />
               </SettingRow>
-              <SettingRow label="Omezit animace" hint="Vypne zvětšování s doběhem a další plynulé přechody.">
+              <SettingRow label="Omezit animace" hint="Vypne zvětšování s doběhem a další plynulé přechody">
                 <Toggle label="Omezit animace" checked={s.appearance.reduceMotion} onchange={(v) => update((x) => (x.appearance.reduceMotion = v))} />
               </SettingRow>
             </div>
@@ -158,7 +158,7 @@
               <SettingRow label="Neprůhlednost widgetů">
                 <Slider label="Neprůhlednost widgetů" min={0} max={1} step={0.05} value={s.appearance.style.glassOpacity} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, glassOpacity: v, name: 'Vlastní' }))} />
               </SettingRow>
-              <SettingRow label="Tón horní lišty" hint="Přidává barvu přes systémové rozmazání.">
+              <SettingRow label="Tón horní lišty" hint="Přidává barvu přes systémové rozmazání">
                 <Slider label="Tón horní lišty" min={0} max={0.8} step={0.02} value={s.appearance.style.barTint} format={(v) => `${Math.round(v * 100)} %`} onchange={(v) => update((x) => (x.appearance.style = { ...x.appearance.style, barTint: v, name: 'Vlastní' }))} />
               </SettingRow>
               <SettingRow label="Tón docku">
@@ -187,7 +187,7 @@
 
       <section id="performance">
         <Surface>
-          <Section title="Výkon" description="Ztlumí animace a pozastaví vizualizér, když na nich nezáleží nebo když šetříš baterii.">
+          <Section title="Výkon" description="Ztlumí animace a pozastaví vizualizér, když na nich nezáleží nebo když šetříš baterii">
             <div>
               <SettingRow label="Režim">
                 <Segmented
@@ -204,7 +204,7 @@
               <SettingRow label="Ztlumit na baterii">
                 <Toggle label="Ztlumit na baterii" checked={s.performance.reduceOnBattery} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnBattery = v))} />
               </SettingRow>
-              <SettingRow label="Ztlumit při aplikaci přes celou obrazovku" hint="Hry, videa, prezentace.">
+              <SettingRow label="Ztlumit při aplikaci přes celou obrazovku" hint="Hry, videa, prezentace">
                 <Toggle label="Ztlumit při celé obrazovce" checked={s.performance.reduceOnFullscreen} disabled={s.performance.mode !== 'auto'} onchange={(v) => update((x) => (x.performance.reduceOnFullscreen = v))} />
               </SettingRow>
               <SettingRow label="Teď">
@@ -218,7 +218,7 @@
 
       <section id="desktop">
         <Surface>
-          <Section title="Plocha" description="Vrstva pod všemi aplikacemi: tapeta, widgety a vizualizér.">
+          <Section title="Plocha" description="Vrstva pod všemi aplikacemi: tapeta, widgety a vizualizér">
             <div>
               <SettingRow label="Vrstva plochy">
                 <Toggle label="Vrstva plochy" checked={s.desktop.enabled} onchange={(v) => update((x) => (x.desktop.enabled = v))} />
@@ -250,7 +250,7 @@
               <SettingRow label="Widgety">
                 <Toggle label="Widgety" checked={s.desktop.showWidgets} onchange={(v) => update((x) => (x.desktop.showWidgets = v))} />
               </SettingRow>
-              <SettingRow label="Testovací karta" hint="Diagnostika vrstvy plochy (režim, test myši a klávesnice).">
+              <SettingRow label="Testovací karta" hint="Diagnostika vrstvy plochy (režim, test myši a klávesnice)">
                 <Toggle label="Testovací karta" checked={s.desktop.showTestCard} onchange={(v) => update((x) => (x.desktop.showTestCard = v))} />
               </SettingRow>
             </div>
@@ -260,7 +260,7 @@
 
       <section id="visualizer">
         <Surface>
-          <Section title="Vizualizér" description="Reaguje na zvuk, který hraje z počítače (ne na mikrofon).">
+          <Section title="Vizualizér" description="Reaguje na zvuk, který hraje z počítače (ne na mikrofon)">
             <div>
               <SettingRow label="Zapnuto">
                 <Toggle label="Vizualizér" checked={s.desktop.visualizer.enabled} onchange={(v) => update((x) => (x.desktop.visualizer.enabled = v))} />
@@ -298,17 +298,17 @@
               <SettingRow label="Zvětšování při najetí">
                 <Toggle label="Zvětšování" checked={s.dock.magnification} onchange={(v) => update((x) => (x.dock.magnification = v))} />
               </SettingRow>
-              <SettingRow label="Náhledy oken" hint="Po najetí na ikonu spuštěné aplikace.">
+              <SettingRow label="Náhledy oken" hint="Po najetí na ikonu spuštěné aplikace">
                 <Toggle label="Náhledy oken" checked={s.dock.previews} onchange={(v) => update((x) => (x.dock.previews = v))} />
               </SettingRow>
-              <SettingRow label="Launchpad a Koš" hint="Ikona Startu na začátku docku a koš na konci.">
+              <SettingRow label="Launchpad a Koš" hint="Ikona Startu na začátku docku a koš na konci">
                 <Toggle label="Launchpad" checked={s.dock.showLaunchpad} onchange={(v) => update((x) => (x.dock.showLaunchpad = v))} />
                 <Toggle label="Koš" checked={s.dock.showTrash} onchange={(v) => update((x) => (x.dock.showTrash = v))} />
               </SettingRow>
               <SettingRow label="Největší zvětšení">
                 <Slider label="Největší zvětšení" min={1} max={2.5} step={0.1} value={s.dock.maxScale} format={(v) => `${v.toFixed(1)}×`} onchange={(v) => update((x) => (x.dock.maxScale = v))} />
               </SettingRow>
-              <SettingRow label="Připnuté aplikace" hint="Připnout jde pravým tlačítkem na ikonu v docku.">
+              <SettingRow label="Připnuté aplikace" hint="Připnout jde pravým tlačítkem na ikonu v docku">
                 <span></span>
               </SettingRow>
               <ul class="pinned">
@@ -347,7 +347,7 @@
 
       <section id="island">
         <Surface>
-          <Section title="Dynamic Island" description="Právě hrající hudba a hlasitost nahoře uprostřed.">
+          <Section title="Dynamic Island" description="Právě hrající hudba a hlasitost nahoře uprostřed">
             <div>
               <SettingRow label="Zapnuto">
                 <Toggle label="Dynamic Island" checked={s.island.enabled} onchange={(v) => update((x) => (x.island.enabled = v))} />
@@ -379,7 +379,7 @@
               <SettingRow label="Po odemknutí zamknout Windows" hint="Doporučeno. Naše obrazovka nic nechrání (jde obejít Ctrl+Alt+Del); heslo, PIN nebo Windows Hello chce až zámek Windows.">
                 <Toggle label="Po odemknutí zamknout Windows" checked={s.lock.requireWindowsLock} onchange={(v) => update((x) => (x.lock.requireWindowsLock = v))} />
               </SettingRow>
-              <SettingRow label="Ukázat po nečinnosti" hint="Ne během hudby, videa a her přes celou obrazovku.">
+              <SettingRow label="Ukázat po nečinnosti" hint="Ne během hudby, videa a her přes celou obrazovku">
                 <Slider label="Ukázat po nečinnosti" min={0} max={60} step={1} value={s.lock.idleMinutes} format={(v) => (v === 0 ? 'nikdy' : `${v} min`)} onchange={(v) => update((x) => (x.lock.idleMinutes = v))} />
               </SettingRow>
               <SettingRow label="Vzhled" hint="Styl hodin, umístění, co se ukazuje, rozmazání tapety – s živým náhledem. Náhled Windows nezamkne.">
@@ -395,7 +395,7 @@
         <Surface>
           <Section title="Horní lišta">
             <div>
-              <SettingRow label="Právě hraje" hint="Mini přehrávač vedle názvu aplikace.">
+              <SettingRow label="Právě hraje" hint="Mini přehrávač vedle názvu aplikace">
                 <Toggle label="Právě hraje" checked={s.topBar.showNowPlaying} onchange={(v) => update((x) => (x.topBar.showNowPlaying = v))} />
               </SettingRow>
               <SettingRow label="Jazyk klávesnice">
@@ -414,7 +414,7 @@
 
       <section id="weather">
         <Surface>
-          <Section title="Počasí" description="Open-Meteo, bez účtu a API klíče.">
+          <Section title="Počasí" description="Open-Meteo, bez účtu a API klíče">
             <div>
               <SettingRow label="Zapnuto">
                 <Toggle label="Počasí" checked={s.weather.enabled} onchange={(v) => update((x) => (x.weather.enabled = v))} />
@@ -520,7 +520,7 @@
     display: flex;
     align-items: center;
     gap: var(--bw-space-2);
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
     padding: 0 var(--bw-space-2) var(--bw-space-4);
   }
   nav a {
@@ -529,8 +529,13 @@
     color: inherit;
     text-decoration: none;
   }
+  nav a {
+    color: var(--bw-fg-muted);
+    transition: background-color var(--bw-duration-fast) var(--bw-ease), color var(--bw-duration-fast) var(--bw-ease);
+  }
   nav a:hover {
     background: var(--bw-hover);
+    color: var(--bw-fg);
   }
   main {
     padding: var(--bw-space-6);
@@ -549,7 +554,7 @@
     font-weight: var(--bw-weight-medium);
   }
   .confirm {
-    color: #ef4444;
+    color: var(--bw-negative);
     font-weight: var(--bw-weight-medium);
   }
   .pinned {
@@ -612,21 +617,20 @@
   .preset {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--bw-space-2);
     height: 32px;
-    padding: 0 12px;
-    border-radius: var(--bw-radius-pill);
+    padding: 0 var(--bw-space-3);
+    border-radius: var(--bw-radius-md);
     border: 1px solid var(--bw-border);
     background: var(--bw-surface);
     font-size: var(--bw-text-sm);
   }
   .preset.active {
     border-color: var(--bw-accent);
-    box-shadow: 0 0 0 1px var(--bw-accent);
   }
   .swatch {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
   }
   .color {
@@ -662,10 +666,10 @@
   }
   .message {
     margin: 0;
-    color: #16a34a;
+    color: var(--bw-positive);
     font-size: var(--bw-text-sm);
   }
   .message.error {
-    color: #ef4444;
+    color: var(--bw-negative);
   }
 </style>

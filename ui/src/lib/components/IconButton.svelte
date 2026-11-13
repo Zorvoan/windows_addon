@@ -24,14 +24,15 @@
   button {
     display: inline-grid;
     place-items: center;
-    height: 26px;
-    min-width: 30px;
+    height: 28px;
+    min-width: 28px;
     padding: 0 var(--bw-space-2);
     border: 0;
     border-radius: var(--bw-radius-sm);
     background: transparent;
     cursor: default;
-    transition: background var(--bw-duration-fast) var(--bw-ease);
+    color: inherit;
+    transition: background-color var(--bw-duration-fast) var(--bw-ease);
   }
   button:hover {
     background: var(--bw-hover);

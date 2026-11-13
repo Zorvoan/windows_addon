@@ -115,7 +115,7 @@
     <div class="row-compact">
       {#if media.thumbnail}<img class="art small" src={media.thumbnail} alt="" />{:else}<span class="art small ph"><Icon name="volume" size={12} /></span>{/if}
       <span class="title">{media.title}</span>
-      <span class="bars" class:playing={media.playing} aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="dots" class:playing={media.playing} aria-hidden="true">{#each [0, 1, 2, 3] as c (c)}<span class="col">{#each [0, 1, 2] as r (r)}<i></i>{/each}</span>{/each}</span>
     </div>
   {:else if mode === 'expanded' && media}
     <div class="body-expanded">
@@ -126,7 +126,7 @@
           <div class="artist">{media.artist ?? ''}</div>
           {#if media.source}<div class="source">{media.source}</div>{/if}
         </div>
-        <span class="bars big" class:playing={media.playing} aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="dots big" class:playing={media.playing} aria-hidden="true">{#each [0, 1, 2, 3] as c (c)}<span class="col">{#each [0, 1, 2] as r (r)}<i></i>{/each}</span>{/each}</span>
       </div>
       {#if media.duration}
         <div class="progress">
@@ -169,23 +169,23 @@
 <style>
   .pill {
     position: absolute;
-    top: 3px;
+    top: 4px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--bw-island-bg);
     color: var(--bw-island-fg);
     overflow: hidden;
-    box-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.3);
     transition:
-      width var(--bw-duration-slow) var(--bw-ease-spring),
-      height var(--bw-duration-slow) var(--bw-ease-spring),
+      width var(--bw-duration-slow) var(--bw-ease),
+      height var(--bw-duration-slow) var(--bw-ease),
       border-radius var(--bw-duration-slow) var(--bw-ease),
       opacity var(--bw-duration) var(--bw-ease);
   }
   .hidden {
     width: 120px;
-    height: 30px;
-    border-radius: 15px;
+    height: 28px;
+    border-radius: 14px;
     opacity: 0;
     pointer-events: none;
   }
@@ -193,21 +193,17 @@
   .row-volume {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--bw-space-2);
     height: 100%;
-    padding: 0 10px 0 5px;
+    padding: 0 var(--bw-space-3) 0 var(--bw-space-1);
     font-size: var(--bw-text-sm);
     font-weight: var(--bw-weight-medium);
   }
-  .pill.compact {
-    width: var(--bw-island-width);
-    height: 30px;
-    border-radius: 15px;
-  }
+  .pill.compact,
   .pill.volume {
     width: var(--bw-island-width);
-    height: 30px;
-    border-radius: 15px;
+    height: 28px;
+    border-radius: 14px;
   }
   .row-volume {
     padding: 0 14px;
@@ -231,7 +227,7 @@
   .art.small {
     width: 20px;
     height: 20px;
-    border-radius: 6px;
+    border-radius: 10px; /* vnořené zaoblení: 14 − 4 */
   }
   .art.big {
     width: 56px;
@@ -245,8 +241,8 @@
   }
   .body-expanded {
     display: grid;
-    gap: 8px;
-    padding: 14px 18px 10px;
+    gap: var(--bw-space-2);
+    padding: var(--bw-space-4) var(--bw-space-5) var(--bw-space-3);
   }
   .top {
     display: flex;
@@ -258,28 +254,28 @@
     min-width: 0;
   }
   .meta .title {
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
     font-size: var(--bw-text-md);
   }
   .artist,
   .source {
     font-size: var(--bw-text-sm);
-    color: rgb(245 245 247 / 0.65);
+    color: #a1a1a6;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .source {
     font-size: var(--bw-text-xs);
-    color: rgb(245 245 247 / 0.45);
+    color: #85858b;
   }
   .progress {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 10px;
+    gap: var(--bw-space-2);
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
-    color: rgb(245 245 247 / 0.6);
+    color: #a1a1a6;
   }
   .track {
     flex: 1;
@@ -290,7 +286,7 @@
   }
   .fill {
     height: 100%;
-    background: #fff;
+    background: #ededed;
     border-radius: 2px;
   }
   .pct {
@@ -303,18 +299,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
+    gap: var(--bw-space-3);
   }
   .controls button {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     border: 0;
     border-radius: 50%;
     background: none;
     color: inherit;
+    transition: background-color var(--bw-duration-fast) var(--bw-ease);
   }
   .controls button:hover {
     background: rgb(255 255 255 / 0.12);
@@ -329,47 +326,58 @@
   .vol {
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-left: 10px;
+    gap: var(--bw-space-1);
+    margin-left: var(--bw-space-3);
   }
   .vol input {
-    width: 90px;
-    accent-color: #fff;
+    width: 88px;
+    accent-color: #ededed;
   }
-  .bars {
+  /* Podpis shellu: tečková matice. Při přehrávání sloupce teček "dýchají" (živý stav), jinak stojí. */
+  .dots {
     display: inline-flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 2px;
-    height: 14px;
+    flex: none;
   }
-  .bars i {
+  .col {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 2px;
+  }
+  .dots i {
     width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #ededed;
+    opacity: 0.25;
+  }
+  .dots i:first-child {
+    opacity: 0.9;
+  }
+  .dots.big i {
+    width: 4px;
     height: 4px;
-    border-radius: 2px;
-    background: #fff;
-    opacity: 0.85;
   }
-  .bars.big {
-    height: 22px;
+  .dots.playing i {
+    animation: level 1.2s var(--bw-ease) infinite alternate;
   }
-  .bars.playing i {
-    animation: eq 0.9s ease-in-out infinite alternate;
+  .dots.playing .col:nth-child(1) i:nth-child(2) { animation-delay: -0.2s; }
+  .dots.playing .col:nth-child(2) i:nth-child(2) { animation-delay: -0.7s; }
+  .dots.playing .col:nth-child(2) i:nth-child(3) { animation-delay: -0.4s; }
+  .dots.playing .col:nth-child(3) i:nth-child(2) { animation-delay: -1s; }
+  .dots.playing .col:nth-child(3) i:nth-child(3) { animation-delay: -0.1s; }
+  .dots.playing .col:nth-child(4) i:nth-child(2) { animation-delay: -0.5s; }
+  .dots.playing .col:nth-child(4) i:nth-child(3) { animation-delay: -0.9s; }
+  .dots.playing i:first-child {
+    animation: none;
   }
-  .bars.playing i:nth-child(2) {
-    animation-delay: -0.3s;
-  }
-  .bars.playing i:nth-child(3) {
-    animation-delay: -0.6s;
-  }
-  .bars.playing i:nth-child(4) {
-    animation-delay: -0.15s;
-  }
-  @keyframes eq {
+  @keyframes level {
     from {
-      height: 4px;
+      opacity: 0.2;
     }
     to {
-      height: 100%;
+      opacity: 0.9;
     }
   }
 </style>

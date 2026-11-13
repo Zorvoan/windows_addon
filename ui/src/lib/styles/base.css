@@ -14,7 +14,7 @@ body {
   font-family: var(--bw-font);
   font-size: var(--bw-text-md);
   font-weight: var(--bw-weight-normal);
-  font-feature-settings: 'cv11'; /* Inter: jednopatrové "a" */
+  font-feature-settings: 'cv11', 'tnum'; /* Inter: jednopatrové "a", číslice stejně široké */
   color: var(--bw-fg);
   -webkit-font-smoothing: antialiased;
   user-select: none;

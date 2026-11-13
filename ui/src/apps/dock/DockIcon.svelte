@@ -80,9 +80,10 @@
     display: grid;
     place-items: center;
     border-radius: 22%;
-    background: linear-gradient(160deg, #5856d6, #28aabe);
-    color: white;
-    font-weight: var(--bw-weight-bold);
+    background: var(--bw-raised);
+    border: 1px solid var(--bw-border);
+    color: var(--bw-fg-muted);
+    font-weight: var(--bw-weight-medium);
   }
   .launching {
     animation: bounce 0.9s var(--bw-ease) infinite;
@@ -99,7 +100,7 @@
   .dot {
     width: 4px;
     height: 4px;
-    margin-top: 3px;
+    margin-top: 4px;
     border-radius: 50%;
     background: var(--bw-fg);
     opacity: 0;
@@ -116,10 +117,10 @@
   }
   .label {
     position: absolute;
-    bottom: calc(100% + 6px);
-    padding: 4px 10px;
-    border-radius: var(--bw-radius-pill);
-    background: light-dark(rgb(255 255 255 / 0.92), rgb(30 30 34 / 0.92));
+    bottom: calc(100% + 8px);
+    padding: 4px 8px;
+    border-radius: var(--bw-radius-sm);
+    background: light-dark(rgb(255 255 255 / 0.94), rgb(25 25 27 / 0.94));
     border: 1px solid var(--bw-dock-border);
     color: var(--bw-fg);
     font-size: var(--bw-text-sm);

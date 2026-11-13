@@ -1,7 +1,8 @@
 """Vygeneruje vlastní ikonu aplikace (src/BetterWindows/Assets/app.ico).
 
 Spuštění:  python tools/make_icon.py   (potřebuje Pillow)
-Motiv: zaoblený čtverec s barevným přechodem, nahoře lišta, dole "dock".
+Motiv: plochá grafitová dlaždice, nahoře lišta, dole tři tečky (tečková matice = podpis shellu).
+Žádné barevné přechody – stejný glyf jako Logo.svelte.
 """
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -9,41 +10,21 @@ from PIL import Image, ImageDraw
 SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256]
 OUT = Path(__file__).resolve().parent.parent / "src" / "BetterWindows" / "Assets" / "app.ico"
 
+TILE = (35, 35, 37, 255)       # #232325 – zvýšená plocha grafitové škály
+EDGE = (237, 237, 237, 40)     # jemný okraj, aby byla dlaždice vidět i na tmavém pozadí
+GLYPH = (237, 237, 237, 255)   # #ededed – primární text
+
 
 def render(size: int) -> Image.Image:
     s = 1024  # kreslíme velké a zmenšíme = hladké hrany
     img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-
-    # Přechod shora dolů: modrofialová -> tyrkysová
-    grad = Image.new("RGBA", (s, s))
-    top, bottom = (88, 86, 214), (40, 170, 190)
-    px = grad.load()
-    for y in range(s):
-        t = y / (s - 1)
-        c = tuple(round(top[i] + (bottom[i] - top[i]) * t) for i in range(3)) + (255,)
-        for x in range(s):
-            px[x, y] = c
-
-    mask = Image.new("L", (s, s), 0)
-    ImageDraw.Draw(mask).rounded_rectangle((32, 32, s - 32, s - 32), radius=230, fill=255)
-    img.paste(grad, (0, 0), mask)
-
-    # Prvky kreslíme do samostatné vrstvy a skládáme přes alpha_composite,
-    # aby se poloprůhledné barvy správně smíchaly s podkladem.
-    layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    white = (255, 255, 255, 235)
-    # horní lišta
-    d.rounded_rectangle((170, 190, s - 170, 260), radius=35, fill=white)
-    # dock
-    d.rounded_rectangle((250, 700, s - 250, 830), radius=65, fill=(255, 255, 255, 80))
-    img = Image.alpha_composite(img, layer)
-    layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    for cx in (390, 512, 634):
-        d.ellipse((cx - 38, 727, cx + 38, 803), fill=white)
-    img = Image.alpha_composite(img, layer)
-
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle((32, 32, s - 32, s - 32), radius=224, fill=TILE, outline=EDGE, width=12)
+    # lišta nahoře
+    d.rounded_rectangle((216, 248, s - 216, 328), radius=40, fill=GLYPH)
+    # dock: tři tečky
+    for cx in (360, 512, 664):
+        d.ellipse((cx - 60, 660, cx + 60, 780), fill=GLYPH)
     return img.resize((size, size), Image.LANCZOS)
 
 

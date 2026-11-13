@@ -20,9 +20,9 @@
     <div class="temp">{formatTemp(w.temperature)}</div>
     <div class="desc">{info.label}</div>
     <div class="range">Max {formatTemp(w.high)} · Min {formatTemp(w.low)}</div>
-    <footer>{updated ? `Aktualizováno ${updated} · ` : ''}Open-Meteo</footer>
+    <footer>{updated ? `${updated} · ` : ''}Open-Meteo</footer>
   {:else if w?.status === 'disabled'}
-    <p class="muted">Počasí je vypnuté v nastavení.</p>
+    <p class="muted">Počasí je vypnuté v nastavení</p>
   {:else if w?.status === 'error'}
     <p class="muted">{w.error ?? 'Počasí se nepodařilo načíst.'}</p>
   {:else}
@@ -42,14 +42,14 @@
     align-items: flex-start;
   }
   .city {
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
     font-size: var(--bw-text-sm);
   }
   .temp {
-    font-size: 40px;
-    font-weight: 300;
+    font-size: 36px;
+    font-weight: var(--bw-weight-normal);
     line-height: 1.1;
-    margin-top: 2px;
+    margin-top: var(--bw-space-1);
   }
   .desc {
     font-weight: var(--bw-weight-medium);
@@ -61,7 +61,7 @@
   }
   footer {
     margin-top: auto;
-    font-size: 9px;
+    font-size: 11px;
     color: var(--bw-fg-subtle);
   }
   .muted {

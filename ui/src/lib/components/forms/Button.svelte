@@ -24,6 +24,10 @@
     font-size: var(--bw-text-sm);
     font-weight: var(--bw-weight-medium);
     white-space: nowrap;
+    transition: background-color var(--bw-duration-fast) var(--bw-ease);
+  }
+  button:active:not(:disabled) {
+    transform: scale(0.98);
   }
   button:hover {
     background: var(--bw-hover);
@@ -34,13 +38,13 @@
   .primary {
     background: var(--bw-accent);
     border-color: transparent;
-    color: white;
+    color: var(--bw-accent-fg);
   }
   .primary:hover {
     filter: brightness(1.08);
     background: var(--bw-accent);
   }
   .danger {
-    color: #ef4444;
+    color: var(--bw-negative);
   }
 </style>

@@ -101,8 +101,8 @@
     onpointerup={up}
     onpointercancel={up}
   >
-    <Surface variant="glass" padding={w.type === 'clock' ? 'sm' : 'md'}>
-      <div class="inner" style:height="{size.height - (w.type === 'clock' ? 18 : 34)}px">
+    <Surface variant="glass" padding={w.type === 'clock' || w.type === 'calendar' ? 'sm' : 'md'}>
+      <div class="inner" style:height="{size.height - (w.type === 'clock' || w.type === 'calendar' ? 18 : 34)}px">
         {#if w.type === 'clock'}
           <ClockWidget />
         {:else if w.type === 'calendar'}
@@ -129,24 +129,24 @@
     top: 40px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--bw-space-2);
     flex-wrap: wrap;
     max-width: 60vw;
     color: var(--bw-fg);
     font-size: var(--bw-text-xs);
   }
   .label {
-    font-weight: var(--bw-weight-bold);
-    margin-right: 4px;
-    text-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+    font-weight: var(--bw-weight-medium);
+    margin-right: var(--bw-space-1);
+    text-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
   }
   .chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    height: 20px;
-    padding: 0 8px;
-    border-radius: var(--bw-radius-pill);
+    gap: var(--bw-space-1);
+    height: 24px;
+    padding: 0 var(--bw-space-2);
+    border-radius: var(--bw-radius-sm);
     border: 1px solid var(--bw-glass-border);
     background: var(--bw-glass-bg);
     backdrop-filter: blur(12px);
@@ -160,7 +160,7 @@
   .chip.primary {
     background: var(--bw-accent);
     border-color: transparent;
-    color: white;
+    color: var(--bw-accent-fg);
   }
   .widget {
     position: absolute;
@@ -174,21 +174,12 @@
   }
   .editing {
     cursor: grab;
-    animation: wiggle 0.45s ease-in-out infinite alternate;
+    outline: 1px dashed var(--bw-border-strong);
+    outline-offset: 4px;
+    border-radius: var(--bw-radius-card);
   }
   .editing:active {
     cursor: grabbing;
-  }
-  .editing:nth-child(odd) {
-    animation-delay: -0.2s;
-  }
-  @keyframes wiggle {
-    from {
-      transform: rotate(-0.6deg);
-    }
-    to {
-      transform: rotate(0.6deg);
-    }
   }
   .remove {
     position: absolute;
@@ -201,8 +192,8 @@
     padding: 0;
     border-radius: 50%;
     border: 0;
-    background: rgb(60 60 66 / 0.92);
-    color: white;
+    background: #232325;
+    color: #ededed;
     box-shadow: var(--bw-shadow-sm);
   }
 </style>

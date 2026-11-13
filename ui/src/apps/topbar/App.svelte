@@ -38,7 +38,7 @@
 
 <header class="bar">
   <div class="left">
-    <button type="button" class="logo" title="Start" aria-label="Start" onclick={() => send('start.toggle', {})}><Logo size={18} /></button>
+    <button type="button" class="logo" title="Start" aria-label="Start" onclick={() => send('start.toggle', {})}><Logo size={16} /></button>
     <span class="app-name" title={title}>{appName}</span>
     {#if bar?.showNowPlaying !== false && media?.available}
       <span class="now-playing" title={`${media.title}${media.artist ? ' – ' + media.artist : ''}`}>
@@ -46,9 +46,9 @@
         <span class="np-title">{media.title}</span>
         {#if media.artist}<span class="np-artist">{media.artist}</span>{/if}
         <button type="button" aria-label={media.playing ? 'Pozastavit' : 'Přehrát'} onclick={() => send('media.command', { command: 'playPause' })}>
-          <Icon name={media.playing ? 'pause' : 'play'} size={12} />
+          <Icon name={media.playing ? 'pause' : 'play'} size={14} />
         </button>
-        <button type="button" aria-label="Další" disabled={!media.canNext} onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={12} /></button>
+        <button type="button" aria-label="Další" disabled={!media.canNext} onclick={() => send('media.command', { command: 'next' })}><Icon name="next" size={14} /></button>
       </span>
     {/if}
   </div>
@@ -59,20 +59,20 @@
   <div class="right">
     {#if bar?.showExit !== false}
       <button type="button" class="exit" class:confirm={confirmExit} onclick={exitClick}>
-        {confirmExit ? 'Opravdu ukončit?' : 'Ukončit'} <Icon name="exit" size={11} />
+        {confirmExit ? 'Opravdu ukončit?' : 'Ukončit'}
       </button>
     {/if}
     <IconButton icon="search" label="Hledat (Start)" onclick={() => send('start.toggle', {})} />
     <PrivacyDots state={host.privacy} />
     <IconButton icon="sliders" label="Nastavení Better Windows" onclick={() => send('settings.open', {})} />
-    {#if host.weather?.status === 'ok'}<span class="pill"><WeatherBadge state={host.weather} /></span>{/if}
+    {#if host.weather?.status === 'ok'}<span class="item"><WeatherBadge state={host.weather} /></span>{/if}
     <span class="item"><BatteryIndicator state={host.battery} /></span>
     {#if bar?.showLanguage !== false && host.inputLanguage?.code}
       <span class="lang" title={host.inputLanguage.name}>{host.inputLanguage.code}</span>
     {/if}
     {#if bar?.showUser !== false && host.user}
       <span class="user">
-        {#if host.user.avatar}<img src={host.user.avatar} alt="" />{:else}<Icon name="user" size={14} />{/if}
+        {#if host.user.avatar}<img src={host.user.avatar} alt="" />{:else}<Icon name="user" size={16} />{/if}
         <span>{host.user.name}</span>
       </span>
     {/if}
@@ -111,7 +111,7 @@
     display: inline-grid;
     place-items: center;
     width: 28px;
-    height: 26px;
+    height: 28px;
     margin-right: var(--bw-space-1);
     padding: 0;
     border: 0;
@@ -133,19 +133,19 @@
   .now-playing {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--bw-space-2);
     min-width: 0;
     max-width: 320px;
-    margin-left: var(--bw-space-3);
-    padding: 2px 4px 2px 3px;
-    border-radius: var(--bw-radius-pill);
-    background: var(--bw-hover);
+    height: 28px;
+    margin-left: var(--bw-space-4);
+    padding: 0 var(--bw-space-1);
+    border-radius: var(--bw-radius-sm);
     font-size: var(--bw-text-sm);
   }
   .now-playing img {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
     object-fit: cover;
   }
   .np-title {
@@ -165,12 +165,14 @@
     display: grid;
     place-items: center;
     flex: none;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     padding: 0;
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--bw-radius-sm);
     background: none;
+    color: var(--bw-fg-muted);
+    transition: background-color var(--bw-duration-fast) var(--bw-ease);
   }
   .now-playing button:hover {
     background: var(--bw-pressed);
@@ -181,40 +183,37 @@
   .exit {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    height: 22px;
-    padding: 0 10px;
-    margin-right: var(--bw-space-1);
-    border-radius: var(--bw-radius-pill);
-    border: 1px solid var(--bw-border);
-    background: var(--bw-hover);
+    height: 24px;
+    padding: 0 var(--bw-space-2);
+    margin-right: var(--bw-space-2);
+    border-radius: var(--bw-radius-sm);
+    border: 1px solid var(--bw-border-strong);
+    background: none;
+    color: var(--bw-fg-muted);
     font-size: var(--bw-text-xs);
-    font-weight: var(--bw-weight-medium);
+    transition:
+      background-color var(--bw-duration-fast) var(--bw-ease),
+      color var(--bw-duration-fast) var(--bw-ease);
+  }
+  .exit:hover {
+    background: var(--bw-hover);
+    color: var(--bw-fg);
   }
   .exit.confirm {
-    background: #ef4444;
+    background: var(--bw-negative);
     border-color: transparent;
-    color: white;
-  }
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    height: 22px;
-    padding: 0 8px;
-    margin: 0 var(--bw-space-1);
-    border-radius: var(--bw-radius-pill);
-    background: var(--bw-hover);
+    color: #fff;
   }
   .lang {
     padding: 0 var(--bw-space-2);
+    font-family: var(--bw-font-mono);
     font-size: var(--bw-text-xs);
-    font-weight: var(--bw-weight-bold);
-    letter-spacing: 0.03em;
+    color: var(--bw-fg-muted);
   }
   .user {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--bw-space-2);
     padding: 0 var(--bw-space-2);
     font-size: var(--bw-text-sm);
     white-space: nowrap;

@@ -28,8 +28,8 @@
   }
   h2 {
     margin: 0;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: var(--bw-text-lg);
+    font-weight: var(--bw-weight-medium);
   }
   p {
     margin: var(--bw-space-1) 0 0;

@@ -63,6 +63,18 @@ Stav (nastavení, baterie, počasí…) je „sticky“: stránka po načtení p
 
 Font Inter je přibalený lokálně (`@fontsource-variable/inter`), nic se nestahuje z internetu.
 
+## Směr designu
+
+- **Produkt:** shell ve stylu macOS nad Windows 11 (lišta, dock, ostrůvek, widgety nad tapetou) pro toho, kdo chce klidnější a osobnější plochu.
+- **Charakter:** klidný, přesný, noční.
+- **Svět:** vlastní plocha v noci – fotka tapety za matným sklem, ciferník hodinek, ukazatel hi-fi.
+- **Momenty:** tapeta prosvítající sklem widgetů; tečkový vizualizér a hodiny na zamykací obrazovce. Jinde je chrom tichý.
+- **Podpis:** tečková matice – vizualizér, Launchpad (3×3), indikátor přehrávání v ostrůvku, značka (lišta + tři tečky). Nikde jinde.
+
+Pravidla: jedna grafitová škála (`tokens.css`), tři role textu, jeden akcent (výběr, hlavní akce, dnešek, vteřinová ručička),
+významové barvy jen s významem, žádné barevné přechody ani záře, váhy písma 400–600, 4px mřížka, vnořené zaoblení,
+jedna křivka pohybu `cubic-bezier(0.22, 1, 0.36, 1)`, žádné pružiny ani smyčky bez důvodu.
+
 ## Kontroly bez Windows
 
 - `dotnet test` – logika (nastavení, dock, FFT, parsování, obnova systému) + vygeneruje `ui/harness/fixtures.json`.

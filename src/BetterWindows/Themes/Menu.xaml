@@ -5,12 +5,12 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <SolidColorBrush x:Key="Bw.Menu.Background" Color="#F2202024" />
-  <SolidColorBrush x:Key="Bw.Menu.Border" Color="#33FFFFFF" />
-  <SolidColorBrush x:Key="Bw.Menu.Foreground" Color="#FFF5F5F7" />
-  <SolidColorBrush x:Key="Bw.Menu.Muted" Color="#99F5F5F7" />
-  <SolidColorBrush x:Key="Bw.Menu.Hover" Color="#FF3A6DF0" />
-  <SolidColorBrush x:Key="Bw.Menu.Separator" Color="#22FFFFFF" />
+  <SolidColorBrush x:Key="Bw.Menu.Background" Color="#F519191B" />
+  <SolidColorBrush x:Key="Bw.Menu.Border" Color="#24EDEDED" />
+  <SolidColorBrush x:Key="Bw.Menu.Foreground" Color="#FFEDEDED" />
+  <SolidColorBrush x:Key="Bw.Menu.Muted" Color="#FF85858B" />
+  <SolidColorBrush x:Key="Bw.Menu.Hover" Color="#FF232325" />
+  <SolidColorBrush x:Key="Bw.Menu.Separator" Color="#14EDEDED" />
 
   <Style TargetType="ContextMenu" x:Key="Bw.ContextMenu">
     <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -24,9 +24,9 @@
         <ControlTemplate TargetType="ContextMenu">
           <Border Background="{DynamicResource Bw.Menu.Background}"
                   BorderBrush="{DynamicResource Bw.Menu.Border}"
-                  BorderThickness="1" CornerRadius="10" Padding="5" Margin="8">
+                  BorderThickness="1" CornerRadius="10" Padding="4" Margin="8">
             <Border.Effect>
-              <DropShadowEffect BlurRadius="18" ShadowDepth="4" Opacity="0.35" />
+              <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.2" />
             </Border.Effect>
             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" MinWidth="190" />
           </Border>
@@ -41,13 +41,12 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="MenuItem">
-          <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="10,6">
+          <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="12,8">
             <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" />
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
               <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Bw.Menu.Hover}" />
-              <Setter Property="Foreground" Value="White" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
               <Setter Property="Foreground" Value="{DynamicResource Bw.Menu.Muted}" />
@@ -63,7 +62,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Separator">
-          <Border Height="1" Margin="6,4" Background="{DynamicResource Bw.Menu.Separator}" />
+          <Border Height="1" Margin="8,4" Background="{DynamicResource Bw.Menu.Separator}" />
         </ControlTemplate>
       </Setter.Value>
     </Setter>

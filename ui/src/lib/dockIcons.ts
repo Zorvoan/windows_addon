@@ -1,13 +1,14 @@
 /** Vlastní ikony speciálních položek docku (Launchpad, Koš) jako SVG data URL. */
 const svg = (body: string) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${body}</svg>`)}`;
 
-const dots = [16, 32, 48]
-  .flatMap((y) => [16, 32, 48].map((x) => `<rect x="${x - 5}" y="${y - 5}" width="10" height="10" rx="3" fill="#fff" opacity="0.92"/>`))
+// Launchpad = tečková matice 3×3 (podpis shellu) na grafitové dlaždici, bez barevných přechodů.
+const dots = [20, 32, 44]
+  .flatMap((y) => [20, 32, 44].map((x) => `<circle cx="${x}" cy="${y}" r="4.5" fill="#ededed"/>`))
   .join('');
 
 export const launchpadIcon = svg(
-  `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset="0.5" stop-color="#c04fd8"/><stop offset="1" stop-color="#3a6df0"/></linearGradient></defs>` +
-    `<rect x="2" y="2" width="60" height="60" rx="15" fill="url(#g)"/>${dots}`,
+  `<rect x="2" y="2" width="60" height="60" rx="14" fill="#232325"/>` +
+    `<rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="#ededed" stroke-opacity="0.12"/>${dots}`,
 );
 
 const bin = (papers: boolean) =>

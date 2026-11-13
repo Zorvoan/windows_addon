@@ -17,25 +17,25 @@
   /* --- Písmo --- */
   --bw-font: 'Inter Variable', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
   --bw-font-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, monospace;
-  --bw-text-xs: 11px;
-  --bw-text-sm: 12px;
+  --bw-text-xs: 12px;
+  --bw-text-sm: 13px;
   --bw-text-md: 13px;
   --bw-text-lg: 15px;
   --bw-text-xl: 20px;
   --bw-text-2xl: 28px;
-  --bw-weight-normal: 450;
-  --bw-weight-medium: 550;
-  --bw-weight-bold: 650;
+  --bw-weight-normal: 400;
+  --bw-weight-medium: 500;
+  --bw-weight-bold: 600;
 
-  /* --- Zaoblení --- */
-  --bw-radius-card: 22px;   /* widgety, karty, velké panely */
+  /* --- Zaoblení (vnořené: vnitřní = vnější − odsazení) --- */
+  --bw-radius-card: 22px;   /* widgety a velké panely */
   --bw-radius-dock: 8px;    /* stejné jako systémové zaoblení okna (DWM "ROUND"), pod kterým je rozmazání */
   --bw-radius-lg: 14px;
   --bw-radius-md: 10px;
   --bw-radius-sm: 6px;
   --bw-radius-pill: 999px;
 
-  /* --- Mezery --- */
+  /* --- Mezery (4px mřížka) --- */
   --bw-space-1: 4px;
   --bw-space-2: 8px;
   --bw-space-3: 12px;
@@ -43,56 +43,60 @@
   --bw-space-5: 20px;
   --bw-space-6: 24px;
 
-  /* --- Text --- */
-  --bw-fg: light-dark(#141418, #f5f5f7);
-  --bw-fg-muted: light-dark(rgb(20 20 24 / 0.6), rgb(245 245 247 / 0.6));
-  --bw-fg-subtle: light-dark(rgb(20 20 24 / 0.38), rgb(245 245 247 / 0.38));
+  /* --- Neutrální škála (grafit): pozadí, plochy, okraje a text --- */
+  --bw-page: light-dark(#fafafa, #141415);
+  --bw-surface: light-dark(#ffffff, #19191b);
+  --bw-raised: light-dark(#f4f4f5, #232325);
+  --bw-border: light-dark(rgb(23 23 23 / 0.08), rgb(237 237 237 / 0.08));
+  --bw-border-strong: light-dark(rgb(23 23 23 / 0.16), rgb(237 237 237 / 0.16));
 
-  /* --- Akcenty a stavy --- */
-  --bw-accent: light-dark(#3a6df0, #7c9cff);
-  --bw-hover: light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.1));
-  --bw-pressed: light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0.16));
+  /* Tři role textu */
+  --bw-fg: light-dark(#171717, #ededed);
+  --bw-fg-muted: light-dark(#525252, #a1a1a6);
+  --bw-fg-subtle: light-dark(#737373, #85858b);
+
+  /* --- Jeden akcent (výběr, hlavní akce, dnešní den, vteřinová ručička) --- */
+  --bw-accent: light-dark(#2f62e0, #7c9cff);
+  --bw-accent-fg: light-dark(#ffffff, #0d1324);
+  --bw-hover: light-dark(rgb(23 23 23 / 0.05), rgb(237 237 237 / 0.07));
+  --bw-pressed: light-dark(rgb(23 23 23 / 0.09), rgb(237 237 237 / 0.11));
   --bw-focus-ring: 0 0 0 2px var(--bw-accent);
-  --bw-privacy-mic: #f59e0b;  /* oranžová tečka: mikrofon */
-  --bw-privacy-cam: #22c55e;  /* zelená tečka: kamera */
+
+  /* --- Významové barvy (jen s významem) --- */
+  --bw-positive: light-dark(#16a34a, #4cc38a);
+  --bw-negative: light-dark(#dc2626, #e5484d);
+  --bw-privacy-mic: #f59e0b;  /* mikrofon – oranžová jako ve Windows/macOS */
+  --bw-privacy-cam: #22c55e;  /* kamera – zelená */
 
   /* --- Horní lišta a dock (nad aplikacemi) ---
-     Rozmazání dělá systém (DWM). CSS jen přidává tón navíc, takže lištu umí ztmavit/zesvětlit,
-     ale ne zprůhlednit víc, než dovolí systémové rozmazání. */
+     Rozmazání dělá systém (DWM). CSS jen přidává tón navíc. */
   --bw-bar-tint: light-dark(rgb(255 255 255 / 0.12), rgb(0 0 0 / 0.12));
   --bw-bar-fg: var(--bw-fg);
   --bw-dock-tint: light-dark(rgb(255 255 255 / 0.12), rgb(0 0 0 / 0.16));
-  --bw-dock-border: light-dark(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.12));
+  --bw-dock-border: light-dark(rgb(255 255 255 / 0.5), rgb(237 237 237 / 0.1));
 
-  /* --- Sklo (widgety na ploše) ---
-     Rozmazání dělá CSS backdrop-filter nad tapetou, ve stejné stránce (DesktopLayer). */
-  --bw-glass-bg: light-dark(rgb(255 255 255 / 0.32), rgb(18 18 22 / 0.38));
-  --bw-glass-border: light-dark(rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.12));
-  --bw-glass-highlight: light-dark(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.08));
+  /* --- Sklo (widgety na ploše): rozmazání tapety přes CSS backdrop-filter --- */
+  --bw-glass-bg: light-dark(rgb(255 255 255 / 0.32), rgb(20 20 21 / 0.38));
+  --bw-glass-border: light-dark(rgb(255 255 255 / 0.5), rgb(237 237 237 / 0.1));
+  --bw-glass-highlight: light-dark(rgb(255 255 255 / 0.35), rgb(255 255 255 / 0.05));
   --bw-glass-blur: 28px;
-  --bw-glass-saturate: 1.5;
+  --bw-glass-saturate: 1.4;
 
   /* --- Dynamic Island --- */
   --bw-island-bg: #000;
-  --bw-island-fg: #f5f5f7;
+  --bw-island-fg: #ededed;
   --bw-island-width: 260px; /* místo, které horní lišta nechává volné uprostřed */
 
-  /* --- Neprůhledné plochy (okno nastavení apod.) --- */
-  --bw-page: light-dark(#f3f3f6, #141418);
-  --bw-surface: light-dark(#ffffff, #1f1f24);
-  --bw-border: light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.1));
+  /* --- Stíny (neutrální, malé) --- */
+  --bw-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.08);
+  --bw-shadow-md: 0 4px 12px rgb(0 0 0 / 0.14);
+  --bw-shadow-card: 0 8px 24px rgb(0 0 0 / 0.14);
 
-  /* --- Stíny --- */
-  --bw-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.12);
-  --bw-shadow-md: 0 4px 16px rgb(0 0 0 / 0.18);
-  --bw-shadow-card: 0 10px 40px rgb(0 0 0 / 0.22);
-
-  /* --- Pohyb --- */
-  --bw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --bw-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
-  --bw-duration-fast: 120ms;
+  /* --- Pohyb: jedna křivka, pár délek --- */
+  --bw-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bw-duration-fast: 140ms;
   --bw-duration: 200ms;
-  --bw-duration-slow: 320ms;
+  --bw-duration-slow: 360ms;
 }
 
 :root[data-theme='light'] {

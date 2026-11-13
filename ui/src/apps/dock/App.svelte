@@ -17,9 +17,9 @@
   const LAUNCHPAD: DockItem = { appId: 'bw:launchpad', name: 'Launchpad', pinned: true, running: false, active: false, windowCount: 0 };
   const TRASH: DockItem = { appId: 'bw:trash', name: 'Koš', pinned: true, running: false, active: false, windowCount: 0 };
 
-  const GAP = 6;
-  const PAD = 6;
-  const SEPARATOR = 13; // šířka oddělovače včetně okrajů
+  const GAP = 8;
+  const PAD = 8;
+  const SEPARATOR = 8; // oddělovač: 1px čára + okraje (plus mezera GAP)
 
   let base = $derived(host.settings?.dock.iconSize ?? 48);
   let maxScale = $derived(host.settings?.dock.magnification === false ? 1 : (host.settings?.dock.maxScale ?? 1.7));
@@ -179,7 +179,7 @@
     class="band"
     bind:this={band}
     style:transform="translateX(calc(-50% + {result.shift}px))"
-    style:height="{base + PAD * 2 + 4}px"
+    style:height="{base + PAD + 12}px"
     role="toolbar"
     aria-label="Dock"
     tabindex="-1"
@@ -211,8 +211,8 @@
     bottom: 0;
     display: flex;
     align-items: flex-end;
-    gap: 6px;
-    padding: 6px 6px 4px;
+    gap: 8px;
+    padding: 8px 8px 4px;
     border-radius: var(--bw-radius-dock);
     background: var(--bw-dock-tint);
     border: 1px solid var(--bw-dock-border);
@@ -222,7 +222,7 @@
     flex: none;
     align-self: stretch;
     width: 1px;
-    margin: 4px 3px 6px;
+    margin: 4px 0 8px;
     background: var(--bw-dock-border);
   }
 </style>

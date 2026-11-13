@@ -14,12 +14,12 @@
 
 {#if state?.status === 'ok'}
   <span class="weather" title={`${state.city ?? ''}: ${info.label}, ${formatTemp(state.temperature)} (max ${formatTemp(state.high)}, min ${formatTemp(state.low)})`}>
-    <Icon name={info.icon} size={15} />
+    <Icon name={info.icon} size={16} />
     <span>{formatTemp(state.temperature)}</span>
   </span>
 {:else if state?.status === 'error'}
   <span class="weather muted" title={`Počasí: ${state.error ?? 'chyba'}`}>
-    <Icon name="cloud" size={15} />
+    <Icon name="cloud" size={16} />
     <span>–</span>
   </span>
 {/if}
@@ -28,7 +28,7 @@
   .weather {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--bw-space-1);
     font-variant-numeric: tabular-nums;
   }
   .muted {

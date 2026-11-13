@@ -38,6 +38,6 @@
     white-space: nowrap;
   }
   .low .level {
-    fill: #ef4444;
+    fill: var(--bw-negative);
   }
 </style>

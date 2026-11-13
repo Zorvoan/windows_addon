@@ -74,7 +74,7 @@
 <div class="start">
   <div class="search">
     <Icon name="search" size={18} />
-    <input bind:this={input} bind:value={query} type="text" placeholder="Hledat aplikace" aria-label="Hledat aplikace" spellcheck="false" />
+    <input bind:this={input} bind:value={query} type="text" placeholder="Hledat" aria-label="Hledat aplikace" spellcheck="false" />
     <button type="button" class="close" aria-label="Zavřít" onclick={() => send('start.close', {})}><Icon name="close" size={14} /></button>
   </div>
 
@@ -101,7 +101,7 @@
         <span class="name">{app.name}</span>
       </button>
     {:else}
-      <p class="empty">{host.startApps.length === 0 ? 'Načítám aplikace…' : `Nic nenalezeno pro „${query}“.`}</p>
+      <p class="empty">{host.startApps.length === 0 ? 'Načítám aplikace…' : `Nic nenalezeno pro „${query}“`}</p>
     {/each}
   </div>
 
@@ -173,8 +173,8 @@
   .close {
     display: grid;
     place-items: center;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border: 0;
     border-radius: 50%;
     background: none;
@@ -195,7 +195,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: var(--bw-space-2);
     padding: var(--bw-space-3) var(--bw-space-1);
     border: 0;
     border-radius: var(--bw-radius-md);
@@ -218,11 +218,12 @@
   .ph {
     display: grid;
     place-items: center;
-    border-radius: 14px;
-    background: linear-gradient(160deg, #5856d6, #28aabe);
-    color: white;
-    font-size: 22px;
-    font-weight: var(--bw-weight-bold);
+    border-radius: 12px;
+    background: var(--bw-raised);
+    border: 1px solid var(--bw-border);
+    color: var(--bw-fg-muted);
+    font-size: 20px;
+    font-weight: var(--bw-weight-medium);
   }
   .name {
     max-width: 100%;
@@ -256,7 +257,7 @@
   .power-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--bw-space-2);
     height: 32px;
     padding: 0 12px;
     border: 0;
@@ -271,7 +272,7 @@
     position: fixed;
     display: grid;
     min-width: 180px;
-    padding: 5px;
+    padding: 4px;
     border-radius: var(--bw-radius-md);
     background: var(--bw-surface);
     border: 1px solid var(--bw-border);
@@ -279,7 +280,7 @@
   }
   .menu button {
     text-align: left;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border: 0;
     border-radius: 6px;
     background: none;
@@ -287,6 +288,6 @@
   }
   .menu button:hover {
     background: var(--bw-accent);
-    color: white;
+    color: var(--bw-accent-fg);
   }
 </style>

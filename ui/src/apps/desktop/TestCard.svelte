@@ -37,7 +37,7 @@
         <button type="button" onclick={() => clicks++}>Test myši: {clicks}×</button>
         <input type="text" placeholder="Test klávesnice – zkus psát" bind:value={typed} />
       </div>
-      <p class="hint">Kartu vypneš v Nastavení › Plocha.</p>
+      <p class="hint">Kartu vypneš v Nastavení › Plocha</p>
     </div>
   </Surface>
 </div>
@@ -57,7 +57,7 @@
   h2 {
     margin: 0;
     font-size: var(--bw-text-lg);
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
   }
   dl {
     display: grid;

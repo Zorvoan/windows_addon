@@ -44,7 +44,7 @@
   }
   text {
     font-size: 8.5px;
-    font-weight: var(--bw-weight-medium);
+    font-weight: var(--bw-weight-normal);
     fill: currentColor;
   }
   .hand {
@@ -58,10 +58,10 @@
     stroke-width: 2;
   }
   .second {
-    stroke: #f97316;
+    stroke: var(--bw-accent);
     stroke-width: 0.9;
   }
   .pivot {
-    fill: #f97316;
+    fill: var(--bw-accent);
   }
 </style>

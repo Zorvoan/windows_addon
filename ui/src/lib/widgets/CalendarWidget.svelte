@@ -49,8 +49,8 @@
 <style>
   .calendar {
     display: grid;
-    gap: 4px;
-    font-size: 9px;
+    gap: var(--bw-space-1);
+    font-size: 11px;
   }
   header {
     display: flex;
@@ -59,9 +59,10 @@
   }
   .title {
     font-size: var(--bw-text-xs);
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
+  }
+  .title::first-letter {
     text-transform: uppercase;
-    letter-spacing: 0.02em;
   }
   .nav {
     display: flex;
@@ -69,8 +70,8 @@
   .nav button {
     display: grid;
     place-items: center;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border: 0;
     border-radius: 50%;
     background: none;
@@ -86,15 +87,13 @@
     text-align: center;
   }
   .dow {
-    color: var(--bw-fg-muted);
-    font-weight: var(--bw-weight-medium);
-    padding-bottom: 2px;
+    color: var(--bw-fg-subtle);
   }
   .day {
     display: grid;
     place-items: center;
-    height: 15px;
-    width: 15px;
+    height: 16px;
+    width: 16px;
     justify-self: center;
     border-radius: 50%;
     font-variant-numeric: tabular-nums;
@@ -103,8 +102,8 @@
     color: var(--bw-fg-subtle);
   }
   .today {
-    background: #f97316;
-    color: white;
-    font-weight: var(--bw-weight-bold);
+    background: var(--bw-accent);
+    color: var(--bw-accent-fg);
+    font-weight: var(--bw-weight-medium);
   }
 </style>

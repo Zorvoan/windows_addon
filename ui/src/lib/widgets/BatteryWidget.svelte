@@ -27,7 +27,7 @@
       </div>
     </div>
   {:else}
-    <p class="muted">Tento počítač nemá baterii – napájení ze sítě.</p>
+    <p class="muted">Tento počítač nemá baterii</p>
   {/if}
 </div>
 
@@ -39,7 +39,7 @@
     gap: var(--bw-space-2);
   }
   .title {
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
     font-size: var(--bw-text-sm);
   }
   .row {
@@ -71,12 +71,12 @@
     stroke: var(--bw-hover);
   }
   .level {
-    stroke: #22c55e;
+    stroke: var(--bw-positive);
     stroke-linecap: round;
     transition: stroke-dashoffset var(--bw-duration-slow) var(--bw-ease);
   }
   .level.low {
-    stroke: #ef4444;
+    stroke: var(--bw-negative);
   }
   .label {
     font-size: var(--bw-text-sm);
@@ -84,7 +84,7 @@
   }
   .pct {
     font-size: var(--bw-text-2xl);
-    font-weight: var(--bw-weight-bold);
+    font-weight: var(--bw-weight-medium);
   }
   .state {
     font-size: var(--bw-text-xs);
